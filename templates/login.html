@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroGuard | Officer Login</title>
-    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
@@ -14,30 +13,30 @@
         }
 
         body {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            background: linear-gradient(135deg, #e8f4f8 0%, #d0e8f0 50%, #1e3a5f 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             padding: 1rem;
             margin: 0;
         }
 
         .login-card {
             width: 100%;
-            max-width: 400px;
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+            max-width: 380px;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
             overflow: hidden;
-            animation: slideUp 0.3s ease-out;
+            animation: slideUp 0.4s ease-out;
         }
 
         @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(30px);
             }
 
             to {
@@ -46,108 +45,242 @@
             }
         }
 
-        .login-header {
-            background: #1e3a5f;
-            color: white;
-            padding: 2rem 1.5rem;
+        .illustration-area {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            padding: 2rem;
             text-align: center;
+            position: relative;
         }
 
-        .login-header h1 {
-            font-size: 1.5rem;
+        .illustration-area img {
+            max-width: 180px;
+            height: auto;
         }
 
-        .form-control {
-            padding: 0.75rem 1rem;
+        .illustration-placeholder {
+            width: 150px;
+            height: 120px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .illustration-placeholder i {
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .form-area {
+            padding: 2rem 1.5rem;
+        }
+
+        .form-area h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e3a5f;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-area .subtitle {
+            color: #7a8a9a;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group-icon {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .input-group-icon i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9aa5b1;
+            font-size: 1.1rem;
+        }
+
+        .input-group-icon input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
             font-size: 1rem;
-            border-radius: 8px;
+            transition: all 0.2s;
+            background: #f8fafc;
         }
 
-        .form-control:focus {
+        .input-group-icon input:focus {
+            outline: none;
             border-color: #1e3a5f;
-            box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.2);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
         }
 
-        .btn-success {
-            background: #28a745;
+        .input-group-icon input::placeholder {
+            color: #a0aec0;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
             border: none;
+            color: #9aa5b1;
+            cursor: pointer;
+        }
+
+        .remember-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        .remember-row label {
+            color: #5a6a7a;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .form-switch .form-check-input {
+            width: 2.5rem;
+            height: 1.25rem;
+        }
+
+        .btn-login {
+            width: 100%;
             padding: 0.875rem;
+            background: #1e3a5f;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
             font-size: 1rem;
-            border-radius: 8px;
-            transition: all 0.2s ease;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .btn-success:hover {
-            background: #218838;
-            transform: translateY(-1px);
+        .btn-login:hover {
+            background: #2d5a87;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
         }
 
-        .btn-success:active {
-            transform: translateY(0);
+        .signup-link {
+            text-align: center;
+            margin-top: 1.25rem;
+            font-size: 0.9rem;
+            color: #7a8a9a;
         }
 
-        /* Mobile-specific adjustments */
+        .signup-link a {
+            color: #1e3a5f;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
         @media (max-width: 480px) {
             body {
                 padding: 0.5rem;
-                align-items: flex-start;
-                padding-top: 2rem;
             }
 
             .login-card {
-                border-radius: 12px;
+                border-radius: 20px;
             }
 
-            .login-header {
-                padding: 1.5rem 1rem;
+            .form-area {
+                padding: 1.5rem 1.25rem;
             }
 
-            .card-body {
-                padding: 1.25rem !important;
-            }
-
-            .form-control {
-                padding: 0.875rem 1rem;
+            .illustration-area {
+                padding: 1.5rem;
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="card login-card">
-        <div class="login-header">
-            <h1 class="h3 fw-bold mb-1"><i class="bi bi-flower1"></i> AgroGuard</h1>
-            <p class="mb-0 text-white-50">Officer Portal</p>
+    <div class="login-card">
+        <div class="illustration-area">
+            <div class="illustration-placeholder">
+                <i class="bi bi-phone"></i>
+            </div>
         </div>
-        <div class="card-body p-4">
+
+        <div class="form-area">
+            <h2>Login</h2>
+            <p class="subtitle">Please Sign In to continue.</p>
+
             {% if error %}
-            <div class="alert alert-danger text-center py-2 mb-3">
-                {{ error }}
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
             </div>
             {% endif %}
 
             <form action="/login" method="POST">
-                <div class="mb-3">
-                    <label class="form-label">Username</label>
-                    <input type="text" name="username" class="form-control" required placeholder="Enter your ID">
+                <div class="input-group-icon">
+                    <i class="bi bi-person"></i>
+                    <input type="text" name="username" placeholder="Username" required>
                 </div>
-                <div class="mb-4">
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control" required placeholder="Enter password">
+
+                <div class="input-group-icon">
+                    <i class="bi bi-lock"></i>
+                    <input type="password" name="password" id="password" placeholder="••••••••" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword()">
+                        <i class="bi bi-eye" id="toggleIcon"></i>
+                    </button>
                 </div>
-                <button type="submit" class="btn btn-success w-100 py-2 fw-bold">Login to Dashboard</button>
+
+                <div class="remember-row">
+                    <label class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" name="remember">
+                        <span>Remember me next time</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-login">Sign In</button>
             </form>
 
-            <div class="text-center mt-3">
-                <span class="text-muted">New officer?</span>
-                <a href="/signup" class="text-decoration-none">Create account</a>
-            </div>
-
-            <div class="text-center mt-2">
-                <small class="text-muted">Protected System. Authorized Personnel Only.</small>
-            </div>
+            <p class="signup-link">
+                Don't have account? <a href="/signup">Sign Up</a>
+            </p>
         </div>
     </div>
+
+    <script>
+        function togglePassword() {
+            const pwd = document.getElementById('password');
+            const icon = document.getElementById('toggleIcon');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                pwd.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        }
+    </script>
 </body>
 
 </html>
