@@ -1,0 +1,198 @@
+{
+  "Tomato___Early_blight": {
+    "en": {
+      "title": "Early Blight",
+      "treatment": "Remove affected leaves. Spray with a fungicide containing Mancozeb or Chlorothalonil immediately."
+    },
+    "tw": {
+      "title": "Ɔyare a ɛdi kan (Early Blight)",
+      "treatment": "Yi fa a ɔyare no no fi hɔ. Fa nnuru a ɛbɔ yare (Fungicide) a wɔfrɛ no Mancozeb anaa Chlorothalonil no hyɛ wo nua no so."
+    },
+    "ff": {
+      "title": "Ɔyare a ɛdi kan (Early Blight)",
+      "treatment": "Yi fa a ɔyare no no fi hɔ. Fa nnuru a ɛbɔ yare (Fungicide) a wɔfrɛ no Mancozeb no hyɛ wo nua no so."
+    }
+  },
+  "Tomato___Healthy": {
+    "en": {
+      "title": "Healthy",
+      "treatment": "No disease detected. Continue regular watering and weeding."
+    },
+    "tw": {
+      "title": "Ayɛ pɛ",
+      "treatment": "Enni yare biara a ɛwɔ ho. Kɔ so de nsuo hyɛ wo nua no so na yi ahoɔden."
+    },
+    "ff": {
+      "title": "Ayɛ pɛ",
+      "treatment": "Enni yare biara a ɛwɛ ho. Kɔ so de nsuo hyɛ wo nua no so."
+    }
+  },
+  "Tomato___Late_blight": {
+    "en": {
+      "title": "Late Blight",
+      "treatment": "Isolate infected plants immediately. Spray with Copper Fungicide or Mancozeb. Remove all affected leaves and fruit."
+    },
+    "tw": {
+      "title": "Ɔyare a ɔdi akyire (Late Blight)",
+      "treatment": "Pae nnua a ɔyare no wɔ so akyiri. Hyɛ Copper Fungicide anaa Mancozeb. Yi fa ne aba a ɔyare no no fi hɔ nyinaa."
+    },
+    "ff": {
+      "title": "Ɔyare a ɔdi akyire (Late Blight)",
+      "treatment": "Pae nnua a ɔyare no wɔ so akyiri. Hyɛ Copper Fungicide anaa Mancozeb. Yi fa ne aba a ɔyare no no fi hɔ nyinaa."
+    }
+  },
+  "Tomato___Leaf_Mold": {
+    "en": {
+      "title": "Leaf Mold",
+      "treatment": "Improve air circulation. Remove infected leaves. Spray with Sulfur or Copper fungicide every 7-10 days."
+    },
+    "tw": {
+      "title": "Fa Mold (Leaf Mold)",
+      "treatment": "Ma ɔfan ba nnua no mu yoo. Yi fa a ɔyare no no. Hyɛ Sulfur anaa Copper fungicide a bɛnom ɛda 7-10 a ɛkɔ so."
+    },
+    "ff": {
+      "title": "Fa Mold (Leaf Mold)",
+      "treatment": "Ma ɔfan ba nnua no mu yoo. Yi fa a ɔyare no no. Hyɛ Sulfur anaa Copper fungicide a bɛnom ɛda 7-10 a ɛkɔ so."
+    }
+  },
+  "Corn___Leaf_Spot": {
+    "en": {
+      "title": "Corn Leaf Spot",
+      "treatment": "Remove infected leaves. Spray with Copper Fungicide. Ensure good drainage and proper spacing between plants."
+    },
+    "tw": {
+      "title": "Ɔkukɔ Fa Spot (Corn Leaf Spot)",
+      "treatment": "Yi fa a ɔyare no no. Hyɛ Copper Fungicide. Hwɛ sɛ nsuo no yɛ soro ma pa na nnua no yɛ akyire so."
+    },
+    "ff": {
+      "title": "Ɔkukɔ Fa Spot (Corn Leaf Spot)",
+      "treatment": "Yi fa a ɔyare no no. Hyɛ Copper Fungicide. Hwɛ sɛ nsuo no yɛ soro ma pa na nnua no yɛ akyire so."
+    }
+  },
+  "Corn___Healthy": {
+    "en": {
+      "title": "Healthy Corn",
+      "treatment": "Plant is healthy. Continue regular weeding, watering, and monitoring for pests."
+    },
+    "tw": {
+      "title": "Ɔkukɔ Ayɛ pɛ",
+      "treatment": "Nnua no ayɛ pɛ. Kɔ so yi ahoɔden, de nsuo hyɛ na hwɛ mmoawa."
+    },
+    "ff": {
+      "title": "Ɔkukɔ Ayɛ pɛ",
+      "treatment": "Nnua no ayɛ pɛ. Kɔ so yi ahoɔden, de nsuo hyɛ na hwɛ mmoawa."
+    }
+  },
+  "Potato___Early_Blight": {
+    "en": {
+      "title": "Potato Early Blight",
+      "treatment": "Remove infected leaves and tubers. Spray with Mancozeb or Chlorothalonil every 10-14 days."
+    },
+    "tw": {
+      "title": "Ɔdadeɛ Ɔyare a ɛdi kan",
+      "treatment": "Yi fa ne tubers a ɔyare no no. Hyɛ Mancozeb anaa Chlorothalonil a bɛnom ɛda 10-14 a ɛkɔ so."
+    },
+    "ff": {
+      "title": "Ɔdadeɛ Ɔyare a ɛdi kan",
+      "treatment": "Yi fa ne tubers a ɔyare no no. Hyɛ Mancozeb anaa Chlorothalonil a bɛnom ɛda 10-14 a ɛkɔ so."
+    }
+  },
+  "Potato___Healthy": {
+    "en": {
+      "title": "Healthy Potato",
+      "treatment": "Plant is healthy. Continue proper irrigation and monitor for pests and diseases."
+    },
+    "tw": {
+      "title": "Ɔdadeɛ Ayɛ pɛ",
+      "treatment": "Nnua no ayɛ pɛ. Kɔ so de nsuo hyɛ so ma papa na hwɛ mmoawa ne yare."
+    },
+    "ff": {
+      "title": "Ɔdadeɛ Ayɛ pɛ",
+      "treatment": "Nnua no ayɛ pɛ. Kɔ so de nsuo hyɛ so ma papa na hwɛ mmoawa ne yare."
+    }
+  },
+  "Cassava___Brown_Leaf_Spot": {
+    "en": {
+      "title": "Cassava Brown Leaf Spot",
+      "treatment": "Remove infected leaves. Spray with Copper based fungicide. Practice crop rotation."
+    },
+    "tw": {
+      "title": "Gari Fa Spot Brɔn",
+      "treatment": "Yi fa a ɔyare no no. Hyɛ Copper fungicide. Yɛ nɛma a ɛkɔ so."
+    },
+    "ff": {
+      "title": "Gari Fa Spot Brɔn",
+      "treatment": "Yi fa a ɔyare no no. Hyɛ Copper fungicide. Yɛ nɛma a ɛkɔ so."
+    }
+  },
+  "Cassava___Healthy": {
+    "en": {
+      "title": "Healthy Cassava",
+      "treatment": "Plant is healthy. Continue regular weeding and ensure proper drainage."
+    },
+    "tw": {
+      "title": "Gari Ayɛ pɛ",
+      "treatment": "Nnua no ayɛ pɛ. Kɔ so yi ahoɔden na hwɛ sɛ nsuo no yɛ soro ma pa."
+    },
+    "ff": {
+      "title": "Gari Ayɛ pɛ",
+      "treatment": "Nnua no ayɛ pɛ. Kɔ so yi ahoɔden na hwɛ sɛ nsuo no yɛ soro ma pa."
+    }
+  },
+  "Rice___Leaf_Blast": {
+    "en": {
+      "title": "Rice Leaf Blast",
+      "treatment": "Remove infected leaves. Use disease-resistant varieties. Spray with Tricyclazole or Propiconazole fungicide."
+    },
+    "tw": {
+      "title": "Risi Fa Blast",
+      "treatment": "Yi fa a ɔyare no no. Fa risi a ɔyare no nyɛ no. Hyɛ Tricyclazole anaa Propiconazole fungicide."
+    },
+    "ff": {
+      "title": "Risi Fa Blast",
+      "treatment": "Yi fa a ɔyare no no. Fa risi a ɔyare no nyɛ no. Hyɛ Tricyclazole anaa Propiconazole fungicide."
+    }
+  },
+  "Rice___Healthy": {
+    "en": {
+      "title": "Healthy Rice",
+      "treatment": "Plant is healthy. Maintain proper water levels and continue monitoring for pests."
+    },
+    "tw": {
+      "title": "Risi Ayɛ pɛ",
+      "treatment": "Nnua no ayɛ pɛ. Ma nsuo no yɛ pa na hwɛ mmoawa."
+    },
+    "ff": {
+      "title": "Risi Ayɛ pɛ",
+      "treatment": "Nnua no ayɛ pɛ. Ma nsuo no yɛ pa na hwɛ mmoawa."
+    }
+  },
+  "Cocoa___Frosty_Pod": {
+    "en": {
+      "title": "Cocoa Frosty Pod Rot",
+      "treatment": "Remove infected pods immediately. Improve drainage. Apply Copper fungicide to healthy pods."
+    },
+    "tw": {
+      "title": "Acheá Ntini Rot",
+      "treatment": "Gye ntini a ɔyare no no akyiri ntɛm. Ma nsuo no yɛ soro ma pa. Hyɛ Copper fungicide wɔ ntini pɛ no so."
+    },
+    "ff": {
+      "title": "Acheá Ntini Rot",
+      "treatment": "Gye ntini a ɔyare no no akyiri ntɛm. Ma nsuo no yɛ soro ma pa. Hyɛ Copper fungicide wɔ ntini pɛ no so."
+    }
+  },
+  "Cocoa___Healthy": {
+    "en": {
+      "title": "Healthy Cocoa",
+      "treatment": "Plant is healthy. Maintain shade coverage and proper pruning. Monitor for pests regularly."
+    },
+    "tw": {
+      "title": "Acheá Ayɛ pɛ",
+      "treatment": "Nnua no ayɛ pɛ. Ma ɔsuban wɔ so na kɔ so yi nnua no papa. Hwɛ mmoawa."
+    },
+    "ff": {
+      "title": "Acheá Ayɛ pɛ",
+      "treatment": "Nnua no ayɛ pɛ. Ma ɔsuban wɔ so na kɔ so yi nnua no papa. Hwɛ mmoawa."
+    }
+  }
+}

@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#2ecc71">
+    <title>AgroGuard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-green: #2ecc71;
+            --dark-blue: #1e3a5f;
+            --light-bg: #f8f9fa;
+            --white: #ffffff;
+            --gray-text: #6c757d;
+            --nav-height: 70px;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding-bottom: calc(var(--nav-height) + 20px);
+            user-select: none;
+            /* App-like feel */
+        }
+
+        /* App Header */
+        .app-header {
+            background: var(--white);
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .brand-logo {
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--primary-green);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lang-switch {
+            border: 1px solid #eee;
+            padding: 0.25rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            background: var(--light-bg);
+            font-weight: 600;
+        }
+
+        /* View Container */
+        .view-section {
+            display: none;
+            padding: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Dashboard/Home View */
+        .card-weather-mini {
+            background: linear-gradient(135deg, #1e3a5f, #2ecc71);
+            color: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .weather-info h3 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .weather-info p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark-blue);
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-list-home .history-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .status-dot.safe {
+            background: var(--primary-green);
+        }
+
+        .status-dot.danger {
+            background: #e74c3c;
+        }
+
+        /* Scan View */
+        .scan-container {
+            text-align: center;
+            padding-top: 2rem;
+        }
+
+        .camera-circle {
+            width: 200px;
+            height: 200px;
+            background: var(--white);
+            border-radius: 50%;
+            margin: 0 auto 2rem;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid var(--primary-green);
+        }
+
+        .camera-btn-inner {
+            width: 180px;
+            height: 180px;
+            background: var(--primary-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 4rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .camera-btn-inner:active {
+            transform: scale(0.95);
+        }
+
+        .image-preview-area {
+            max-width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .image-preview-area img {
+            width: 100%;
+            display: block;
+            border-radius: 10%;
+        }
+
+        .scan-result-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: left;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* Profile/More View */
+        .menu-list {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .menu-item {
+            padding: 1.25rem;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 500;
+            color: var(--dark-blue);
+            cursor: pointer;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item i {
+            font-size: 1.2rem;
+            color: var(--primary-green);
+            width: 25px;
+            text-align: center;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--gray-text);
+            text-decoration: none;
+            padding: 0.5rem;
+            transition: all 0.3s;
+            flex: 1;
+        }
+
+        .nav-item i {
+            font-size: 1.5rem;
+            margin-bottom: 2px;
+        }
+
+        .nav-item.active {
+            color: var(--primary-green);
+            font-weight: 600;
+        }
+
+        /* Scan FAB (Floating Action Button in Nav) */
+        .nav-scan-fab {
+            background: var(--primary-green);
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.4);
+            margin-bottom: 25px;
+            /* Push it up */
+            border: 4px solid var(--white);
+        }
+
+        .nav-scan-fab i {
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        /* Modal Override */
+        .modal-bottom-sheet {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 1.5rem;
+            transition: bottom 0.3s ease-out;
+            z-index: 2000;
+            box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.2);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-bottom-sheet.show {
+            bottom: 0;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1500;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
+            margin: 0 auto 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- App Header -->
+    <header class="app-header">
+        <div class="brand-logo">
+            <i class="bi bi-flower1"></i> AgroGuard
+        </div>
+        <select id="languageSelect" class="lang-switch" onchange="changeLanguage()">
+            <option value="en">🇬🇧 EN</option>
+            <option value="tw">🇬🇭 TW</option>
+            <option value="ff">🇬🇭 FF</option>
+        </select>
+    </header>
+
+    <!-- VIEW: HOME -->
+    <div id="view-home" class="view-section active">
+        <div class="greeting-box mb-4">
+            <h5 class="text-muted mb-0" id="greeting">Hello, Farmer</h5>
+            <h2 class="fw-bold" id="main-title">My Farm Status</h2>
+        </div>
+
+        <!-- Weather Mini Card -->
+        <div class="card-weather-mini" onclick="switchView('weather')">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="bi bi-geo-alt-fill"></i> <span id="location-text">Local Farm</span>
+                </div>
+                <div class="weather-info">
+                    <h3 id="home-temp">--°</h3>
+                    <p id="home-condition">Loading...</p>
+                </div>
+            </div>
+            <i class="bi bi-cloud-sun-fill" style="font-size: 3rem; opacity: 0.8;"></i>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="section-title">
+            <span id="recent-scans-title">Recent Scans</span>
+            <small onclick="switchView('profile')" style="color: var(--primary-green); cursor: pointer;">View
+                All</small>
+        </div>
+
+        <div id="home-history-list" class="history-list-home">
+            <div class="text-center text-muted p-3">No recent scans</div>
+        </div>
+    </div>
+
+    <!-- VIEW: SCAN -->
+    <div id="view-scan" class="view-section">
+        <div class="scan-container">
+            <h2 class="fw-bold mb-3" id="diagnose-title">Diagnose Crop</h2>
+
+            <div class="image-preview-area" id="preview-area">
+                <img id="preview-img" src="" alt="Preview">
+            </div>
+
+            <!-- Initial Camera Button -->
+            <div class="camera-circle" id="camera-btn-container" onclick="document.getElementById('fileInput').click()">
+                <div class="camera-btn-inner">
+                    <i class="bi bi-camera-fill"></i>
+                </div>
+            </div>
+            <p class="text-muted" id="tap-instruction">Tap to take a photo</p>
+
+            <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none"
+                onchange="handleFileSelect()">
+
+            <!-- Action Buttons (Hidden initially) -->
+            <div id="scan-actions" style="display:none; gap: 1rem; justify-content: center; margin-bottom: 2rem;">
+                <button class="btn btn-outline-secondary rounded-pill px-4" onclick="resetScan()">Retake</button>
+                <button class="btn btn-success rounded-pill px-4" id="analyze-btn" onclick="analyzeImage()">
+                    Analyze Crop
+                </button>
+            </div>
+
+            <!-- Result Card -->
+            <div id="result-card" class="scan-result-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="text-muted mb-1">Detected Issue</h6>
+                        <h3 class="fw-bold text-dark m-0" id="result-disease">--</h3>
+                    </div>
+                    <span class="badge bg-success rounded-pill" id="result-confidence">--%</span>
+                </div>
+                <hr>
+                <h6 class="fw-bold" style="color: var(--primary-green);">RECOMMENDED TREATMENT</h6>
+                <p class="text-muted small" style="line-height: 1.6;" id="result-treatment">--</p>
+                <button class="btn btn-light w-100 mt-3 rounded-pill" onclick="resetScan()">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW: WEATHER -->
+    <div id="view-weather" class="view-section">
+        <h2 class="fw-bold mb-4" id="weather-title">Weather Forecast</h2>
+        <div class="card p-4 border-0 shadow-sm text-center mb-4 rounded-4">
+            <i class="bi bi-cloud-sun text-warning display-1 mb-3"></i>
+            <h1 class="display-3 fw-bold mb-0" id="weather-main-temp">32°</h1>
+            <p class="text-muted" id="weather-main-desc">Partly Cloudy</p>
+
+            <div class="row mt-4">
+                <div class="col-6 border-end">
+                    <h5 class="fw-bold mb-0" id="weather-humidity">85%</h5>
+                    <small class="text-muted">Humidity</small>
+                </div>
+                <div class="col-6">
+                    <h5 class="fw-bold mb-0" id="weather-risk">Low</h5>
+                    <small class="text-muted">Risk Level</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW: PROFILE (History & Tips) -->
+    <div id="view-profile" class="view-section">
+        <h2 class="fw-bold mb-4" id="profile-title">Resources</h2>
+
+        <div class="menu-list">
+            <div class="menu-item" onclick="openBottomSheet('history')">
+                <i class="bi bi-clock-history"></i>
+                <span id="menu-history">Scan History</span>
+            </div>
+            <div class="menu-item" onclick="openBottomSheet('tips')">
+                <i class="bi bi-lightbulb"></i>
+                <span id="menu-tips">Farming Tips</span>
+            </div>
+            <div class="menu-item" onclick="alert('Coming soon!')">
+                <i class="bi bi-gear"></i>
+                <span id="menu-settings">Settings</span>
+            </div>
+        </div>
+
+        <div class="mt-4 p-3 bg-white rounded-4 shadow-sm">
+            <h6 class="fw-bold mb-2">AgroGuard App</h6>
+            <small class="text-muted d-block">Version 1.0.0 (Phase 1)</small>
+            <small class="text-muted d-block">Offline capable</small>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" onclick="switchView('home'); return false;">
+            <i class="bi bi-house-door-fill"></i>
+            <span id="nav-home">Home</span>
+        </a>
+        <a href="#" class="nav-item" onclick="switchView('weather'); return false;">
+            <i class="bi bi-cloud-sun-fill"></i>
+            <span id="nav-weather">Weather</span>
+        </a>
+
+        <!-- Center Floating Button -->
+        <div style="position: relative; width: 60px;">
+            <a href="#" class="nav-scan-fab" onclick="switchView('scan'); return false;">
+                <i class="bi bi-camera-fill"></i>
+            </a>
+        </div>
+
+        <a href="#" class="nav-item" onclick="alert('Community coming soon!'); return false;">
+            <i class="bi bi-people-fill"></i>
+            <span id="nav-community">Community</span>
+        </a>
+        <a href="#" class="nav-item" onclick="switchView('profile'); return false;">
+            <i class="bi bi-person-circle"></i>
+            <span id="nav-profile">Profile</span>
+        </a>
+    </nav>
+
+    <!-- Bottom Sheet Modal (Universal) -->
+    <div class="overlay" id="overlay" onclick="closeBottomSheet()"></div>
+    <div class="modal-bottom-sheet" id="bottomSheet">
+        <div class="sheet-handle"></div>
+        <h3 class="fw-bold mb-3" id="sheet-title">Title</h3>
+        <div id="sheet-content"></div>
+    </div>
+
+    <script>
+        // --- Identity Management (Anonymous) ---
+        function getFarmerId() {
+            let id = localStorage.getItem('agroguard_did');
+            if (!id) {
+                // Generate simple random ID
+                id = 'did_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('agroguard_did', id);
+            }
+            return id;
+        }
+
+        const farmerId = getFarmerId();
+
+        // State & Config
+        let currentLang = 'en';
+        let deferredPrompt;
+
+        // Preload Scan History if exists
+        let scanHistory = JSON.parse(localStorage.getItem('agroHistory')) || [];
+
+        // Translations
+        const i18n = {
+            en: {
+                greeting: "Hello, Farmer", "main-title": "My Farm Status", "location-text": "Local Farm",
+                "recent-scans-title": "Recent Scans", "diagnose-title": "Diagnose Crop",
+                "tap-instruction": "Tap to take a photo", "nav-home": "Home", "nav-weather": "Weather",
+                "nav-community": "Community", "nav-profile": "Profile", "weather-title": "Weather",
+                "profile-title": "Resources", "menu-history": "Scan History", "menu-tips": "Farming Tips",
+                "menu-settings": "Settings", "sheet-history": "Scan History", "sheet-tips": "Farming Tips"
+            },
+            tw: {
+                greeting: "Maakye, Odwan", "main-title": "Me Fuo", "location-text": "Wo Fuo So",
+                "recent-scans-title": "Nneɛma a W'ahwɛ", "diagnose-title": "Hwim Yare",
+                "tap-instruction": "Mia ha na fa 'photo'", "nav-home": "Fie", "nav-weather": "Ewiem",
+                "nav-community": "Kurom", "nav-profile": "Me Ho", "weather-title": "Ewiem Tebea",
+                "profile-title": "Nneɛma", "menu-history": "Akra", "menu-tips": "Afotu",
+                "menu-settings": "Nsesa", "sheet-history": "Akra a W'ahwɛ", "sheet-tips": "Kuayɛ Afotu"
+            },
+            ff: { // Fante (Using Twi as placeholder mostly)
+                greeting: "Maakye, Odwan", "main-title": "Me Fuo", "location-text": "Wo Fuo So",
+                "recent-scans-title": "Nneɛma a W'ahwɛ", "diagnose-title": "Hwim Yare",
+                "tap-instruction": "Mia ha na fa 'photo'", "nav-home": "Fie", "nav-weather": "Ewiem",
+                "nav-community": "Kurom", "nav-profile": "Me Ho", "weather-title": "Ewiem Tebea",
+                "profile-title": "Nneɛma", "menu-history": "Akra", "menu-tips": "Afotu",
+                "menu-settings": "Nsesa", "sheet-history": "Akra a W'ahwɛ", "sheet-tips": "Kuayɛ Afotu"
+            }
+        };
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWeather();
+            renderHistoryHome();
+        });
+
+        // Navigation Logic
+        function switchView(viewName) {
+            // Hide all views
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            // Show target
+            document.getElementById(`view-${viewName}`).classList.add('active');
+
+            // Update Nav Icons
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            // Start simple: map view to approximate nav item
+            if (viewName === 'home') document.querySelectorAll('.nav-item')[0].classList.add('active');
+            if (viewName === 'weather') document.querySelectorAll('.nav-item')[1].classList.add('active');
+            if (viewName === 'profile') document.querySelectorAll('.nav-item')[4].classList.add('active');
+        }
+
+        // Camera Logic
+        function handleFileSelect() {
+            const file = document.getElementById('fileInput').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('preview-img').src = e.target.result;
+                    document.getElementById('preview-area').style.display = 'block';
+                    document.getElementById('camera-btn-container').style.display = 'none';
+                    document.getElementById('tap-instruction').style.display = 'none';
+                    document.getElementById('scan-actions').style.display = 'flex';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function resetScan() {
+            document.getElementById('fileInput').value = '';
+            document.getElementById('preview-area').style.display = 'none';
+            document.getElementById('camera-btn-container').style.display = 'flex';
+            document.getElementById('tap-instruction').style.display = 'block';
+            document.getElementById('scan-actions').style.display = 'none';
+            document.getElementById('result-card').style.display = 'none';
+        }
+
+        async function analyzeImage() {
+            const btn = document.getElementById('analyze-btn');
+            const originalText = btn.innerText;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Analyzing...';
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', document.getElementById('fileInput').files[0]);
+
+            try {
+                // Send Device ID in Headers
+                const headers = { 'device-id': farmerId };
+
+                const res = await fetch(`/predict?lang=${currentLang}`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error("Server Error");
+
+                const data = await res.json();
+
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                // Show Results
+                document.getElementById('result-disease').innerText = data.disease;
+                document.getElementById('result-confidence').innerText = Math.round(data.confidence * 100) + '%';
+                document.getElementById('result-treatment').innerText = data.treatment;
+                document.getElementById('result-card').style.display = 'block';
+                document.getElementById('scan-actions').style.display = 'none';
+
+                // Save to Local History
+                saveScanToHistory(data.disease, data.confidence, data.treatment);
+
+            } catch (e) {
+                console.error(e);
+                alert("Analysis failed. Please try again.");
+            } finally {
+                btn.innerHTML = originalText; // Revert to original text
+                btn.disabled = false;
+            }
+        }
+
+        // Local Storage History
+        function saveScanToHistory(disease, conf, treatment) {
+            let hist = JSON.parse(localStorage.getItem('agroHistory')) || [];
+            if (!Array.isArray(hist)) hist = [];
+
+            const date = new Date().toLocaleDateString(); // Generate date here
+            hist.unshift({ disease, conf, date, treatment }); // Add treatment to history item
+            if (hist.length > 20) hist.pop();
+            localStorage.setItem('agroHistory', JSON.stringify(hist));
+            renderHistoryHome();
+        }
+
+        function renderHistoryHome() {
+            let hist = JSON.parse(localStorage.getItem('agroHistory')) || [];
+            if (!Array.isArray(hist)) hist = [];
+
+            const container = document.getElementById('home-history-list');
+
+            if (hist.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted p-3">No recent scans</div>';
+                return;
+            }
+
+            container.innerHTML = hist.slice(0, 3).map(item => `
+                <div class="history-item">
+                    <div class="status-dot ${item.disease && item.disease.includes('Healthy') ? 'safe' : 'danger'}"></div>
+                    <div style="flex:1">
+                        <div class="fw-bold">${item.disease || 'Unknown'}</div>
+                        <small class="text-muted">${item.date}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Weather
+        async function loadWeather() {
+            try {
+                const res = await fetch('/weather');
+                const data = await res.json();
+                // Home View
+                document.getElementById('home-temp').innerText = data.temp + '°';
+                document.getElementById('home-condition').innerText = data.condition || 'Good';
+
+                // Weather View
+                document.getElementById('weather-main-temp').innerText = data.temp + '°';
+                document.getElementById('weather-humidity').innerText = data.humidity + '%';
+                document.getElementById('weather-risk').innerText = data.risk;
+            } catch (e) { console.error(e); }
+        }
+
+        // Bottom Sheet Logic
+        function openBottomSheet(type) {
+            document.getElementById('overlay').classList.add('show');
+            document.getElementById('bottomSheet').classList.add('show');
+
+            const title = document.getElementById('sheet-title');
+            const content = document.getElementById('sheet-content');
+
+            if (type === 'history') {
+                title.innerText = i18n[currentLang]['sheet-history'];
+                let hist = JSON.parse(localStorage.getItem('agroHistory')) || [];
+                if (!Array.isArray(hist)) hist = [];
+
+                content.innerHTML = hist.length ? hist.map(item => `
+                    <div class="p-3 border-bottom">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold ${item.disease && item.disease.includes('Healthy') ? 'text-success' : 'text-danger'}">${item.disease || 'Unknown'}</span>
+                            <small>${item.date}</small>
+                        </div>
+                    </div>
+                `).join('') : '<p class="text-muted text-center p-3">No history yet</p>';
+
+            } else if (type === 'tips') {
+                title.innerText = i18n[currentLang]['sheet-tips'];
+                content.innerHTML = `
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Check plants daily for spots.</li>
+                        <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Water early morning.</li>
+                        <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Rotate crops every season.</li>
+                    </ul>
+                `;
+            }
+        }
+
+        function closeBottomSheet() {
+            document.getElementById('overlay').classList.remove('show');
+            document.getElementById('bottomSheet').classList.remove('show');
+        }
+
+        // Language
+        function changeLanguage() {
+            currentLang = document.getElementById('languageSelect').value;
+            const t = i18n[currentLang];
+            for (const key in t) {
+                const el = document.getElementById(key);
+                if (el) el.innerText = t[key];
+            }
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW failed', err));
+            });
+        }
+    </script>
+</body>
+
+</html>

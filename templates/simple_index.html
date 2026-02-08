@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroGuard - Crop Disease Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #2ecc71;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .upload-section {
+            margin: 30px 0;
+        }
+
+        .upload-box {
+            border: 2px dashed #2ecc71;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-box:hover {
+            background: #f0f9f5;
+            border-color: #27ae60;
+        }
+
+        .upload-box input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .preview {
+            margin: 20px 0;
+            display: none;
+        }
+
+        .preview img {
+            width: 100%;
+            border-radius: 10px;
+            max-height: 300px;
+            object-fit: cover;
+        }
+
+        .language-select {
+            margin: 20px 0;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-analyze {
+            background: #2ecc71;
+            color: white;
+            display: none;
+        }
+
+        .btn-analyze:hover {
+            background: #27ae60;
+        }
+
+        .btn-analyze:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .result {
+            background: #f0f9f5;
+            border-left: 4px solid #2ecc71;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result.error {
+            background: #fadbd8;
+            border-left-color: #e74c3c;
+        }
+
+        .disease-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2ecc71;
+            margin-bottom: 10px;
+        }
+
+        .result.error .disease-name {
+            color: #e74c3c;
+        }
+
+        .confidence {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .treatment {
+            color: #333;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #2ecc71;
+        }
+
+        .spinner {
+            border: 3px solid #f0f0f0;
+            border-top: 3px solid #2ecc71;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .history {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .history-item {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .device-id {
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🌾</div>
+            <h1>AgroGuard</h1>
+            <p class="subtitle">Detect crop diseases in seconds</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-box" onclick="document.getElementById('imageInput').click()">
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">Click to upload crop image<br>or drag and drop</div>
+                <input type="file" id="imageInput" accept="image/*" />
+            </div>
+
+            <div class="preview" id="preview">
+                <img id="previewImg" src="" alt="preview">
+            </div>
+        </div>
+
+        <div class="language-select">
+            <label for="language">Language / ቋንቋ</label>
+            <select id="language">
+                <option value="en">English</option>
+                <option value="tw">Twi</option>
+                <option value="ff">Fante</option>
+            </select>
+        </div>
+
+        <button class="btn btn-analyze" id="analyzeBtn" onclick="analyzeCrop()">Analyze Image</button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing image...</p>
+        </div>
+
+        <div class="result" id="result"></div>
+
+        <div class="history">
+            <h3 style="color: #333; margin-bottom: 15px;">📋 Recent Scans</h3>
+            <div id="historyList"></div>
+        </div>
+
+        <div class="device-id">
+            <strong>Device ID:</strong> <span id="deviceId"></span>
+        </div>
+    </div>
+
+    <script>
+        // Generate or get device ID
+        let deviceId = localStorage.getItem('deviceId') || generateDeviceId();
+        if (!localStorage.getItem('deviceId')) {
+            localStorage.setItem('deviceId', deviceId);
+        }
+        document.getElementById('deviceId').textContent = deviceId;
+
+        function generateDeviceId() {
+            return 'DEV-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        // File upload
+        const imageInput = document.getElementById('imageInput');
+        const preview = document.getElementById('preview');
+        const previewImg = document.getElementById('previewImg');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    preview.style.display = 'block';
+                    analyzeBtn.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Analyze crop
+        async function analyzeCrop() {
+            const file = imageInput.files[0];
+            const language = document.getElementById('language').value;
+
+            if (!file) {
+                alert('Please select an image');
+                return;
+            }
+
+            analyzeBtn.disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('device_id', deviceId);
+            formData.append('lang', language);
+
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(data.disease, data.confidence, data.treatment);
+                    loadHistory();
+                } else {
+                    showResult('Error', 0, data.error || 'Analysis failed', true);
+                }
+            } catch (error) {
+                showResult('Error', 0, 'Network error: ' + error.message, true);
+            } finally {
+                analyzeBtn.disabled = false;
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Show result
+        function showResult(disease, confidence, treatment, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result' + (isError ? ' error' : '');
+            resultDiv.innerHTML = `
+                <div class="disease-name">${disease}</div>
+                <div class="confidence">Confidence: ${(confidence * 100).toFixed(1)}%</div>
+                <div class="treatment"><strong>Treatment:</strong><br>${treatment}</div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        // Load history
+        async function loadHistory() {
+            try {
+                const response = await fetch(`/api/scans/${deviceId}`);
+                const data = await response.json();
+
+                const historyList = document.getElementById('historyList');
+                if (data.scans.length === 0) {
+                    historyList.innerHTML = '<p style="color: #999; font-size: 13px;">No scans yet</p>';
+                    return;
+                }
+
+                historyList.innerHTML = data.scans.slice(0, 5).map(scan => `
+                    <div class="history-item">
+                        <strong>${scan.disease}</strong> - ${(scan.confidence * 100).toFixed(0)}% (${new Date(scan.date).toLocaleDateString()})
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+        // Load history on startup
+        loadHistory();
+    </script>
+</body>
+</html>
