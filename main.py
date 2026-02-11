@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # FastAPI imports
-from fastapi import FastAPI, Request, UploadFile, File, Header, Query, Form, HTTPException, status, Response, Cookie
+from fastapi import FastAPI, Request, UploadFile, File, Header, Query, Form, HTTPException, status, Response, Depends
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
@@ -23,6 +23,7 @@ from fastapi.staticfiles import StaticFiles
 
 # Local imports
 import database
+import auth
 
 
 # ============================================================================
@@ -187,9 +188,11 @@ async def login(request: Request, username: str = Form(...), password: str = For
     if not user:
         return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials"})
     
-    # Simple Session via Cookie
+    # Generate JWT
+    access_token = auth.create_access_token(data={"sub": username, "type": "officer"})
+    
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
-    response.set_cookie(key="session_user", value=username)
+    response.set_cookie(key="access_token", value=access_token, httponly=True)
     return response
 
 
@@ -211,42 +214,33 @@ async def signup(request: Request, username: str = Form(...), password: str = Fo
     # Try to create the officer
     try:
         database.create_officer(username, password)
-        return templates.TemplateResponse("signup.html", {"request": request, "error": None, "success": "Account created! You can now login."})
+        # Auto-login
+        access_token = auth.create_access_token(data={"sub": username, "type": "officer"})
+        response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+        response.set_cookie(key="access_token", value=access_token, httponly=True)
+        return response
     except Exception as e:
         return templates.TemplateResponse("signup.html", {"request": request, "error": "Username already exists", "success": None})
 
 
-@app.post("/login")
-async def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    user = database.verify_officer(username, password)
-    if not user:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials"})
-    
-    # Simple Session via Cookie
-    response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
-    response.set_cookie(key="session_user", value=username)
-    return response
+# Removed duplicate login route
+
 
 
 @app.get("/logout")
 async def logout():
     response = RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
-    response.delete_cookie("session_user")
+    response.delete_cookie("access_token")
     return response
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request, session_user: Optional[str] = Cookie(None)):
-    if not session_user:
-        return RedirectResponse(url="/login")
-    return templates.TemplateResponse("dashboard.html", {"request": request, "user": session_user})
+async def dashboard(request: Request, current_user: dict = Depends(auth.get_current_user)):
+    return templates.TemplateResponse("dashboard.html", {"request": request, "user": current_user["user_id"]})
 
 
 @app.get("/api/dashboard/stats")
-async def dashboard_stats(session_user: Optional[str] = Cookie(None)):
-    if not session_user:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    
+async def dashboard_stats(current_user: dict = Depends(auth.get_current_user)):
     stats = database.get_dashboard_stats()
     return JSONResponse(stats)
 

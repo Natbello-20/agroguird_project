@@ -8,8 +8,8 @@ import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional
 from functools import wraps
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPCredentials
+from fastapi import Depends, HTTPException, status, Request, Cookie
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import os
 from dotenv import load_dotenv
 
@@ -20,7 +20,7 @@ JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-me-in-production")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 # ============================================================================
@@ -79,9 +79,29 @@ def decode_access_token(token: str) -> dict:
 # DEPENDENCY INJECTION FOR PROTECTED ROUTES
 # ============================================================================
 
-async def get_current_user(credentials: HTTPCredentials = Depends(security)) -> dict:
-    """Dependency to extract and validate current user from JWT token"""
-    token = credentials.credentials
+async def get_current_user(
+    request: Request,
+    token_cookie: Optional[str] = Cookie(None, alias="access_token"),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
+) -> dict:
+    """Dependency to extract and validate current user from JWT token (Cookie or Header)"""
+    token = None
+    
+    # 1. Try Cookie
+    if token_cookie:
+        token = token_cookie
+    
+    # 2. Try Header
+    elif credentials:
+        token = credentials.credentials
+        
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        
     payload = decode_access_token(token)
     
     user_id = payload.get("sub")
@@ -121,7 +141,7 @@ async def get_aeo_user(current_user: dict = Depends(get_current_user)) -> dict:
 # OPTIONAL: NO AUTH REQUIRED (FOR BACKWARD COMPATIBILITY)
 # ============================================================================
 
-async def get_optional_user(credentials: Optional[HTTPCredentials] = Depends(security)) -> Optional[dict]:
+async def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Optional[dict]:
     """Get current user if token provided, but don't fail if not"""
     if credentials is None:
         return None

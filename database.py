@@ -128,6 +128,23 @@ def get_dashboard_stats():
         JOIN farmers f ON s.farmer_device_id = f.device_id
         ORDER BY s.timestamp DESC LIMIT 10
     ''').fetchall()
+
+    # Chart 1: Disease Distribution
+    distribution = c.execute('''
+        SELECT disease, COUNT(*) as count 
+        FROM scans 
+        GROUP BY disease 
+        ORDER BY count DESC LIMIT 5
+    ''').fetchall()
+
+    # Chart 2: Daily Scans (Last 7 Days)
+    # Note: SQLite date manipulation can be tricky, using simple substring for YYYY-MM-DD
+    daily = c.execute('''
+        SELECT substr(timestamp, 1, 10) as day, COUNT(*) as count 
+        FROM scans 
+        GROUP BY day 
+        ORDER BY day DESC LIMIT 7
+    ''').fetchall()
     
     conn.close()
     
@@ -137,7 +154,9 @@ def get_dashboard_stats():
         "active_farmers": active_farmers,
         "districts_monitored": districts,
         "recent_alerts": [dict(row) for row in alerts],
-        "recent_scans": [dict(row) for row in recent_scans]
+        "recent_scans": [dict(row) for row in recent_scans],
+        "disease_distribution": {row['disease']: row['count'] for row in distribution},
+        "daily_scans": {row['day']: row['count'] for row in daily}
     }
 
 if __name__ == "__main__":
