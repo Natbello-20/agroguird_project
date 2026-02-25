@@ -1,14 +1,16 @@
 """
-AgroGuard - Minimal Phase 1 Backend
-Simple, lightweight, no complex dependencies
+AgroGuard - Phase 2 Backend
+With real OpenWeatherMap weather integration
 """
 
 import json
 import os
 import random
+import time
 import uvicorn
+import httpx
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 
 # Load environment
 from dotenv import load_dotenv
@@ -155,14 +157,97 @@ async def predict_disease(
             "treatment": ""
         })
 
+# ============================================================================
+# WEATHER API (OpenWeatherMap - with caching & fallback)
+# ============================================================================
+
+# In-memory cache (60 second TTL)
+_weather_cache: Dict[str, Any] = {}
+_weather_cache_time: float = 0
+WEATHER_CACHE_TTL = 60  # seconds
+
+# Fallback data (used when API key is missing or call fails)
+WEATHER_FALLBACK = {
+    "temp": 32,
+    "humidity": 85,
+    "condition": "Partly Cloudy",
+    "risk": "Medium",
+    "city": "Kumasi",
+    "source": "fallback"
+}
+
+def _calculate_risk(humidity: int) -> str:
+    """Calculate disease outbreak risk level from humidity."""
+    if humidity >= 80:
+        return "High"
+    elif humidity >= 60:
+        return "Medium"
+    return "Low"
+
+
 @app.get("/weather")
-async def get_weather():
-    return {
-        "temp": 32,
-        "humidity": 85,
-        "condition": "Partly Cloudy",
-        "risk": "Low"
-    }
+async def get_weather(lat: Optional[float] = None, lon: Optional[float] = None):
+    global _weather_cache, _weather_cache_time
+
+    # Build a cache key based on location (rounded to 1 decimal for nearby reuse)
+    if lat is not None and lon is not None:
+        cache_key = f"{round(lat, 1)}_{round(lon, 1)}"
+    else:
+        cache_key = "default_city"
+
+    # Return cached result if still fresh and same location
+    now = time.time()
+    if (_weather_cache 
+        and _weather_cache.get("_cache_key") == cache_key 
+        and (now - _weather_cache_time) < WEATHER_CACHE_TTL):
+        return {k: v for k, v in _weather_cache.items() if not k.startswith("_")}
+
+    # Read config
+    api_key = os.getenv("WEATHER_API_KEY", "")
+    api_url = os.getenv("WEATHER_API_URL", "https://api.openweathermap.org/data/2.5/weather")
+    city = os.getenv("WEATHER_CITY", "Kumasi,GH")
+
+    # No key set yet — return fallback silently
+    if not api_key or api_key == "your_weather_api_key_here":
+        return WEATHER_FALLBACK
+
+    try:
+        # Build request params — use coordinates if available, otherwise city name
+        params = {"appid": api_key, "units": "metric"}
+        if lat is not None and lon is not None:
+            params["lat"] = lat
+            params["lon"] = lon
+        else:
+            params["q"] = city
+
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(api_url, params=params)
+            resp.raise_for_status()
+            raw = resp.json()
+
+        temp = round(raw["main"]["temp"])
+        humidity = raw["main"]["humidity"]
+        condition = raw["weather"][0]["description"].title()
+        city_name = raw["name"]
+        risk = _calculate_risk(humidity)
+
+        result = {
+            "temp": temp,
+            "humidity": humidity,
+            "condition": condition,
+            "risk": risk,
+            "city": city_name,
+            "source": "live"
+        }
+
+        # Cache result (with internal cache key)
+        _weather_cache = {**result, "_cache_key": cache_key}
+        _weather_cache_time = now
+        return result
+
+    except Exception as e:
+        print(f"[Weather] API call failed: {e}. Using fallback.")
+        return WEATHER_FALLBACK
 
 
 # ============================================================================

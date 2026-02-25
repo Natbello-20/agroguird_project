@@ -28,8 +28,8 @@
 - [ ] **ML Integration**
     - [ ] Replace mock model with real TensorFlow model
     - [ ] Optimize image preprocessing
-- [ ] **External APIs**
-    - [ ] Integrate real Weather API
+- [x] **External APIs**
+    - [x] Integrate real Weather API (OpenWeatherMap)
     - [ ] Improve Translation API integration
 
 ## Phase 3: Polish & Deployment
@@ -40,3 +40,7 @@
 - [ ] **Deployment**
     - [ ] Dockerize application
     - [ ] Deploy to cloud provider
+
+## Debugging
+- [ ] Fix 'Connection Refused' / Server Startup issue
+

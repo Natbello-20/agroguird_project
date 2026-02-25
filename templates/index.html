@@ -363,14 +363,14 @@
         <div class="card-weather-mini" onclick="switchView('weather')">
             <div>
                 <div class="d-flex align-items-center gap-2 mb-1">
-                    <i class="bi bi-geo-alt-fill"></i> <span id="location-text">Local Farm</span>
+                    <i class="bi bi-geo-alt-fill"></i> <span id="location-text">Loading...</span>
                 </div>
                 <div class="weather-info">
                     <h3 id="home-temp">--°</h3>
-                    <p id="home-condition">Loading...</p>
+                    <p id="home-condition">Fetching weather...</p>
                 </div>
             </div>
-            <i class="bi bi-cloud-sun-fill" style="font-size: 3rem; opacity: 0.8;"></i>
+            <i id="home-weather-icon" class="bi bi-cloud-sun-fill" style="font-size: 3rem; opacity: 0.8;"></i>
         </div>
 
         <!-- Recent Activity -->
@@ -434,20 +434,29 @@
     <div id="view-weather" class="view-section">
         <h2 class="fw-bold mb-4" id="weather-title">Weather Forecast</h2>
         <div class="card p-4 border-0 shadow-sm text-center mb-4 rounded-4">
-            <i class="bi bi-cloud-sun text-warning display-1 mb-3"></i>
-            <h1 class="display-3 fw-bold mb-0" id="weather-main-temp">32°</h1>
-            <p class="text-muted" id="weather-main-desc">Partly Cloudy</p>
+            <i id="weather-main-icon" class="bi bi-cloud-sun text-warning display-1 mb-3"></i>
+            <p class="text-muted small mb-1" id="weather-city-label">Loading location...</p>
+            <h1 class="display-3 fw-bold mb-0" id="weather-main-temp">--°</h1>
+            <p class="text-muted" id="weather-main-desc">Fetching weather...</p>
 
             <div class="row mt-4">
                 <div class="col-6 border-end">
-                    <h5 class="fw-bold mb-0" id="weather-humidity">85%</h5>
+                    <h5 class="fw-bold mb-0" id="weather-humidity">--%</h5>
                     <small class="text-muted">Humidity</small>
                 </div>
                 <div class="col-6">
-                    <h5 class="fw-bold mb-0" id="weather-risk">Low</h5>
-                    <small class="text-muted">Risk Level</small>
+                    <h5 class="fw-bold mb-0" id="weather-risk">--</h5>
+                    <small class="text-muted">Disease Risk</small>
                 </div>
             </div>
+        </div>
+
+        <!-- Risk Explanation Card -->
+        <div class="card border-0 shadow-sm p-3 rounded-4">
+            <h6 class="fw-bold mb-2"><i class="bi bi-info-circle-fill text-primary me-2"></i>What does Disease Risk
+                mean?</h6>
+            <p class="small text-muted mb-0">High humidity (≥80%) creates ideal conditions for fungal disease outbreaks
+                like Early Blight and Leaf Blast. Check your crops more frequently on high-risk days.</p>
         </div>
     </div>
 
@@ -694,15 +703,43 @@
             try {
                 const res = await fetch('/weather');
                 const data = await res.json();
+
+                // Determine weather icon from condition string
+                const cond = (data.condition || '').toLowerCase();
+                let iconClass = 'bi-cloud-sun-fill';  // default
+                if (cond.includes('rain') || cond.includes('drizzle') || cond.includes('shower')) {
+                    iconClass = 'bi-cloud-rain-fill';
+                } else if (cond.includes('thunder') || cond.includes('storm')) {
+                    iconClass = 'bi-cloud-lightning-rain-fill';
+                } else if (cond.includes('clear') || cond.includes('sunny')) {
+                    iconClass = 'bi-sun-fill';
+                } else if (cond.includes('cloud') || cond.includes('overcast') || cond.includes('mist') || cond.includes('fog')) {
+                    iconClass = 'bi-cloudy-fill';
+                }
+
                 // Home View
-                document.getElementById('home-temp').innerText = data.temp + '°';
+                document.getElementById('home-temp').innerText = data.temp + '°C';
                 document.getElementById('home-condition').innerText = data.condition || 'Good';
+                document.getElementById('location-text').innerText = (data.city || 'Kumasi') + ', GH';
+                document.getElementById('home-weather-icon').className = `bi ${iconClass}`;
+                document.getElementById('home-weather-icon').style.fontSize = '3rem';
+                document.getElementById('home-weather-icon').style.opacity = '0.9';
 
                 // Weather View
-                document.getElementById('weather-main-temp').innerText = data.temp + '°';
+                document.getElementById('weather-main-temp').innerText = data.temp + '°C';
+                document.getElementById('weather-main-desc').innerText = data.condition || '--';
                 document.getElementById('weather-humidity').innerText = data.humidity + '%';
-                document.getElementById('weather-risk').innerText = data.risk;
-            } catch (e) { console.error(e); }
+                document.getElementById('weather-risk').innerText = data.risk || '--';
+                document.getElementById('weather-city-label').innerText = (data.city || 'Kumasi') + ', Ghana';
+                document.getElementById('weather-main-icon').className = `bi ${iconClass} text-warning display-1 mb-3`;
+
+                // Colour-code the risk badge
+                const riskEl = document.getElementById('weather-risk');
+                if (data.risk === 'High') riskEl.style.color = '#e74c3c';
+                else if (data.risk === 'Medium') riskEl.style.color = '#f39c12';
+                else riskEl.style.color = '#2ecc71';
+
+            } catch (e) { console.error('Weather load failed:', e); }
         }
 
         // Bottom Sheet Logic
