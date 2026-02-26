@@ -184,10 +184,160 @@
                 transform: translateX(0);
             }
         }
+
+        /* ========== SKELETON LOADING ========== */
+        @keyframes shimmer {
+            0% {
+                background-position: -400px 0;
+            }
+
+            100% {
+                background-position: 400px 0;
+            }
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #e8e8e8 25%, #f5f5f5 50%, #e8e8e8 75%);
+            background-size: 800px 100%;
+            animation: shimmer 1.5s infinite ease-in-out;
+            border-radius: 6px;
+        }
+
+        .skeleton-text {
+            height: 14px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+
+        .skeleton-text.lg {
+            height: 32px;
+            width: 50%;
+        }
+
+        .skeleton-text.sm {
+            height: 12px;
+            width: 60%;
+        }
+
+        .skeleton-block {
+            height: 280px;
+            border-radius: 8px;
+        }
+
+        .skeleton-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .skeleton-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        @keyframes contentFadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .content-loaded {
+            animation: contentFadeIn 0.3s ease;
+        }
+
+        /* Sidebar backdrop for mobile */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .sidebar-backdrop.show {
+            display: block;
+        }
+
+        /* ========== ADDITIONAL MOBILE RESPONSIVENESS ========== */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+
+            /* Stack header on mobile */
+            .main-content>.d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .main-content>.d-flex.justify-content-between>.d-flex {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+                gap: 0.5rem !important;
+            }
+
+            /* Stat cards: 2 columns on tablet-ish */
+            .row.g-4 .col-md-3 {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+
+            /* Weather widget compact */
+            #weather-widget {
+                font-size: 0.8rem !important;
+                padding: 0.4rem 0.6rem !important;
+            }
+
+            /* Reduce map height */
+            #diseaseMap {
+                height: 250px;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .row.g-4 .col-md-3 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+                margin-bottom: 0.75rem;
+            }
+
+            #diseaseMap {
+                height: 200px;
+            }
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
 
     <!-- Mobile Toggle -->
     <button class="btn btn-dark d-lg-none m-3 position-fixed" style="z-index: 1001; top: 10px; right: 10px;"
@@ -236,13 +386,25 @@
                 <div id="weather-widget"
                     class="d-flex align-items-center gap-2 px-3 py-2 bg-white rounded-3 shadow-sm border"
                     style="font-size:0.9rem;">
-                    <i id="dash-weather-icon" class="bi bi-cloud-sun-fill text-warning fs-5"></i>
-                    <span id="dash-temp" class="fw-bold">--°C</span>
-                    <span class="text-muted">|</span>
-                    <i class="bi bi-droplet-fill text-primary" style="font-size:0.85rem;"></i>
-                    <span id="dash-humidity" class="text-muted">--%</span>
-                    <span class="text-muted">|</span>
-                    <span class="badge" id="dash-risk" style="font-size:0.75rem;">--</span>
+                    <!-- Weather skeleton -->
+                    <div id="weather-widget-skeleton" class="d-flex align-items-center gap-2">
+                        <div class="skeleton" style="width:20px; height:20px; border-radius:4px;"></div>
+                        <div class="skeleton" style="width:40px; height:14px;"></div>
+                        <span class="text-muted">|</span>
+                        <div class="skeleton" style="width:30px; height:14px;"></div>
+                        <span class="text-muted">|</span>
+                        <div class="skeleton" style="width:80px; height:20px; border-radius:10px;"></div>
+                    </div>
+                    <!-- Actual weather content (hidden until loaded) -->
+                    <div id="weather-widget-content" style="display:none;" class="d-flex align-items-center gap-2">
+                        <i id="dash-weather-icon" class="bi bi-cloud-sun-fill text-warning fs-5"></i>
+                        <span id="dash-temp" class="fw-bold">--°C</span>
+                        <span class="text-muted">|</span>
+                        <i class="bi bi-droplet-fill text-primary" style="font-size:0.85rem;"></i>
+                        <span id="dash-humidity" class="text-muted">--%</span>
+                        <span class="text-muted">|</span>
+                        <span class="badge" id="dash-risk" style="font-size:0.75rem;">--</span>
+                    </div>
                 </div>
                 <button class="btn btn-white border shadow-sm">
                     <i class="bi bi-bell"></i> <span class="badge bg-danger rounded-pill">3</span>
@@ -254,32 +416,40 @@
         </div>
 
         <!-- Stats Row -->
-        <div class="row g-4 mb-4">
+        <div class="row g-4 mb-4" id="stats-row">
             <div class="col-md-3">
                 <div class="stat-card">
                     <div class="stat-icon bg-light-blue"><i class="bi bi-camera"></i></div>
-                    <div class="stat-value" id="stats-scans">--</div>
+                    <div class="stat-value" id="stats-scans">
+                        <div class="skeleton skeleton-text lg"></div>
+                    </div>
                     <div class="stat-label">Total Scans</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stat-card">
                     <div class="stat-icon bg-light-red"><i class="bi bi-exclamation-triangle"></i></div>
-                    <div class="stat-value" id="stats-critical">--</div>
+                    <div class="stat-value" id="stats-critical">
+                        <div class="skeleton skeleton-text lg"></div>
+                    </div>
                     <div class="stat-label">Critical Alerts</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stat-card">
                     <div class="stat-icon bg-light-green"><i class="bi bi-people"></i></div>
-                    <div class="stat-value" id="stats-farmers">--</div>
+                    <div class="stat-value" id="stats-farmers">
+                        <div class="skeleton skeleton-text lg"></div>
+                    </div>
                     <div class="stat-label">Active Farmers</div>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="stat-card">
                     <div class="stat-icon bg-light-orange"><i class="bi bi-geo-alt"></i></div>
-                    <div class="stat-value" id="stats-districts">--</div>
+                    <div class="stat-value" id="stats-districts">
+                        <div class="skeleton skeleton-text lg"></div>
+                    </div>
                     <div class="stat-label">Districts</div>
                 </div>
             </div>
@@ -292,8 +462,9 @@
                     <div class="card-header bg-white border-0 py-3">
                         <h5 class="fw-bold m-0">Disease Distribution</h5>
                     </div>
-                    <div class="card-body">
-                        <canvas id="diseaseChart" style="max-height: 300px;"></canvas>
+                    <div class="card-body" style="position:relative;">
+                        <div id="chart1-skeleton" class="skeleton skeleton-block"></div>
+                        <canvas id="diseaseChart" style="max-height: 300px; display:none;"></canvas>
                     </div>
                 </div>
             </div>
@@ -302,8 +473,9 @@
                     <div class="card-header bg-white border-0 py-3">
                         <h5 class="fw-bold m-0">Weekly Activity</h5>
                     </div>
-                    <div class="card-body">
-                        <canvas id="activityChart" style="max-height: 300px;"></canvas>
+                    <div class="card-body" style="position:relative;">
+                        <div id="chart2-skeleton" class="skeleton skeleton-block"></div>
+                        <canvas id="activityChart" style="max-height: 300px; display:none;"></canvas>
                     </div>
                 </div>
             </div>
@@ -333,15 +505,34 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush" id="alerts-list">
-                            <!-- Populated via JS -->
-                            <div class="text-center p-4 text-muted">Loading alerts...</div>
+                            <!-- Skeleton alerts -->
+                            <div class="skeleton-row">
+                                <div class="skeleton skeleton-avatar"></div>
+                                <div style="flex:1">
+                                    <div class="skeleton skeleton-text" style="width:80%"></div>
+                                    <div class="skeleton skeleton-text sm" style="width:50%"></div>
+                                </div>
+                            </div>
+                            <div class="skeleton-row">
+                                <div class="skeleton skeleton-avatar"></div>
+                                <div style="flex:1">
+                                    <div class="skeleton skeleton-text" style="width:70%"></div>
+                                    <div class="skeleton skeleton-text sm" style="width:40%"></div>
+                                </div>
+                            </div>
+                            <div class="skeleton-row">
+                                <div class="skeleton skeleton-avatar"></div>
+                                <div style="flex:1">
+                                    <div class="skeleton skeleton-text" style="width:85%"></div>
+                                    <div class="skeleton skeleton-text sm" style="width:55%"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Recent Scans Table -->
         <div class="mt-4">
             <h4 class="fw-bold mb-3">Recent Farmer Submissions</h4>
             <div class="table-responsive table-custom">
@@ -358,7 +549,76 @@
                         </tr>
                     </thead>
                     <tbody id="scans-table-body">
-                        <!-- Populated via JS -->
+                        <!-- Skeleton table rows -->
+                        <tr class="skeleton-table-row">
+                            <td>
+                                <div class="skeleton" style="width:100px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:60px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:60px;height:22px;border-radius:10px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:40px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:80px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:60px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:50px;height:28px;border-radius:6px;"></div>
+                            </td>
+                        </tr>
+                        <tr class="skeleton-table-row">
+                            <td>
+                                <div class="skeleton" style="width:90px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:50px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:60px;height:22px;border-radius:10px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:40px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:70px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:60px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:50px;height:28px;border-radius:6px;"></div>
+                            </td>
+                        </tr>
+                        <tr class="skeleton-table-row">
+                            <td>
+                                <div class="skeleton" style="width:110px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:55px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:60px;height:22px;border-radius:10px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:40px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:90px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:60px;height:14px;"></div>
+                            </td>
+                            <td>
+                                <div class="skeleton" style="width:50px;height:28px;border-radius:6px;"></div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -414,6 +674,12 @@
                 else if (cond.includes('clear') || cond.includes('sunny')) iconClass = 'bi-sun-fill';
                 else if (cond.includes('cloud') || cond.includes('fog') || cond.includes('mist')) iconClass = 'bi-cloudy-fill';
 
+                // Hide skeleton, show real content
+                const wSkel = document.getElementById('weather-widget-skeleton');
+                const wContent = document.getElementById('weather-widget-content');
+                if (wSkel) wSkel.style.display = 'none';
+                if (wContent) { wContent.style.display = 'flex'; wContent.classList.add('content-loaded'); }
+
                 document.getElementById('dash-weather-icon').className = `bi ${iconClass} fs-5`;
                 document.getElementById('dash-temp').innerText = data.temp + '°C';
                 document.getElementById('dash-humidity').innerText = data.humidity + '%';
@@ -445,11 +711,14 @@
                 const res = await fetch('/api/dashboard/stats');
                 const data = await res.json();
 
-                // Update specific Stats Cards
-                document.getElementById('stats-scans').innerText = data.total_scans;
-                document.getElementById('stats-critical').innerText = data.critical_alerts;
-                document.getElementById('stats-farmers').innerText = data.active_farmers;
-                document.getElementById('stats-districts').innerText = data.districts_monitored;
+                // Update Stats Cards (replace skeleton with actual value)
+                document.getElementById('stats-scans').innerHTML = data.total_scans;
+                document.getElementById('stats-critical').innerHTML = data.critical_alerts;
+                document.getElementById('stats-farmers').innerHTML = data.active_farmers;
+                document.getElementById('stats-districts').innerHTML = data.districts_monitored;
+
+                // Add fade-in to stats row
+                document.getElementById('stats-row').classList.add('content-loaded');
 
                 // Update Alerts List
                 renderAlerts(data.recent_alerts);
@@ -515,7 +784,10 @@
         }
 
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            sidebar.classList.toggle('active');
+            backdrop.classList.toggle('show');
         }
 
         function refreshData() {
@@ -526,11 +798,21 @@
         let activityChartInstance = null;
 
         function renderCharts(distribution, daily) {
-            const ctx1 = document.getElementById('diseaseChart').getContext('2d');
-            const ctx2 = document.getElementById('activityChart').getContext('2d');
+            const canvas1 = document.getElementById('diseaseChart');
+            const canvas2 = document.getElementById('activityChart');
+            const ctx1 = canvas1.getContext('2d');
+            const ctx2 = canvas2.getContext('2d');
 
             if (diseaseChartInstance) diseaseChartInstance.destroy();
             if (activityChartInstance) activityChartInstance.destroy();
+
+            // Hide chart skeletons, show canvases
+            const skel1 = document.getElementById('chart1-skeleton');
+            const skel2 = document.getElementById('chart2-skeleton');
+            if (skel1) skel1.style.display = 'none';
+            if (skel2) skel2.style.display = 'none';
+            canvas1.style.display = 'block';
+            canvas2.style.display = 'block';
 
             // Chart 1: Doughnut
             diseaseChartInstance = new Chart(ctx1, {
@@ -553,7 +835,6 @@
             });
 
             // Chart 2: Line
-            // Sort dates if needed, though DB should handle it. Assuming keys are YYYY-MM-DD
             const dates = Object.keys(daily).sort();
             const counts = dates.map(d => daily[d]);
 

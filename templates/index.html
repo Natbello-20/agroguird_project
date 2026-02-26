@@ -335,6 +335,186 @@
             border-radius: 2px;
             margin: 0 auto 1.5rem;
         }
+
+        /* ========== SKELETON LOADING ========== */
+        @keyframes shimmer {
+            0% {
+                background-position: -400px 0;
+            }
+
+            100% {
+                background-position: 400px 0;
+            }
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #e8e8e8 25%, #f5f5f5 50%, #e8e8e8 75%);
+            background-size: 800px 100%;
+            animation: shimmer 1.5s infinite ease-in-out;
+            border-radius: 6px;
+        }
+
+        .skeleton-text {
+            height: 14px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+
+        .skeleton-text.lg {
+            height: 28px;
+            width: 60%;
+        }
+
+        .skeleton-text.sm {
+            height: 12px;
+            width: 40%;
+        }
+
+        .skeleton-circle {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .skeleton-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .skeleton-weather {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Fade-in for loaded content */
+        @keyframes contentFadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .content-loaded {
+            animation: contentFadeIn 0.3s ease;
+        }
+
+        /* Pulse overlay for image analysis */
+        .analyzing-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(46, 204, 113, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 1.2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.4;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        .analyzing-overlay i {
+            font-size: 2.5rem;
+            color: var(--primary-green);
+            animation: pulse 1.2s ease-in-out infinite;
+        }
+
+        /* ========== MOBILE RESPONSIVENESS ========== */
+        @media (max-width: 374px) {
+            .camera-circle {
+                width: 160px;
+                height: 160px;
+            }
+
+            .camera-btn-inner {
+                width: 140px;
+                height: 140px;
+                font-size: 3rem;
+            }
+
+            .nav-item {
+                font-size: 0.65rem;
+            }
+
+            .nav-item i {
+                font-size: 1.3rem;
+            }
+
+            .nav-scan-fab {
+                width: 48px;
+                height: 48px;
+            }
+
+            .nav-scan-fab i {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .card-weather-mini {
+                padding: 1rem;
+                border-radius: 14px;
+            }
+
+            .weather-info h3 {
+                font-size: 1.6rem;
+            }
+
+            .scan-result-card {
+                border-radius: 16px;
+                padding: 1.25rem;
+                margin-left: -0.5rem;
+                margin-right: -0.5rem;
+            }
+
+            .modal-bottom-sheet {
+                max-height: 90vh;
+                padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+            }
+
+            #view-weather .row .col-6 {
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 359px) {
+            #view-weather .row {
+                flex-direction: column;
+            }
+
+            #view-weather .row .col-6 {
+                width: 100%;
+                border-right: none !important;
+                border-bottom: 1px solid #eee;
+                padding: 0.5rem 0;
+            }
+
+            #view-weather .row .col-6:last-child {
+                border-bottom: none;
+            }
+        }
     </style>
 </head>
 
@@ -361,7 +541,7 @@
 
         <!-- Weather Mini Card -->
         <div class="card-weather-mini" onclick="switchView('weather')">
-            <div>
+            <div id="weather-mini-content">
                 <div class="d-flex align-items-center gap-2 mb-1">
                     <i class="bi bi-geo-alt-fill"></i> <span id="location-text">Loading...</span>
                 </div>
@@ -369,6 +549,12 @@
                     <h3 id="home-temp">--°</h3>
                     <p id="home-condition">Fetching weather...</p>
                 </div>
+            </div>
+            <!-- Skeleton for weather -->
+            <div id="weather-mini-skeleton" class="skeleton-weather" style="flex:1;">
+                <div class="skeleton skeleton-text sm" style="width:80px;"></div>
+                <div class="skeleton skeleton-text lg" style="width:90px; height:24px;"></div>
+                <div class="skeleton skeleton-text" style="width:120px;"></div>
             </div>
             <i id="home-weather-icon" class="bi bi-cloud-sun-fill" style="font-size: 3rem; opacity: 0.8;"></i>
         </div>
@@ -381,7 +567,28 @@
         </div>
 
         <div id="home-history-list" class="history-list-home">
-            <div class="text-center text-muted p-3">No recent scans</div>
+            <!-- Skeleton history rows -->
+            <div class="skeleton-card">
+                <div class="skeleton skeleton-circle"></div>
+                <div style="flex:1">
+                    <div class="skeleton skeleton-text" style="width:70%"></div>
+                    <div class="skeleton skeleton-text sm" style="width:40%"></div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton skeleton-circle"></div>
+                <div style="flex:1">
+                    <div class="skeleton skeleton-text" style="width:60%"></div>
+                    <div class="skeleton skeleton-text sm" style="width:35%"></div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton skeleton-circle"></div>
+                <div style="flex:1">
+                    <div class="skeleton skeleton-text" style="width:75%"></div>
+                    <div class="skeleton skeleton-text sm" style="width:45%"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -434,19 +641,40 @@
     <div id="view-weather" class="view-section">
         <h2 class="fw-bold mb-4" id="weather-title">Weather Forecast</h2>
         <div class="card p-4 border-0 shadow-sm text-center mb-4 rounded-4">
-            <i id="weather-main-icon" class="bi bi-cloud-sun text-warning display-1 mb-3"></i>
-            <p class="text-muted small mb-1" id="weather-city-label">Loading location...</p>
-            <h1 class="display-3 fw-bold mb-0" id="weather-main-temp">--°</h1>
-            <p class="text-muted" id="weather-main-desc">Fetching weather...</p>
-
-            <div class="row mt-4">
-                <div class="col-6 border-end">
-                    <h5 class="fw-bold mb-0" id="weather-humidity">--%</h5>
-                    <small class="text-muted">Humidity</small>
+            <!-- Weather detail skeleton -->
+            <div id="weather-detail-skeleton" class="text-center">
+                <div class="skeleton skeleton-text lg mx-auto mb-3" style="width:60px; height:60px; border-radius:50%;">
                 </div>
-                <div class="col-6">
-                    <h5 class="fw-bold mb-0" id="weather-risk">--</h5>
-                    <small class="text-muted">Disease Risk</small>
+                <div class="skeleton skeleton-text sm mx-auto mb-2" style="width:100px;"></div>
+                <div class="skeleton skeleton-text lg mx-auto mb-1" style="width:120px; height:40px;"></div>
+                <div class="skeleton skeleton-text sm mx-auto mb-3" style="width:80px;"></div>
+                <div class="d-flex justify-content-center gap-4 mt-3">
+                    <div>
+                        <div class="skeleton skeleton-text" style="width:50px; height:20px; margin:0 auto 4px;"></div>
+                        <div class="skeleton skeleton-text sm" style="width:60px;"></div>
+                    </div>
+                    <div>
+                        <div class="skeleton skeleton-text" style="width:50px; height:20px; margin:0 auto 4px;"></div>
+                        <div class="skeleton skeleton-text sm" style="width:60px;"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Actual weather content (hidden until loaded) -->
+            <div id="weather-detail-content" style="display:none;">
+                <i id="weather-main-icon" class="bi bi-cloud-sun text-warning display-1 mb-3"></i>
+                <p class="text-muted small mb-1" id="weather-city-label">Loading location...</p>
+                <h1 class="display-3 fw-bold mb-0" id="weather-main-temp">--°</h1>
+                <p class="text-muted" id="weather-main-desc">Fetching weather...</p>
+
+                <div class="row mt-4">
+                    <div class="col-6 border-end">
+                        <h5 class="fw-bold mb-0" id="weather-humidity">--%</h5>
+                        <small class="text-muted">Humidity</small>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="fw-bold mb-0" id="weather-risk">--</h5>
+                        <small class="text-muted">Disease Risk</small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -573,6 +801,10 @@
 
         // Init
         document.addEventListener('DOMContentLoaded', () => {
+            // Hide weather mini content initially (show skeleton)
+            const miniContent = document.getElementById('weather-mini-content');
+            if (miniContent) miniContent.style.display = 'none';
+
             loadWeather();
             renderHistoryHome();
         });
@@ -623,6 +855,14 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Analyzing...';
             btn.disabled = true;
 
+            // Add pulse overlay on preview image
+            const previewArea = document.getElementById('preview-area');
+            previewArea.style.position = 'relative';
+            const overlay = document.createElement('div');
+            overlay.className = 'analyzing-overlay';
+            overlay.innerHTML = '<i class="bi bi-search"></i>';
+            previewArea.appendChild(overlay);
+
             const formData = new FormData();
             formData.append('file', document.getElementById('fileInput').files[0]);
 
@@ -650,6 +890,7 @@
                 document.getElementById('result-confidence').innerText = Math.round(data.confidence * 100) + '%';
                 document.getElementById('result-treatment').innerText = data.treatment;
                 document.getElementById('result-card').style.display = 'block';
+                document.getElementById('result-card').classList.add('content-loaded');
                 document.getElementById('scan-actions').style.display = 'none';
 
                 // Save to Local History
@@ -659,8 +900,11 @@
                 console.error(e);
                 alert("Analysis failed. Please try again.");
             } finally {
-                btn.innerHTML = originalText; // Revert to original text
+                btn.innerHTML = originalText;
                 btn.disabled = false;
+                // Remove overlay
+                const existingOverlay = previewArea.querySelector('.analyzing-overlay');
+                if (existingOverlay) existingOverlay.remove();
             }
         }
 
@@ -717,7 +961,12 @@
                     iconClass = 'bi-cloudy-fill';
                 }
 
-                // Home View
+                // Home View — hide skeleton, show content
+                const miniSkeleton = document.getElementById('weather-mini-skeleton');
+                const miniContent = document.getElementById('weather-mini-content');
+                if (miniSkeleton) miniSkeleton.style.display = 'none';
+                if (miniContent) { miniContent.style.display = 'block'; miniContent.classList.add('content-loaded'); }
+
                 document.getElementById('home-temp').innerText = data.temp + '°C';
                 document.getElementById('home-condition').innerText = data.condition || 'Good';
                 document.getElementById('location-text').innerText = (data.city || 'Kumasi') + ', GH';
@@ -725,7 +974,12 @@
                 document.getElementById('home-weather-icon').style.fontSize = '3rem';
                 document.getElementById('home-weather-icon').style.opacity = '0.9';
 
-                // Weather View
+                // Weather Detail View — hide skeleton, show content
+                const detailSkeleton = document.getElementById('weather-detail-skeleton');
+                const detailContent = document.getElementById('weather-detail-content');
+                if (detailSkeleton) detailSkeleton.style.display = 'none';
+                if (detailContent) { detailContent.style.display = 'block'; detailContent.classList.add('content-loaded'); }
+
                 document.getElementById('weather-main-temp').innerText = data.temp + '°C';
                 document.getElementById('weather-main-desc').innerText = data.condition || '--';
                 document.getElementById('weather-humidity').innerText = data.humidity + '%';

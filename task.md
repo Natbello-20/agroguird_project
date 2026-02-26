@@ -35,8 +35,8 @@
 ## Phase 3: Polish & Deployment
 - [ ] **UI/UX Improvements**
     - [x] Add Stylized Background to Auth Pages
-    - [ ] Add loading skeletons/animations
-    - [ ] Mobile responsiveness tuning
+    - [x] Add loading skeletons/animations
+    - [x] Mobile responsiveness tuning
 - [ ] **Deployment**
     - [ ] Dockerize application
     - [ ] Deploy to cloud provider
