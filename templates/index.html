@@ -945,7 +945,27 @@
         // Weather
         async function loadWeather() {
             try {
-                const res = await fetch('/weather');
+                // Try to get the farmer's real location via browser geolocation
+                let weatherUrl = '/weather';
+                try {
+                    const pos = await new Promise((resolve, reject) => {
+                        if (!navigator.geolocation) {
+                            reject(new Error('Geolocation not supported'));
+                            return;
+                        }
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            timeout: 5000,
+                            maximumAge: 300000  // Cache position for 5 minutes
+                        });
+                    });
+                    const lat = pos.coords.latitude.toFixed(4);
+                    const lon = pos.coords.longitude.toFixed(4);
+                    weatherUrl = `/weather?lat=${lat}&lon=${lon}`;
+                } catch (geoErr) {
+                    console.log('Geolocation unavailable, using default city:', geoErr.message);
+                }
+
+                const res = await fetch(weatherUrl);
                 const data = await res.json();
 
                 // Determine weather icon from condition string
