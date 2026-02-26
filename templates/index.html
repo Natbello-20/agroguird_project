@@ -867,8 +867,22 @@
             formData.append('file', document.getElementById('fileInput').files[0]);
 
             try {
-                // Send Device ID in Headers
+                // Send Device ID + location in Headers
                 const headers = { 'device-id': farmerId };
+
+                // Try to get GPS location for the scan
+                try {
+                    const pos = await new Promise((resolve, reject) => {
+                        if (!navigator.geolocation) { reject(new Error('No geo')); return; }
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            timeout: 5000, maximumAge: 300000
+                        });
+                    });
+                    headers['x-latitude'] = pos.coords.latitude.toFixed(4);
+                    headers['x-longitude'] = pos.coords.longitude.toFixed(4);
+                } catch (geoErr) {
+                    console.log('Scan geolocation unavailable:', geoErr.message);
+                }
 
                 const res = await fetch(`/predict?lang=${currentLang}`, {
                     method: 'POST',

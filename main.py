@@ -88,7 +88,9 @@ async def read_root(request: Request):
 async def predict_disease(
     file: UploadFile = File(...), 
     lang: str = Query("en"),
-    device_id: str = Header(None) # Anonymous Farmer ID
+    device_id: str = Header(None), # Anonymous Farmer ID
+    x_latitude: str = Header(None),  # GPS latitude from phone
+    x_longitude: str = Header(None),  # GPS longitude from phone
 ):
     try:
         # Validate file
@@ -136,8 +138,23 @@ async def predict_disease(
         
         # Save to Database
         status_text = "High Risk" if "Healthy" not in disease else "Healthy"
-        location = "Ashanti Region" # Mock location for now (browser geo would be separate)
         crop = disease.split("___")[0]
+        
+        # Resolve real location from GPS coordinates
+        location = "Unknown Region"
+        if x_latitude and x_longitude:
+            try:
+                api_key = os.getenv("WEATHER_API_KEY", "")
+                if api_key and api_key != "your_weather_api_key_here":
+                    async with httpx.AsyncClient(timeout=3.0) as client:
+                        resp = await client.get(
+                            "https://api.openweathermap.org/data/2.5/weather",
+                            params={"lat": x_latitude, "lon": x_longitude, "appid": api_key}
+                        )
+                        if resp.status_code == 200:
+                            location = resp.json().get("name", "Unknown Region")
+            except Exception as loc_err:
+                print(f"[Location] Reverse lookup failed: {loc_err}")
         
         if device_id:
             database.register_farmer_scan(device_id, crop, disease, confidence, location, status_text)
