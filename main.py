@@ -274,8 +274,9 @@ async def get_weather(lat: Optional[float] = None, lon: Optional[float] = None):
 # Initialize DB on startup
 @app.on_event("startup")
 async def startup_event():
-    if not os.path.exists("agroguard.db"):
-        database.init_db()
+    first_run = not os.path.exists("agroguard.db")
+    database.init_db()  # Always run — safely migrates existing DB
+    if first_run:
         database.create_officer("admin", "admin123")  # Default credentials
 
 
@@ -345,6 +346,31 @@ async def dashboard(request: Request, current_user: dict = Depends(auth.get_curr
 async def dashboard_stats(current_user: dict = Depends(auth.get_current_user)):
     stats = database.get_dashboard_stats()
     return JSONResponse(stats)
+
+
+@app.post("/register-farmer")
+async def register_farmer_profile(request: Request):
+    """
+    Called once from the farmer app on first launch.
+    Saves the farmer's real name and phone number linked to their device ID.
+    """
+    try:
+        data = await request.json()
+        device_id = data.get("device_id", "").strip()
+        name      = data.get("name", "").strip()
+        phone     = data.get("phone", "").strip()
+
+        if not device_id or not name or not phone:
+            raise HTTPException(status_code=400, detail="device_id, name and phone are required.")
+
+        database.register_farmer_profile(device_id, name, phone)
+        return JSONResponse({"success": True, "message": "Farmer profile saved."})
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[register-farmer] Error: {e}")
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
 
 if __name__ == "__main__":

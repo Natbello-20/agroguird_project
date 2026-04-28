@@ -515,10 +515,202 @@
                 border-bottom: none;
             }
         }
+
+        /* ========== WELCOME MODAL (First Launch) ========== */
+        #welcome-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(145deg, #0d2137 0%, #1e3a5f 45%, #14472e 100%);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            transition: opacity 0.45s ease;
+        }
+        #welcome-overlay.hiding {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            border-radius: 28px;
+            padding: 2.5rem 2rem 2rem;
+            width: 100%;
+            max-width: 390px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+            animation: welcomeSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes welcomeSlideUp {
+            from { transform: translateY(40px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+        .welcome-icon {
+            width: 84px;
+            height: 84px;
+            background: linear-gradient(135deg, #2ecc71, #1aab55);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            font-size: 2.6rem;
+            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.45);
+        }
+        .welcome-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(46, 204, 113, 0.18);
+            border: 1px solid rgba(46, 204, 113, 0.35);
+            border-radius: 30px;
+            padding: 0.3rem 0.9rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #4ade80;
+            margin-bottom: 1rem;
+            letter-spacing: 0.04em;
+        }
+        .welcome-card h2 {
+            font-size: 1.65rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+        .welcome-card .welcome-sub {
+            font-size: 0.88rem;
+            opacity: 0.72;
+            margin-bottom: 2rem;
+            line-height: 1.55;
+        }
+        .welcome-input-wrap {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .welcome-input-wrap i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.45);
+            font-size: 1rem;
+            pointer-events: none;
+        }
+        .welcome-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.10);
+            border: 1.5px solid rgba(255, 255, 255, 0.18);
+            border-radius: 14px;
+            padding: 0.95rem 1rem 0.95rem 2.8rem;
+            color: white;
+            font-size: 0.97rem;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .welcome-input::placeholder { color: rgba(255, 255, 255, 0.42); }
+        .welcome-input:focus {
+            border-color: #2ecc71;
+            background: rgba(255, 255, 255, 0.16);
+        }
+        .welcome-error {
+            color: #ff7b7b;
+            font-size: 0.8rem;
+            margin-top: -0.5rem;
+            margin-bottom: 0.75rem;
+            text-align: left;
+            display: none;
+            padding-left: 0.25rem;
+        }
+        .welcome-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #2ecc71, #1aab55);
+            border: none;
+            border-radius: 14px;
+            padding: 1rem;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 0.25rem;
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+            box-shadow: 0 8px 24px rgba(46, 204, 113, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .welcome-btn:active  { transform: scale(0.97); }
+        .welcome-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .welcome-footer-note {
+            font-size: 0.72rem;
+            opacity: 0.42;
+            margin-top: 1.25rem;
+            margin-bottom: 0;
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- ===== WELCOME MODAL — First Launch Only ===== -->
+    <div id="welcome-overlay">
+        <div class="welcome-card">
+            <div class="welcome-icon">
+                <i class="bi bi-flower1"></i>
+            </div>
+            <div class="welcome-badge">
+                <i class="bi bi-shield-check-fill"></i> AgroGuard Ghana
+            </div>
+            <h2>Welcome, Farmer! 🌿</h2>
+            <p class="welcome-sub">
+                To help connect you with extension officers and government support,
+                please tell us your name and phone number.
+                <br><strong>We will never ask again.</strong>
+            </p>
+
+            <div class="welcome-input-wrap">
+                <i class="bi bi-person-fill"></i>
+                <input
+                    type="text"
+                    id="farmer-name-input"
+                    class="welcome-input"
+                    placeholder="Your Full Name"
+                    maxlength="80"
+                    autocomplete="name"
+                    inputmode="text"
+                >
+            </div>
+
+            <div class="welcome-input-wrap">
+                <i class="bi bi-telephone-fill"></i>
+                <input
+                    type="tel"
+                    id="farmer-phone-input"
+                    class="welcome-input"
+                    placeholder="Phone Number (e.g. 0241234567)"
+                    maxlength="15"
+                    autocomplete="tel"
+                    inputmode="tel"
+                >
+            </div>
+
+            <div id="welcome-error" class="welcome-error"></div>
+
+            <button class="welcome-btn" id="welcome-submit-btn" onclick="submitFarmerProfile()">
+                <i class="bi bi-arrow-right-circle-fill"></i> Get Started
+            </button>
+
+            <p class="welcome-footer-note">
+                <i class="bi bi-lock-fill"></i>
+                Your information is kept private and secure
+            </p>
+        </div>
+    </div>
 
     <!-- App Header -->
     <header class="app-header">
@@ -828,6 +1020,7 @@
             const miniContent = document.getElementById('weather-mini-content');
             if (miniContent) miniContent.style.display = 'none';
 
+            checkFirstTimeLaunch();
             loadWeather();
             renderHistoryHome();
         });
@@ -1109,6 +1302,95 @@
                     .catch(err => console.log('SW failed', err));
             });
         }
+
+        // ============================================================
+        // FARMER FIRST-LAUNCH PROFILE FLOW
+        // ============================================================
+
+        function getFarmerProfile() {
+            const raw = localStorage.getItem('agroguard_profile');
+            return raw ? JSON.parse(raw) : null;
+        }
+
+        function updateGreeting(fullName) {
+            const firstName = (fullName || 'Farmer').split(' ')[0];
+            const greetEl = document.getElementById('greeting');
+            if (greetEl) greetEl.innerText = `Hello, ${firstName} 👋`;
+        }
+
+        function checkFirstTimeLaunch() {
+            const profile = getFarmerProfile();
+            if (profile) {
+                // Already registered — hide overlay instantly & personalize
+                const overlay = document.getElementById('welcome-overlay');
+                if (overlay) overlay.style.display = 'none';
+                updateGreeting(profile.name);
+            }
+            // else: overlay stays visible until form is submitted
+        }
+
+        async function submitFarmerProfile() {
+            const nameEl  = document.getElementById('farmer-name-input');
+            const phoneEl = document.getElementById('farmer-phone-input');
+            const errEl   = document.getElementById('welcome-error');
+            const btn     = document.getElementById('welcome-submit-btn');
+
+            const name  = nameEl.value.trim();
+            const phone = phoneEl.value.trim();
+
+            // --- Validation ---
+            if (!name || name.length < 2) {
+                errEl.innerText = '⚠️ Please enter your full name (at least 2 characters).';
+                errEl.style.display = 'block';
+                nameEl.focus();
+                return;
+            }
+            const phoneClean = phone.replace(/\s+/g, '');
+            if (!phoneClean || phoneClean.length < 10) {
+                errEl.innerText = '⚠️ Please enter a valid phone number (at least 10 digits).';
+                errEl.style.display = 'block';
+                phoneEl.focus();
+                return;
+            }
+            errEl.style.display = 'none';
+
+            // --- Loading state ---
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving...';
+
+            // --- Save to localStorage first (works offline too) ---
+            const profile = {
+                name,
+                phone: phoneClean,
+                registeredAt: new Date().toISOString()
+            };
+            localStorage.setItem('agroguard_profile', JSON.stringify(profile));
+
+            // --- Sync to backend (non-blocking — fine if offline) ---
+            try {
+                await fetch('/register-farmer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        device_id: farmerId,
+                        name,
+                        phone: phoneClean
+                    })
+                });
+            } catch (e) {
+                // Offline is fine — data is saved locally
+                console.log('[AgroGuard] Profile synced locally; backend sync will retry on next scan.');
+            }
+
+            // --- Dismiss overlay with fade ---
+            const overlay = document.getElementById('welcome-overlay');
+            overlay.classList.add('hiding');
+            setTimeout(() => { overlay.style.display = 'none'; }, 450);
+
+            // --- Personalize greeting ---
+            updateGreeting(name);
+        }
+
     </script>
 </body>
 

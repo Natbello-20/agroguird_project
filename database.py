@@ -28,10 +28,12 @@ def init_db():
         )
     ''')
 
-    # 2. Farmers Table (Anonymous Device IDs)
+    # 2. Farmers Table (with identity fields)
     c.execute('''
         CREATE TABLE IF NOT EXISTS farmers (
             device_id TEXT PRIMARY KEY,
+            name TEXT,
+            phone TEXT,
             first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -51,6 +53,13 @@ def init_db():
             FOREIGN KEY (farmer_device_id) REFERENCES farmers (device_id)
         )
     ''')
+
+    # --- Safe migration: add name/phone columns if DB already existed ---
+    for col, col_type in [("name", "TEXT"), ("phone", "TEXT")]:
+        try:
+            c.execute(f"ALTER TABLE farmers ADD COLUMN {col} {col_type}")
+        except Exception:
+            pass  # Column already exists
     
     conn.commit()
     conn.close()
@@ -102,6 +111,20 @@ def register_farmer_scan(device_id, crop, disease, confidence, location, status)
     conn.close()
     return scan_id
 
+def register_farmer_profile(device_id, name, phone):
+    """Save or update a farmer's name and phone number by device ID."""
+    conn = get_db_connection()
+    c = conn.cursor()
+    # Ensure farmer row exists first
+    c.execute("INSERT OR IGNORE INTO farmers (device_id) VALUES (?)", (device_id,))
+    # Update profile fields and last_seen
+    c.execute(
+        "UPDATE farmers SET name = ?, phone = ?, last_seen = CURRENT_TIMESTAMP WHERE device_id = ?",
+        (name, phone, device_id)
+    )
+    conn.commit()
+    conn.close()
+
 def get_dashboard_stats():
     conn = get_db_connection()
     c = conn.cursor()
@@ -121,9 +144,9 @@ def get_dashboard_stats():
         ORDER BY timestamp DESC LIMIT 5
     ''').fetchall()
     
-    # Recent Scans Table (Limit 10)
+    # Recent Scans Table (Limit 10) — includes farmer name & phone
     recent_scans = c.execute('''
-        SELECT s.*, f.device_id 
+        SELECT s.*, f.device_id, f.name AS farmer_name, f.phone AS farmer_phone
         FROM scans s
         JOIN farmers f ON s.farmer_device_id = f.device_id
         ORDER BY s.timestamp DESC LIMIT 10
