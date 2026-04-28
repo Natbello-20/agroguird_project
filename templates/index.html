@@ -1293,6 +1293,11 @@
                 const el = document.getElementById(key);
                 if (el) el.innerText = t[key];
             }
+            // Re-apply personalized greeting — always wins over generic translation
+            const profile = getFarmerProfile();
+            if (profile && profile.name) {
+                updateGreeting(profile.name);
+            }
         }
 
         if ('serviceWorker' in navigator) {
