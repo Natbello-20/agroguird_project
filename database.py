@@ -67,6 +67,33 @@ def init_db():
     except Exception:
         pass
     
+    # 4. AEO Table (Extension Officers)
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS aeo (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            staff_id TEXT UNIQUE NOT NULL,
+            ghana_card TEXT UNIQUE NOT NULL,
+            phone TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            hashed_password TEXT NOT NULL,
+            must_change_password INTEGER DEFAULT 1,
+            is_active INTEGER DEFAULT 1
+        )
+    ''')
+
+    # 5. Audit Log Table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS audit_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            action TEXT NOT NULL,
+            entity TEXT NOT NULL,
+            entity_id INTEGER NOT NULL,
+            performed_by INTEGER NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            details TEXT
+        )
+    ''')
+    
     conn.commit()
     conn.close()
     print("Database initialized.")
@@ -196,6 +223,116 @@ def get_dashboard_stats():
         "disease_distribution": {row['disease']: row['count'] for row in distribution},
         "daily_scans": {row['day']: row['count'] for row in daily}
     }
+
+
+# ---------------------------------------------------------------------------
+# Additional Imports
+# ---------------------------------------------------------------------------
+from auth import pwd_context
+
+# ---------------------------------------------------------------------------
+# AEO Management Functions
+# ---------------------------------------------------------------------------
+
+def create_aeo(staff_id: str, ghana_card: str, phone: str, name: str, password: str):
+    """Create a new AEO account with a temporary password.
+    Password is hashed; must_change_password flag is set.
+    """
+    conn = get_db_connection()
+    c = conn.cursor()
+    hashed = pwd_context.hash(password)
+    c.execute('''
+        INSERT INTO aeo (staff_id, ghana_card, phone, name, hashed_password, must_change_password, is_active)
+        VALUES (?, ?, ?, ?, ?, 1, 1)
+    ''', (staff_id, ghana_card, phone, name, hashed))
+    aeo_id = c.lastrowid
+    conn.commit()
+    conn.close()
+    return aeo_id
+
+def get_aeo_by_identifier(identifier: str):
+    """Retrieve AEO record by staff_id, ghana_card, or phone."""
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('''
+        SELECT * FROM aeo WHERE staff_id = ? OR ghana_card = ? OR phone = ?
+    ''', (identifier, identifier, identifier))
+    aeo = c.fetchone()
+    conn.close()
+    return aeo
+
+def update_aeo(aeo_id: int, name: str = None, phone: str = None, is_active: int = None):
+    """Update mutable fields of an AEO record. Only provided fields are changed."""
+    conn = get_db_connection()
+    c = conn.cursor()
+    fields = []
+    params = []
+    if name is not None:
+        fields.append('name = ?')
+        params.append(name)
+    if phone is not None:
+        fields.append('phone = ?')
+        params.append(phone)
+    if is_active is not None:
+        fields.append('is_active = ?')
+        params.append(is_active)
+    if not fields:
+        conn.close()
+        return False
+    params.append(aeo_id)
+    query = f"UPDATE aeo SET {', '.join(fields)} WHERE id = ?"
+    c.execute(query, tuple(params))
+    conn.commit()
+    conn.close()
+    return True
+
+def delete_aeo(aeo_id: int):
+    """Deactivate (soft delete) an AEO account."""
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('UPDATE aeo SET is_active = 0 WHERE id = ?', (aeo_id,))
+    conn.commit()
+    conn.close()
+    return True
+
+def reset_aeo_password(aeo_id: int, new_password: str):
+    """Set a new temporary password for an AEO and mark must_change_password."""
+    conn = get_db_connection()
+    c = conn.cursor()
+    hashed = pwd_context.hash(new_password)
+    c.execute('''
+        UPDATE aeo SET hashed_password = ?, must_change_password = 1 WHERE id = ?
+    ''', (hashed, aeo_id))
+    conn.commit()
+    conn.close()
+    return True
+
+def change_aeo_password(aeo_id: int, new_password: str):
+    """Change password after first login and clear must_change_password flag."""
+    conn = get_db_connection()
+    c = conn.cursor()
+    hashed = pwd_context.hash(new_password)
+    c.execute('''
+        UPDATE aeo SET hashed_password = ?, must_change_password = 0 WHERE id = ?
+    ''', (hashed, aeo_id))
+    conn.commit()
+    conn.close()
+    return True
+
+def log_audit(action: str, entity: str, entity_id: int, performed_by: int, details: str = None):
+    """Insert an audit log entry.
+    action: e.g., 'create', 'update', 'delete', 'reset_password'
+    entity: e.g., 'aeo'
+    """
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO audit_log (action, entity, entity_id, performed_by, details)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (action, entity, entity_id, performed_by, details))
+    conn.commit()
+    conn.close()
+    return True
 
 if __name__ == "__main__":
     init_db()

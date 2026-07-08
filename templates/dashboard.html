@@ -626,7 +626,44 @@
 
     </main>
 
-    <!-- Scripts -->
+            <!-- Registered Farmers Table -->
+        <div class="mt-4">
+            <h4 class="fw-bold mb-3">Registered Farmers</h4>
+            <div class="table-responsive table-custom">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Device ID</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Last Seen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="farmers-table-body">
+                        <!-- Skeleton rows -->
+                        <tr class="skeleton-table-row">
+                            <td><div class="skeleton" style="width:120px;height:14px;"></div></td>
+                            <td><div class="skeleton" style="width:80px;height:14px;"></div></td>
+                            <td><div class="skeleton" style="width:70px;height:14px;"></div></td>
+                            <td><div class="skeleton" style="width:100px;height:14px;"></div></td>
+                        </tr>
+                        <tr class="skeleton-table-row">
+                            <td><div class="skeleton" style="width:120px;height:14px;"></div></td>
+                            <td><div class="skeleton" style="width:80px;height:14px;"></div></td>
+                            <td><div class="skeleton" style="width:70px;height:14px;"></div></td>
+                            <td><div class="skeleton" style="width:100px;height:14px;"></div></td>
+                        </tr>
+                        <tr class="skeleton-table-row">
+                            <td><div class="skeleton" style="width:120px;height:14px;"></div></td>
+                            <td><div class="skeleton" style="width:80px;height:14px;"></div></td>
+                            <td><div class="skeleton" style="width:70px;height:14px;"></div></td>
+                            <td><div class="skeleton" style="width:100px;height:14px;"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // Check for Session (Simple JS check for demo, real auth is server-side)
@@ -721,7 +758,34 @@
                 document.getElementById('stats-row').classList.add('content-loaded');
 
                 // Update Alerts List
+                // Fetch and render registered farmers
+                async function fetchFarmers() {
+                    try {
+                        const res = await fetch('/api/farmers');
+                        const data = await res.json();
+                        renderFarmers(data);
+                    } catch (e) {
+                        console.error('Farmers fetch error:', e);
+                    }
+                }
+
+                function renderFarmers(farmers) {
+                    const tbody = document.getElementById('farmers-table-body');
+                    if (!farmers || farmers.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4">No farmers found</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = farmers.map(f => `
+                        <tr>
+                            <td>${f.device_id}</td>
+                            <td>${f.name}</td>
+                            <td>${f.phone}</td>
+                            <td>${f.last_seen}</td>
+                        </tr>
+                    `).join('');
+                }
                 renderAlerts(data.recent_alerts);
+                fetchFarmers();
 
                 // Update Main Table
                 renderTable(data.recent_scans);

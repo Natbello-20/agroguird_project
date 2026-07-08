@@ -408,7 +408,36 @@ async def register_farmer_profile(request: Request):
         raise
     except Exception as e:
         print(f"[register-farmer] Error: {e}")
-        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+# -------------------------------------------------
+# NEW ENDPOINT – List all registered farmers for the dashboard
+# -------------------------------------------------
+@app.get("/api/farmers", response_class=JSONResponse)
+async def get_farmers(current_user: dict = Depends(auth.get_current_user)):
+    """
+    Return a list of all farmers with their device_id, name, phone and last_seen.
+    Only accessible to authenticated officers.
+    """
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    rows = cur.execute(
+        """
+        SELECT device_id, name, phone, last_seen
+        FROM farmers
+        ORDER BY last_seen DESC
+        """
+    ).fetchall()
+    conn.close()
+    farmers = [
+        {
+            "device_id": r["device_id"],
+            "name": r["name"] or "Anonymous",
+            "phone": r["phone"] or "—",
+            "last_seen": r["last_seen"],
+        }
+        for r in rows
+    ]
+    return JSONResponse({"farmers": farmers})
 
 
 if __name__ == "__main__":

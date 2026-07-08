@@ -28,7 +28,9 @@ class FarmerLoginRequest(BaseModel):
 
 
 class AEOLoginRequest(BaseModel):
-    email: EmailStr
+    staff_id: Optional[str] = None
+    ghana_card: Optional[str] = None
+    phone: Optional[str] = None
     password: str
 
 

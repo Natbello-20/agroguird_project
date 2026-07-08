@@ -79,11 +79,18 @@ def decode_access_token(token: str) -> dict:
 # DEPENDENCY INJECTION FOR PROTECTED ROUTES
 # ============================================================================
 
-async def get_current_user(
-    request: Request,
-    token_cookie: Optional[str] = Cookie(None, alias="access_token"),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
-) -> dict:
+
+async def get_superadmin_user(current_user: dict = Depends(get_current_user)) -> dict:
+    """Dependency that ensures the JWT token belongs to a Super‑Admin.
+    The token payload must contain "type": "superadmin".
+    """
+    if current_user.get("user_type") != "superadmin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Super‑Admin privileges required",
+        )
+    return current_user
+
     """Dependency to extract and validate current user from JWT token (Cookie or Header)"""
     token = None
     
