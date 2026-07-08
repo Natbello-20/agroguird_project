@@ -138,7 +138,11 @@ class DiseaseDetectionModel:
             print(f"Error preprocessing image: {e}")
             return None
     
-    def predict(self, image) -> Tuple[str, float]:
+    def is_maize_leaf(self, image_bytes) -> bool:
+        """Return True if the predicted class corresponds to a maize leaf (Corn)."""
+        disease, _ = self.predict(image_bytes)
+        return disease.startswith('Corn___')
+
         """
         Predict disease class and confidence from an image.
         

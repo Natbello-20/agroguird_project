@@ -86,13 +86,23 @@ async def read_root(request: Request):
 
 @app.post("/predict")
 async def predict_disease(
-    file: UploadFile = File(...), 
+    file: UploadFile = File(...),
     lang: str = Query("en"),
     device_id: str = Header(None), # Anonymous Farmer ID
     x_latitude: str = Header(None),  # GPS latitude from phone
-    x_longitude: str = Header(None),  # GPS longitude from phone
+    x_longitude: str = Header(None),  # GPS longitude from phone,
 ):
     try:
+        # Compute segment identifier from GPS (rounded to 4 decimal places)
+        segment_id: Optional[str] = None
+        if x_latitude and x_longitude:
+            try:
+                lat = round(float(x_latitude), 4)
+                lon = round(float(x_longitude), 4)
+                segment_id = f"{lat}_{lon}"
+            except ValueError:
+                segment_id = None
+
         # Validate file
         if not file.content_type.startswith("image/"):
             return JSONResponse({
@@ -114,6 +124,34 @@ async def predict_disease(
                 "treatment": ""
             })
         
+        # Compute segment identifier from GPS
+        segment_id = None
+        if x_latitude and x_longitude:
+            try:
+                segment_id = f"{round(float(x_latitude), 4)}_{round(float(x_longitude), 4)}"
+            except ValueError:
+                pass
+        
+        # Enforce 5-scan limit per segment
+        if segment_id:
+            attempt_count = database.count_scans_for_segment(device_id, segment_id)
+            if attempt_count >= 5:
+                return JSONResponse({
+                    "error": "Scan limit reached for this field segment. Please move to a new area.",
+                    "disease": "Unknown",
+                    "confidence": 0,
+                    "treatment": ""
+                }, status_code=400)
+
+        # Validate that the image is a maize leaf
+        if not model.is_maize_leaf(contents):
+            return JSONResponse({
+                "error": "Non-maize leaf detected. Please upload a maize leaf image.",
+                "disease": "Unknown",
+                "confidence": 0,
+                "treatment": ""
+            }, status_code=400)
+
         # Predict
         disease, confidence = model.predict(contents)
         
@@ -136,7 +174,7 @@ async def predict_disease(
         }
         treatment = treatments.get(disease, "Consult an extension officer.")
         
-        # Save to Database
+        # Save to Database (include segment_id)
         status_text = "High Risk" if "Healthy" not in disease else "Healthy"
         crop = disease.split("___")[0]
         
@@ -157,7 +195,7 @@ async def predict_disease(
                 print(f"[Location] Reverse lookup failed: {loc_err}")
         
         if device_id:
-            database.register_farmer_scan(device_id, crop, disease, confidence, location, status_text)
+            database.register_farmer_scan(device_id, crop, disease, confidence, location, status_text, segment_id)
         
         return JSONResponse({
             "disease": disease.replace("___", " "),

@@ -964,6 +964,13 @@
         <h3 class="fw-bold mb-3" id="sheet-title">Title</h3>
         <div id="sheet-content"></div>
     </div>
+    <dialog id="errorModal" class="error-modal">
+        <form method="dialog">
+            <h3>Error</h3>
+            <p id="error-modal-message"></p>
+            <button class="btn btn-primary">Close</button>
+        </form>
+    </dialog>
 
     <script>
         // --- Identity Management (Anonymous) ---
@@ -1100,18 +1107,22 @@
                     console.log('Scan geolocation unavailable:', geoErr.message);
                 }
 
+                // Send request to backend
                 const res = await fetch(`/predict?lang=${currentLang}`, {
                     method: 'POST',
                     headers: headers,
                     body: formData
                 });
-
-                if (!res.ok) throw new Error("Server Error");
-
                 const data = await res.json();
-
-                if (data.error) {
-                    alert(data.error);
+                if (!res.ok) {
+                    // Show error modal
+                    document.getElementById('error-modal-message').innerText = data.error || 'Server error';
+                    const modal = document.getElementById('errorModal');
+                    if (typeof modal.showModal === 'function') {
+                        modal.showModal();
+                    } else {
+                        alert(data.error);
+                    }
                     return;
                 }
 

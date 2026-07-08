@@ -49,6 +49,7 @@ def init_db():
             confidence REAL,
             location TEXT,
             status TEXT,
+            segment_id TEXT,
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (farmer_device_id) REFERENCES farmers (device_id)
         )
@@ -60,6 +61,11 @@ def init_db():
             c.execute(f"ALTER TABLE farmers ADD COLUMN {col} {col_type}")
         except Exception:
             pass  # Column already exists
+    # Add segment_id to scans if missing
+    try:
+        c.execute("ALTER TABLE scans ADD COLUMN segment_id TEXT")
+    except Exception:
+        pass
     
     conn.commit()
     conn.close()
@@ -92,20 +98,20 @@ def verify_officer(username, password):
         return user
     return None
 
-def register_farmer_scan(device_id, crop, disease, confidence, location, status):
+def register_farmer_scan(device_id, crop, disease, confidence, location, status, segment_id=None):
     conn = get_db_connection()
     c = conn.cursor()
-    
+
     # Ensure farmer exists (upsert-like logic)
     c.execute("INSERT OR IGNORE INTO farmers (device_id) VALUES (?)", (device_id,))
     c.execute("UPDATE farmers SET last_seen = CURRENT_TIMESTAMP WHERE device_id = ?", (device_id,))
-    
-    # Record scan
+
+    # Record scan with segment_id
     c.execute('''
-        INSERT INTO scans (farmer_device_id, crop, disease, confidence, location, status)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (device_id, crop, disease, confidence, location, status))
-    
+        INSERT INTO scans (farmer_device_id, crop, disease, confidence, location, status, segment_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (device_id, crop, disease, confidence, location, status, segment_id))
+
     scan_id = c.lastrowid
     conn.commit()
     conn.close()
@@ -124,6 +130,15 @@ def register_farmer_profile(device_id, name, phone):
     )
     conn.commit()
     conn.close()
+
+def count_scans_for_segment(device_id: str, segment_id: str) -> int:
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('SELECT COUNT(*) FROM scans WHERE farmer_device_id = ? AND segment_id = ?', (device_id, segment_id))
+    count = c.fetchone()[0]
+    conn.close()
+    return count
+
 
 def get_dashboard_stats():
     conn = get_db_connection()
