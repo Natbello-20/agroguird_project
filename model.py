@@ -1,34 +1,37 @@
 """
 Disease Detection Model Module
-Handles loading and running the TensorFlow model for crop disease detection.
+Handles loading and running the TensorFlow Lite model for maize disease detection.
 """
 
 import os
+import json
 import cv2 as cv2_module
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict
 import random
+from pathlib import Path
 
 # Lazy imports
 np = None
+tf = None
 
-# TensorFlow is imported lazily to avoid startup delays
-TENSORFLOW_AVAILABLE = False
-keras = None
+# TensorFlow Lite availability
+TFLITE_AVAILABLE = False
 
-def _load_tensorflow():
-    """Lazy load TensorFlow on first use"""
-    global TENSORFLOW_AVAILABLE, keras
-    if TENSORFLOW_AVAILABLE:
+def _load_tensorflow_lite():
+    """Lazy load TensorFlow Lite on first use"""
+    global TFLITE_AVAILABLE, tf
+    if TFLITE_AVAILABLE or tf is not None:
         return
     
     try:
-        import tensorflow as tf
-        from tensorflow import keras as tf_keras
-        keras = tf_keras
-        TENSORFLOW_AVAILABLE = True
+        import tensorflow as tf_module
+        tf = tf_module
+        TFLITE_AVAILABLE = True
+        print("✓ TensorFlow Lite loaded successfully")
     except (ImportError, Exception) as e:
-        TENSORFLOW_AVAILABLE = False
-        print("TensorFlow not available. Using mock model for testing.")
+        TFLITE_AVAILABLE = False
+        print(f"⚠ TensorFlow Lite not available: {e}")
+        print("  Using mock model for testing.")
 
 def _ensure_numpy():
     """Lazy load numpy"""
@@ -38,7 +41,18 @@ def _ensure_numpy():
         np = np_module
     return np
 
-# Disease class mapping
+# Maize disease class mapping (from labels.txt)
+MAIZE_CLASSES = {
+    0: "Corn___Healthy",
+    1: "Corn___Common_Rust",
+    2: "Corn___Northern_Leaf_Blight",
+    3: "Corn___Gray_Leaf_Spot",
+}
+
+# Reverse mapping for checking if it's maize
+MAIZE_CLASS_NAMES = set(MAIZE_CLASSES.values())
+
+# Legacy disease class mapping (for fallback/mock)
 DISEASE_CLASSES = {
     0: "Tomato___Early_blight",
     1: "Tomato___Late_blight",
@@ -58,8 +72,8 @@ DISEASE_CLASSES = {
 
 class DiseaseDetectionModel:
     """
-    Disease Detection Model for crop leaves.
-    Supports both real TensorFlow models and mock predictions.
+    Disease Detection Model for maize leaves using TensorFlow Lite.
+    Supports both real TFLite models and mock predictions.
     """
     
     def __init__(self, model_path: Optional[str] = None, use_mock: bool = False):
@@ -67,47 +81,91 @@ class DiseaseDetectionModel:
         Initialize the disease detection model.
         
         Args:
-            model_path: Path to the pre-trained model (.h5 or SavedModel format)
+            model_path: Path to the TFLite model file (.tflite)
             use_mock: Force use of mock model even if TensorFlow is available
         """
-        self.model = None
-        self.use_mock = use_mock or not TENSORFLOW_AVAILABLE
+        self.interpreter = None
+        self.input_details = None
+        self.output_details = None
+        self.use_mock = use_mock
         self.model_loaded = False
         self.image_size = (224, 224)  # Standard input size for most models
+        self.labels = MAIZE_CLASSES
+        self.disease_info = {}
         
-        if not self.use_mock and model_path:
-            self.load_model(model_path)
+        # Load disease information
+        self._load_disease_info()
+        
+        # Only try to load real model if not forced to mock
+        if not self.use_mock:
+            # Auto-detect model if not specified
+            if model_path is None:
+                model_path = "mobile_assets/maize_model.tflite"
+            
+            if model_path and os.path.exists(model_path):
+                self.load_model(model_path)
+            else:
+                print(f"⚠ Model file not found: {model_path if model_path else 'None'}")
+                print("  Using mock model for testing.")
+                self.use_mock = True
+    
+    def _load_disease_info(self):
+        """Load disease information from JSON file"""
+        try:
+            info_path = Path("mobile_assets/disease_info.json")
+            if info_path.exists():
+                with open(info_path, 'r', encoding='utf-8') as f:
+                    self.disease_info = json.load(f)
+                print(f"✓ Loaded disease info for {len(self.disease_info)} conditions")
+        except Exception as e:
+            print(f"⚠ Could not load disease info: {e}")
     
     def load_model(self, model_path: str) -> bool:
         """
-        Load a pre-trained TensorFlow model.
+        Load a TensorFlow Lite model.
         
         Args:
-            model_path: Path to the model file
+            model_path: Path to the .tflite model file
         
         Returns:
             True if model loaded successfully, False otherwise
         """
         try:
-            # Lazy load TensorFlow
-            _load_tensorflow()
+            # Lazy load TensorFlow Lite
+            _load_tensorflow_lite()
             
-            if not TENSORFLOW_AVAILABLE:
-                print("TensorFlow not available, cannot load model")
+            if not TFLITE_AVAILABLE:
+                print("⚠ TensorFlow Lite not available, cannot load model")
+                self.use_mock = True
                 return False
             
             if not os.path.exists(model_path):
-                print(f"Model file not found: {model_path}")
+                print(f"⚠ Model file not found: {model_path}")
+                self.use_mock = True
                 return False
             
-            self.model = keras.models.load_model(model_path)
+            # Load TFLite model and allocate tensors
+            self.interpreter = tf.lite.Interpreter(model_path=model_path)
+            self.interpreter.allocate_tensors()
+            
+            # Get input and output details
+            self.input_details = self.interpreter.get_input_details()
+            self.output_details = self.interpreter.get_output_details()
+            
+            # Update image size from model input shape
+            input_shape = self.input_details[0]['shape']
+            self.image_size = (input_shape[1], input_shape[2])
+            
             self.model_loaded = True
-            print(f"Model loaded successfully from {model_path}")
+            print(f"✓ TFLite model loaded from {model_path}")
+            print(f"  Input shape: {input_shape}")
+            print(f"  Output shape: {self.output_details[0]['shape']}")
             return True
         
         except Exception as e:
-            print(f"Error loading model: {e}")
+            print(f"✗ Error loading model: {e}")
             self.model_loaded = False
+            self.use_mock = True
             return False
     
     def preprocess_image(self, image) -> object:
@@ -138,12 +196,12 @@ class DiseaseDetectionModel:
             print(f"Error preprocessing image: {e}")
             return None
     
-    def predict(self, image) -> Tuple[str, float]:
+    def predict(self, image) -> Tuple[Optional[str], float]:
         """
         Predict disease class and confidence from an image.
         
         Args:
-            image: Input image (OpenCV format)
+            image: Input image (OpenCV format - BGR numpy array)
         
         Returns:
             Tuple of (disease_class, confidence_score)
@@ -151,7 +209,7 @@ class DiseaseDetectionModel:
         if image is None:
             return None, 0.0
         
-        if self.use_mock:
+        if self.use_mock or not self.model_loaded:
             return self._mock_predict()
         
         try:
@@ -163,12 +221,20 @@ class DiseaseDetectionModel:
             if processed is None:
                 return None, 0.0
             
-            # Make prediction
-            predictions = self.model.predict(processed, verbose=0)
-            confidence = float(np_module.max(predictions[0]))
-            class_idx = int(np_module.argmax(predictions[0]))
+            # Set the input tensor
+            self.interpreter.set_tensor(self.input_details[0]['index'], processed)
             
-            disease_class = DISEASE_CLASSES.get(class_idx, "Unknown")
+            # Run inference
+            self.interpreter.invoke()
+            
+            # Get the output tensor
+            output_data = self.interpreter.get_tensor(self.output_details[0]['index'])
+            
+            # Get prediction results
+            confidence = float(np_module.max(output_data[0]))
+            class_idx = int(np_module.argmax(output_data[0]))
+            
+            disease_class = self.labels.get(class_idx, "Unknown")
             
             return disease_class, confidence
         
@@ -179,17 +245,35 @@ class DiseaseDetectionModel:
     def is_maize_leaf(self, image_bytes) -> bool:
         """Return True if the predicted class corresponds to a maize leaf (Corn)."""
         disease, _ = self.predict(image_bytes)
-        return disease.startswith('Corn___')
+        return disease is not None and disease.startswith('Corn___')
+    
+    def get_disease_info(self, disease_class: str) -> Dict:
+        """
+        Get detailed disease information.
+        
+        Args:
+            disease_class: Disease class name (e.g., "Corn___Healthy")
+        
+        Returns:
+            Dictionary with disease details or empty dict
+        """
+        # Extract the disease key from class name (e.g., "Corn___Healthy" -> "healthy")
+        if "___" in disease_class:
+            disease_key = disease_class.split("___")[1].lower().replace("_", "_")
+        else:
+            disease_key = disease_class.lower()
+        
+        return self.disease_info.get(disease_key, {})
     
     def _mock_predict(self) -> Tuple[str, float]:
         """
-        Mock prediction for testing purposes.
+        Mock prediction for testing purposes (uses maize diseases).
         
         Returns:
-            Random disease class and confidence
+            Random maize disease class and confidence
         """
-        disease_class = random.choice(list(DISEASE_CLASSES.values()))
-        confidence = random.uniform(0.80, 0.99)
+        disease_class = random.choice(list(MAIZE_CLASSES.values()))
+        confidence = random.uniform(0.75, 0.98)
         return disease_class, round(confidence, 2)
     
     def batch_predict(self, images) -> Tuple[list, list]:

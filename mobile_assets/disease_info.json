@@ -1,0 +1,99 @@
+{
+  "healthy": {
+    "name": "Healthy Maize Leaf",
+    "description": "The maize leaf shows no visible disease symptoms.",
+    "symptoms": [
+      "Green leaf color",
+      "No spots or lesions",
+      "No discoloration"
+    ],
+    "causes": "N/A - Plant is healthy",
+    "management": [
+      "Continue regular crop management",
+      "Monitor for disease development",
+      "Maintain proper nutrition"
+    ],
+    "prevention": [
+      "Maintain crop rotation",
+      "Use disease-resistant varieties",
+      "Ensure proper spacing for air circulation"
+    ]
+  },
+  "common_rust": {
+    "name": "Common Rust",
+    "scientific_name": "Puccinia sorghi",
+    "description": "A fungal disease that produces reddish-brown pustules on corn leaves.",
+    "symptoms": [
+      "Small, reddish-brown, oval pustules",
+      "Pustules usually on lower leaf surfaces first",
+      "Yellow halo around pustules",
+      "Premature leaf death in severe cases"
+    ],
+    "causes": "Fungal infection by Puccinia sorghi",
+    "management": [
+      "Apply fungicides (e.g., Propiconazole, Azoxystrobin)",
+      "Plant resistant corn hybrids",
+      "Reduce plant density for better air circulation",
+      "Apply early when pustules are visible"
+    ],
+    "prevention": [
+      "Use rust-resistant varieties",
+      "Practice crop rotation",
+      "Destroy infected crop residue",
+      "Monitor fields regularly during susceptible periods"
+    ]
+  },
+  "northern_leaf_blight": {
+    "name": "Northern Leaf Blight",
+    "scientific_name": "Setosphaeria turcica",
+    "description": "A fungal disease causing long, narrow lesions on corn leaves.",
+    "symptoms": [
+      "Long (0.5-3 inches), narrow, elliptical lesions",
+      "Tan or gray lesions with dark borders",
+      "Lesions often with halo effect",
+      "Progression from lower to upper leaves",
+      "Multiple lesions can cause leaf death"
+    ],
+    "causes": "Fungal infection by Setosphaeria turcica (Exserohilum turcicum)",
+    "management": [
+      "Apply fungicides (Azoxystrobin, Propiconazole)",
+      "Plant resistant hybrids",
+      "Reduce plant population",
+      "Apply when first symptoms appear"
+    ],
+    "prevention": [
+      "Use NLB-resistant corn hybrids",
+      "Rotate crops annually",
+      "Plow under infected residue",
+      "Space plants for good air circulation",
+      "Avoid overwatering"
+    ]
+  },
+  "gray_leaf_spot": {
+    "name": "Gray Leaf Spot",
+    "scientific_name": "Cercospora zeae-maydis",
+    "description": "A fungal disease causing rectangular gray-brown lesions on corn leaves.",
+    "symptoms": [
+      "Rectangular lesions with sharp borders",
+      "Gray or tan center with darker brown borders",
+      "Small black dots visible in lesions",
+      "Lesions often between leaf veins",
+      "Extensive spotting causes severe defoliation"
+    ],
+    "causes": "Fungal infection by Cercospora zeae-maydis",
+    "management": [
+      "Apply fungicides (Azoxystrobin, Propiconazole, Trifloxystrobin)",
+      "Plant resistant varieties",
+      "Reduce plant population for better air circulation",
+      "Apply when early symptoms appear"
+    ],
+    "prevention": [
+      "Use GLS-resistant corn hybrids",
+      "Practice 2-year crop rotation",
+      "Bury infected residue deeply",
+      "Maintain adequate spacing",
+      "Avoid excess nitrogen fertilization",
+      "Monitor fields from V6 growth stage onward"
+    ]
+  }
+}

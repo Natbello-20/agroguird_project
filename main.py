@@ -57,25 +57,19 @@ PORT = int(os.getenv("PORT", "8000"))
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 # ============================================================================
-# DISEASE MODEL (MOCK)
+# DISEASE MODEL
 # ============================================================================
 
-# Mock Model (Same as before)
-class DiseaseModel:
-    def __init__(self):
-        self.diseases = [
-            "Tomato___Early_blight", "Tomato___Late_blight", "Tomato___Leaf_Mold", "Tomato___Healthy",
-            "Corn___Leaf_Spot", "Corn___Healthy", "Potato___Early_Blight", "Potato___Healthy",
-            "Cassava___Brown_Leaf_Spot", "Cassava___Healthy", "Rice___Leaf_Blast", "Rice___Healthy",
-            "Cocoa___Frosty_Pod", "Cocoa___Healthy",
-        ]
+# Import the disease detection model
+from model import DiseaseDetectionModel
 
-    def predict(self, image_bytes):
-        disease = random.choice(self.diseases)
-        confidence = round(random.uniform(0.80, 0.98), 2)
-        return disease, confidence
+# Initialize model
+# Set use_mock=False to use the real TFLite model (requires tensorflow)
+# The real model is at: mobile_assets/maize_model.tflite
+USE_REAL_MODEL = os.getenv("USE_REAL_MODEL", "false").lower() == "true"
+model = DiseaseDetectionModel(use_mock=not USE_REAL_MODEL)
 
-model = DiseaseModel()
+print(f"✓ Disease model initialized (real_model={USE_REAL_MODEL}, loaded={model.model_loaded if not model.use_mock else 'N/A'})")
 
 # ============================================================================
 # ROUTES
@@ -91,7 +85,7 @@ async def predict_disease(
     lang: str = Query("en"),
     device_id: str = Header(None), # Anonymous Farmer ID
     x_latitude: str = Header(None),  # GPS latitude from phone
-    x_longitude: str = Header(None),  # GPS longitude from phone,
+    x_longitude: str = Header(None),  # GPS longitude from phone
 ):
     try:
         # Compute segment identifier from GPS (rounded to 4 decimal places)
@@ -104,16 +98,17 @@ async def predict_disease(
             except ValueError:
                 segment_id = None
 
-        # Validate file
+        # Validate file type
         if not file.content_type.startswith("image/"):
             return JSONResponse({
                 "error": "Invalid file type. Please upload an image.",
                 "disease": "Unknown",
                 "confidence": 0,
-                "treatment": ""
+                "treatment": "",
+                "recommendations": []
             })
         
-        # Read image
+        # Read image bytes
         contents = await file.read()
         
         # Check size (5MB)
@@ -122,60 +117,79 @@ async def predict_disease(
                 "error": "Image too large (max 5MB)",
                 "disease": "Unknown",
                 "confidence": 0,
-                "treatment": ""
+                "treatment": "",
+                "recommendations": []
             })
         
-        # Compute segment identifier from GPS
-        segment_id = None
-        if x_latitude and x_longitude:
-            try:
-                segment_id = f"{round(float(x_latitude), 4)}_{round(float(x_longitude), 4)}"
-            except ValueError:
-                pass
-        
         # Enforce 5-scan limit per segment
-        if segment_id:
+        if segment_id and device_id:
             attempt_count = database.count_scans_for_segment(device_id, segment_id)
             if attempt_count >= 5:
                 return JSONResponse({
                     "error": "Scan limit reached for this field segment. Please move to a new area.",
                     "disease": "Unknown",
                     "confidence": 0,
-                    "treatment": ""
+                    "treatment": "",
+                    "recommendations": []
                 }, status_code=400)
 
+        # Convert bytes to OpenCV image
+        import numpy as np
+        import cv2
+        nparr = np.frombuffer(contents, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        
+        if img is None:
+            return JSONResponse({
+                "error": "Could not decode image. Please try another image.",
+                "disease": "Unknown",
+                "confidence": 0,
+                "treatment": "",
+                "recommendations": []
+            })
+
+        # Run prediction
+        disease, confidence = model.predict(img)
+        
+        if disease is None:
+            return JSONResponse({
+                "error": "Prediction failed. Please try again.",
+                "disease": "Unknown",
+                "confidence": 0,
+                "treatment": "",
+                "recommendations": []
+            })
+        
         # Validate that the image is a maize leaf
-        if not model.is_maize_leaf(contents):
+        if not disease.startswith('Corn___'):
             return JSONResponse({
                 "error": "Non-maize leaf detected. Please upload a maize leaf image.",
                 "disease": "Unknown",
                 "confidence": 0,
-                "treatment": ""
+                "treatment": "",
+                "recommendations": []
             }, status_code=400)
 
-        # Predict
-        disease, confidence = model.predict(contents)
+        # Load treatment recommendations from treatment.json
+        treatment_data = _load_treatment_data()
         
-        # Treatment Logic (Simplified)
-        treatments = {
-            "Tomato___Early_blight": "Apply fungicides like Mancozeb.",
-            "Tomato___Late_blight": "Use copper-based fungicides.",
-            "Tomato___Leaf_Mold": "Improve air circulation and use fungicides.",
-            "Tomato___Healthy": "No treatment needed. Maintain good watering.",
-            "Corn___Leaf_Spot": "Rotate crops and use resistant varieties.",
-            "Corn___Healthy": "No treatment needed. Monitor regularly.",
-            "Potato___Early_Blight": "Apply fungicides and ensure proper spacing.",
-            "Potato___Healthy": "No treatment needed. Ensure good soil drainage.",
-            "Cassava___Brown_Leaf_Spot": "Remove infected leaves and use resistant varieties.",
-            "Cassava___Healthy": "No treatment needed. Maintain soil fertility.",
-            "Rice___Leaf_Blast": "Use resistant varieties and proper nitrogen management.",
-            "Rice___Healthy": "No treatment needed. Ensure adequate water.",
-            "Cocoa___Frosty_Pod": "Prune infected pods and apply fungicides.",
-            "Cocoa___Healthy": "No treatment needed. Maintain shade and nutrition.",
-        }
-        treatment = treatments.get(disease, "Consult an extension officer.")
+        # Get treatment for detected disease
+        disease_key = disease  # e.g., "Corn___Healthy"
+        treatment_info = treatment_data.get(disease_key, {}).get(lang, {})
         
-        # Save to Database (include segment_id)
+        # Fallback to English if language not available
+        if not treatment_info:
+            treatment_info = treatment_data.get(disease_key, {}).get("en", {})
+        
+        treatment_title = treatment_info.get("title", disease.replace("___", " "))
+        treatment_text = treatment_info.get("treatment", "Consult an agricultural extension officer for guidance.")
+        
+        # Get detailed disease information
+        disease_info = model.get_disease_info(disease)
+        recommendations = disease_info.get("management", [])
+        prevention = disease_info.get("prevention", [])
+        
+        # Save to Database
         status_text = "High Risk" if "Healthy" not in disease else "Healthy"
         crop = disease.split("___")[0]
         
@@ -199,10 +213,19 @@ async def predict_disease(
             database.register_farmer_scan(device_id, crop, disease, confidence, location, status_text, segment_id)
         
         return JSONResponse({
-            "disease": disease.replace("___", " "),
-            "confidence": confidence,
-            "treatment": treatment,
-            "status": status_text
+            "disease": treatment_title,
+            "disease_class": disease.replace("___", " "),
+            "confidence": round(confidence, 2),
+            "treatment": treatment_text,
+            "status": status_text,
+            "recommendations": recommendations,
+            "prevention": prevention,
+            "disease_info": {
+                "name": disease_info.get("name", treatment_title),
+                "description": disease_info.get("description", ""),
+                "symptoms": disease_info.get("symptoms", []),
+                "scientific_name": disease_info.get("scientific_name", "")
+            }
         })
     
     except Exception as e:
@@ -210,8 +233,19 @@ async def predict_disease(
             "error": f"Server error: {str(e)}",
             "disease": "Unknown",
             "confidence": 0,
-            "treatment": ""
+            "treatment": "",
+            "recommendations": []
         })
+
+
+def _load_treatment_data() -> dict:
+    """Load treatment data from treatment.json file"""
+    try:
+        with open("treatment.json", "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"⚠ Could not load treatment.json: {e}")
+        return {}
 
 # ============================================================================
 # WEATHER API (OpenWeatherMap - with caching & fallback)

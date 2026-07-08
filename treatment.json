@@ -83,6 +83,48 @@
       "treatment": "Nnua no ayɛ pɛ. Kɔ so yi ahoɔden, de nsuo hyɛ na hwɛ mmoawa."
     }
   },
+  "Corn___Common_Rust": {
+    "en": {
+      "title": "Common Rust",
+      "treatment": "Apply fungicides like Propiconazole or Azoxystrobin when pustules first appear. Plant resistant corn hybrids. Reduce plant density for better air circulation."
+    },
+    "tw": {
+      "title": "Ɔkukɔ Ntini Rust",
+      "treatment": "Hyɛ fungicide a wɔfrɛ no Propiconazole anaa Azoxystrobin bere a pustules no aba firi. Fa ɔkukɔ a ɛyɛ resistant. Yi nnua no ma ɔfan ba mu."
+    },
+    "ff": {
+      "title": "Ɔkukɔ Ntini Rust",
+      "treatment": "Hyɛ fungicide a wɔfrɛ no Propiconazole anaa Azoxystrobin bere a pustules no aba firi. Fa ɔkukɔ a ɛyɛ resistant. Yi nnua no ma ɔfan ba mu."
+    }
+  },
+  "Corn___Northern_Leaf_Blight": {
+    "en": {
+      "title": "Northern Leaf Blight",
+      "treatment": "Apply fungicides like Azoxystrobin or Propiconazole when first symptoms appear. Plant resistant hybrids. Rotate crops annually and plow under infected residue."
+    },
+    "tw": {
+      "title": "Ɔkukɔ Atifi Fa Blight",
+      "treatment": "Hyɛ fungicide a wɔfrɛ no Azoxystrobin anaa Propiconazole bere a ɔyare no adi kan aba. Fa ɔkukɔ a ɛyɛ resistant. Yɛ nɛma afe biara na yi nnua a ɔyare no wɔ ho."
+    },
+    "ff": {
+      "title": "Ɔkukɔ Atifi Fa Blight",
+      "treatment": "Hyɛ fungicide a wɔfrɛ no Azoxystrobin anaa Propiconazole bere a ɔyare no adi kan aba. Fa ɔkukɔ a ɛyɛ resistant. Yɛ nɛma afe biara na yi nnua a ɔyare no wɔ ho."
+    }
+  },
+  "Corn___Gray_Leaf_Spot": {
+    "en": {
+      "title": "Gray Leaf Spot",
+      "treatment": "Apply fungicides like Azoxystrobin, Propiconazole, or Trifloxystrobin when early symptoms appear. Use resistant varieties. Practice 2-year crop rotation and bury infected residue deeply."
+    },
+    "tw": {
+      "title": "Ɔkukɔ Fa Spot Ntakra",
+      "treatment": "Hyɛ fungicide a wɔfrɛ no Azoxystrobin, Propiconazole anaa Trifloxystrobin bere a ɔyare no adi kan aba. Fa ɔkukɔ a ɛyɛ resistant. Yɛ nɛma mfe abien na yi nnua a ɔyare no wɔ ho."
+    },
+    "ff": {
+      "title": "Ɔkukɔ Fa Spot Ntakra",
+      "treatment": "Hyɛ fungicide a wɔfrɛ no Azoxystrobin, Propiconazole anaa Trifloxystrobin bere a ɔyare no adi kan aba. Fa ɔkukɔ a ɛyɛ resistant. Yɛ nɛma mfe abien na yi nnua a ɔyare no wɔ ho."
+    }
+  },
   "Potato___Early_Blight": {
     "en": {
       "title": "Potato Early Blight",
