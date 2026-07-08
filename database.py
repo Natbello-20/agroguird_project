@@ -183,9 +183,20 @@ def register_farmer_profile(device_id, name, phone):
     conn.close()
 
 def count_scans_for_segment(device_id: str, segment_id: str) -> int:
+    """Count scans for a specific device in a specific GPS segment"""
     conn = get_db_connection()
     c = conn.cursor()
     c.execute('SELECT COUNT(*) FROM scans WHERE farmer_device_id = ? AND segment_id = ?', (device_id, segment_id))
+    count = c.fetchone()[0]
+    conn.close()
+    return count
+
+
+def count_total_scans(device_id: str) -> int:
+    """Count total scans for a device across all segments"""
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('SELECT COUNT(*) FROM scans WHERE farmer_device_id = ?', (device_id,))
     count = c.fetchone()[0]
     conn.close()
     return count

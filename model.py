@@ -267,13 +267,21 @@ class DiseaseDetectionModel:
     
     def _mock_predict(self) -> Tuple[str, float]:
         """
-        Mock prediction for testing purposes (uses maize diseases).
+        Mock prediction for testing purposes.
+        Simulates maize detection with ~20% chance of rejecting non-maize images.
         
         Returns:
-            Random maize disease class and confidence
+            Disease class and confidence (or None for non-maize)
         """
+        # 20% chance to simulate non-maize leaf detection
+        if random.random() < 0.2:
+            # Return low confidence to trigger rejection
+            return random.choice(list(MAIZE_CLASSES.values())), random.uniform(0.15, 0.45)
+        
+        # 80% chance of valid maize prediction
         disease_class = random.choice(list(MAIZE_CLASSES.values()))
         confidence = random.uniform(0.75, 0.98)
+        return disease_class, round(confidence, 2)
         return disease_class, round(confidence, 2)
     
     def batch_predict(self, images) -> Tuple[list, list]:

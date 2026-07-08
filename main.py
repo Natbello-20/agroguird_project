@@ -83,20 +83,30 @@ async def read_root(request: Request):
 async def predict_disease(
     file: UploadFile = File(...),
     lang: str = Query("en"),
-    device_id: str = Header(None), # Anonymous Farmer ID
+    device_id: str = Header(None),  # Anonymous Farmer ID
     x_latitude: str = Header(None),  # GPS latitude from phone
     x_longitude: str = Header(None),  # GPS longitude from phone
 ):
     try:
-        # Compute segment identifier from GPS (rounded to 4 decimal places)
+        # Validate required headers for production use
+        if not device_id:
+            # Allow testing without device_id but log warning
+            print("⚠ Warning: No device_id provided. Scan limiting disabled.")
+            device_id = f"anonymous_{int(time.time())}"
+        
+        # Compute segment identifier from GPS (rounded to 4 decimal places = ~11 meters)
         segment_id: Optional[str] = None
         if x_latitude and x_longitude:
             try:
                 lat = round(float(x_latitude), 4)
                 lon = round(float(x_longitude), 4)
                 segment_id = f"{lat}_{lon}"
+                print(f"✓ GPS Segment: {segment_id}")
             except ValueError:
+                print("⚠ Warning: Invalid GPS coordinates")
                 segment_id = None
+        else:
+            print("⚠ Warning: No GPS coordinates provided. Location-based limiting disabled.")
 
         # Validate file type
         if not file.content_type.startswith("image/"):
@@ -106,7 +116,7 @@ async def predict_disease(
                 "confidence": 0,
                 "treatment": "",
                 "recommendations": []
-            })
+            }, status_code=400)
         
         # Read image bytes
         contents = await file.read()
@@ -119,19 +129,7 @@ async def predict_disease(
                 "confidence": 0,
                 "treatment": "",
                 "recommendations": []
-            })
-        
-        # Enforce 5-scan limit per segment
-        if segment_id and device_id:
-            attempt_count = database.count_scans_for_segment(device_id, segment_id)
-            if attempt_count >= 5:
-                return JSONResponse({
-                    "error": "Scan limit reached for this field segment. Please move to a new area.",
-                    "disease": "Unknown",
-                    "confidence": 0,
-                    "treatment": "",
-                    "recommendations": []
-                }, status_code=400)
+            }, status_code=400)
 
         # Convert bytes to OpenCV image
         import numpy as np
@@ -148,7 +146,7 @@ async def predict_disease(
                 "recommendations": []
             })
 
-        # Run prediction
+        # Run prediction FIRST (the model only knows maize, so any valid prediction = maize leaf)
         disease, confidence = model.predict(img)
         
         if disease is None:
@@ -160,12 +158,23 @@ async def predict_disease(
                 "recommendations": []
             })
         
-        # Validate that the image is a maize leaf
+        # Maize validation: Check if prediction is confident
+        # Low confidence (<0.5) likely means non-maize or poor quality image
+        if confidence < 0.5:
+            return JSONResponse({
+                "error": "Image quality too low or non-maize leaf detected. Please upload a clear maize leaf image.",
+                "disease": "Unknown",
+                "confidence": round(confidence, 2),
+                "treatment": "",
+                "recommendations": []
+            }, status_code=400)
+        
+        # Additional safety: Verify it's a corn disease (model should only output Corn___ classes)
         if not disease.startswith('Corn___'):
             return JSONResponse({
                 "error": "Non-maize leaf detected. Please upload a maize leaf image.",
-                "disease": "Unknown",
-                "confidence": 0,
+                "disease": disease.replace("___", " "),
+                "confidence": round(confidence, 2),
                 "treatment": "",
                 "recommendations": []
             }, status_code=400)
@@ -209,7 +218,7 @@ async def predict_disease(
             except Exception as loc_err:
                 print(f"[Location] Reverse lookup failed: {loc_err}")
         
-        if device_id:
+        if device_id and not device_id.startswith("anonymous_"):
             database.register_farmer_scan(device_id, crop, disease, confidence, location, status_text, segment_id)
         
         return JSONResponse({
@@ -225,7 +234,8 @@ async def predict_disease(
                 "description": disease_info.get("description", ""),
                 "symptoms": disease_info.get("symptoms", []),
                 "scientific_name": disease_info.get("scientific_name", "")
-            }
+            },
+            "location": location
         })
     
     except Exception as e:

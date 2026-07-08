@@ -53,8 +53,10 @@
 
 ## New Requirements
 
-- [x] **Scanning Workflow**: Limit scanning to 5 attempts per 5‑yard segment. Randomly select up to five scans before analysis. Reject images that are not maize leaves.
+- [x] **Scanning Workflow**: Reject images that are not maize leaves (confidence-based validation).
 - [x] **Farmer Data Integration**: Link farmer name and phone number (collected on first app launch) to the AEO dashboard, including location ID and related metadata.
 - [x] **AEO Administration**: Admin creates and grants AEO staff. Extension office staff log in using staff ID, Ghana Card, and phone number, removing separate AEO signup and enabling sign‑in to access the dashboard.
 - [x] **Model & Recommendation Integration**: Load trained model files and recommendation data to provide disease diagnostics and actionable suggestions.
 - [x] **Super Admin System**: Complete three-tier access control (Super Admin → AEO → Farmers) with admin portal for AEO management.
+
+**Note:** Scan limiting removed per user request - unlimited scans allowed.
