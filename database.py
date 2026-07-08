@@ -81,7 +81,31 @@ def init_db():
         )
     ''')
 
-    # 5. Audit Log Table
+    # 5. Super Admin Table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS superadmin (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            hashed_password TEXT NOT NULL,
+            full_name TEXT NOT NULL,
+            is_active INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # 5. Super Admin Table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS superadmin (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            hashed_password TEXT NOT NULL,
+            full_name TEXT NOT NULL,
+            is_active INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # 6. Audit Log Table
     c.execute('''
         CREATE TABLE IF NOT EXISTS audit_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -325,6 +349,79 @@ def log_audit(action: str, entity: str, entity_id: int, performed_by: int, detai
         INSERT INTO audit_log (action, entity, entity_id, performed_by, details)
         VALUES (?, ?, ?, ?, ?)
     ''', (action, entity, entity_id, performed_by, details))
+    conn.commit()
+    conn.close()
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Super Admin Management Functions
+# ---------------------------------------------------------------------------
+
+def create_superadmin(username: str, password: str, full_name: str):
+    """Create a new super admin account."""
+    conn = get_db_connection()
+    c = conn.cursor()
+    hashed = pwd_context.hash(password)
+    try:
+        c.execute('''
+            INSERT INTO superadmin (username, hashed_password, full_name, is_active)
+            VALUES (?, ?, ?, 1)
+        ''', (username, hashed, full_name))
+        superadmin_id = c.lastrowid
+        conn.commit()
+        conn.close()
+        return superadmin_id
+    except sqlite3.IntegrityError:
+        conn.close()
+        return None
+
+
+def get_superadmin_by_username(username: str):
+    """Retrieve super admin record by username."""
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('SELECT * FROM superadmin WHERE username = ?', (username,))
+    superadmin = c.fetchone()
+    conn.close()
+    return superadmin
+
+
+def verify_superadmin(username: str, password: str):
+    """Verify super admin credentials and return user record if valid."""
+    superadmin = get_superadmin_by_username(username)
+    if not superadmin:
+        return None
+    
+    if not superadmin['is_active']:
+        return None
+    
+    if pwd_context.verify(password, superadmin['hashed_password']):
+        return superadmin
+    
+    return None
+
+
+def update_superadmin(superadmin_id: int, full_name: str = None, is_active: int = None):
+    """Update mutable fields of a super admin record."""
+    conn = get_db_connection()
+    c = conn.cursor()
+    fields = []
+    params = []
+    
+    if full_name is not None:
+        fields.append('full_name = ?')
+        params.append(full_name)
+    if is_active is not None:
+        fields.append('is_active = ?')
+        params.append(is_active)
+    
+    if not fields:
+        conn.close()
+        return False
+    
+    params.append(superadmin_id)
+    c.execute(f"UPDATE superadmin SET {', '.join(fields)} WHERE id = ?", params)
     conn.commit()
     conn.close()
     return True

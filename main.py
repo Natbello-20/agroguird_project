@@ -316,7 +316,15 @@ async def startup_event():
     first_run = not os.path.exists("agroguard.db")
     database.init_db()  # Always run — safely migrates existing DB
     if first_run:
-        database.create_officer("admin", "admin123")  # Default credentials
+        database.create_officer("admin", "admin123")  # Default officer credentials
+        database.create_superadmin("superadmin", "SuperAdmin@123", "System Administrator")  # Default superadmin
+        print("✓ Database initialized with default officer and superadmin accounts")
+    else:
+        # Ensure superadmin exists even on subsequent runs (in case DB was created before superadmin feature)
+        existing_superadmin = database.get_superadmin_by_username("superadmin")
+        if not existing_superadmin:
+            database.create_superadmin("superadmin", "SuperAdmin@123", "System Administrator")
+            print("✓ Default superadmin account created")
 
 
 @app.get("/login", response_class=HTMLResponse)
@@ -427,6 +435,135 @@ async def aeo_login(login_data: schemas.AEOLoginRequest):
         "user_id": aeo['id'],
         "user_type": "aeo"
     }
+
+
+@app.get("/superadmin/login", response_class=HTMLResponse)
+async def superadmin_login_page(request: Request):
+    """Super Admin login page"""
+    return templates.TemplateResponse("superadmin_login.html", {"request": request, "error": None})
+
+
+@app.post("/superadmin/login")
+async def superadmin_login_form(request: Request, username: str = Form(...), password: str = Form(...)):
+    """Super Admin login form handler (for HTML form submission with redirect)"""
+    superadmin = database.verify_superadmin(username, password)
+    if not superadmin:
+        return templates.TemplateResponse("superadmin_login.html", {"request": request, "error": "Invalid credentials"})
+    
+    # Generate JWT
+    access_token = auth.create_access_token(
+        data={
+            "sub": str(superadmin['id']),
+            "type": "superadmin",
+            "username": superadmin['username']
+        }
+    )
+    
+    response = RedirectResponse(url="/superadmin/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    response.set_cookie(key="access_token", value=access_token, httponly=True)
+    return response
+
+
+@app.get("/superadmin/dashboard", response_class=HTMLResponse)
+async def superadmin_dashboard(request: Request, current_user: dict = Depends(auth.get_superadmin_user)):
+    """Super Admin dashboard page"""
+    return templates.TemplateResponse("superadmin_dashboard.html", {
+        "request": request,
+        "user": current_user.get("username", "Super Admin")
+    })
+
+
+@app.post("/api/superadmin/login", response_model=schemas.TokenResponse)
+async def superadmin_api_login(username: str = Form(...), password: str = Form(...)):
+    """
+    Super Admin API login endpoint - accepts username and password.
+    Returns JWT token with superadmin privileges on success (for API clients).
+    """
+    if not username or not password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username and password are required"
+        )
+    
+    # Verify super admin credentials
+    superadmin = database.verify_superadmin(username, password)
+    
+    if not superadmin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+    
+    # Generate JWT token with superadmin type
+    access_token = auth.create_access_token(
+        data={
+            "sub": str(superadmin['id']),
+            "type": "superadmin",
+            "username": superadmin['username']
+        }
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": superadmin['id'],
+        "user_type": "superadmin"
+    }
+
+
+@app.post("/superadmin/aeo/create", response_model=schemas.AEOResponse)
+async def create_aeo_account(
+    aeo_data: schemas.AEOCreateRequest,
+    current_user: dict = Depends(auth.get_superadmin_user)
+):
+    """
+    Super Admin only endpoint to create new AEO accounts.
+    Requires superadmin JWT token. Creates AEO with temporary password
+    that must be changed on first login.
+    """
+    try:
+        # Create the AEO account
+        aeo_id = database.create_aeo(
+            staff_id=aeo_data.staff_id,
+            ghana_card=aeo_data.ghana_card,
+            phone=aeo_data.phone,
+            name=aeo_data.name,
+            password=aeo_data.temporary_password
+        )
+        
+        if not aeo_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="AEO account creation failed. Staff ID, Ghana Card, or Phone may already exist."
+            )
+        
+        # Log the action in audit log
+        database.log_audit(
+            action="create_aeo",
+            entity="aeo",
+            entity_id=aeo_id,
+            performed_by=current_user["user_id"],
+            details=f"Created AEO account for {aeo_data.name} (Staff ID: {aeo_data.staff_id})"
+        )
+        
+        # Retrieve the created AEO to return
+        aeo = database.get_aeo_by_identifier(aeo_data.staff_id)
+        
+        return {
+            "id": aeo['id'],
+            "staff_id": aeo['staff_id'],
+            "ghana_card": aeo['ghana_card'],
+            "phone": aeo['phone'],
+            "name": aeo['name'],
+            "must_change_password": bool(aeo['must_change_password']),
+            "is_active": bool(aeo['is_active'])
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create AEO account: {str(e)}"
+        )
 
 
 # Removed duplicate login route

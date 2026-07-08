@@ -34,6 +34,27 @@ class AEOLoginRequest(BaseModel):
     password: str
 
 
+class AEOCreateRequest(BaseModel):
+    staff_id: str = Field(..., min_length=3)
+    ghana_card: str = Field(..., min_length=10)
+    phone: str = Field(..., min_length=10)
+    name: str = Field(..., min_length=2)
+    temporary_password: str = Field(..., min_length=8)
+
+
+class AEOResponse(BaseModel):
+    id: int
+    staff_id: str
+    ghana_card: str
+    phone: str
+    name: str
+    must_change_password: bool
+    is_active: bool
+    
+    class Config:
+        from_attributes = True
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
