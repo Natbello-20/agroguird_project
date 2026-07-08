@@ -26,6 +26,7 @@ from fastapi.staticfiles import StaticFiles
 # Local imports
 import database
 import auth
+import schemas
 
 
 # ============================================================================
@@ -362,6 +363,70 @@ async def signup(request: Request, username: str = Form(...), password: str = Fo
         return response
     except Exception as e:
         return templates.TemplateResponse("signup.html", {"request": request, "error": "Username already exists", "success": None})
+
+
+@app.post("/aeo/login", response_model=schemas.TokenResponse)
+async def aeo_login(login_data: schemas.AEOLoginRequest):
+    """
+    AEO login endpoint - accepts staff_id, ghana_card, or phone as identifier
+    along with password. Returns JWT token on success.
+    """
+    # Determine which identifier was provided
+    identifier = login_data.staff_id or login_data.ghana_card or login_data.phone
+    
+    if not identifier:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Must provide at least one identifier (staff_id, ghana_card, or phone)"
+        )
+    
+    if not login_data.password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password is required"
+        )
+    
+    # Retrieve AEO record
+    aeo = database.get_aeo_by_identifier(identifier)
+    
+    if not aeo:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+    
+    # Check if account is active
+    if not aeo['is_active']:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account has been deactivated"
+        )
+    
+    # Verify password using passlib context from database module
+    from passlib.context import CryptContext
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    
+    if not pwd_context.verify(login_data.password, aeo['hashed_password']):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+    
+    # Generate JWT token
+    access_token = auth.create_access_token(
+        data={
+            "sub": str(aeo['id']),
+            "type": "aeo",
+            "staff_id": aeo['staff_id']
+        }
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": aeo['id'],
+        "user_type": "aeo"
+    }
 
 
 # Removed duplicate login route

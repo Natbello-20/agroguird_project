@@ -80,17 +80,10 @@ def decode_access_token(token: str) -> dict:
 # ============================================================================
 
 
-async def get_superadmin_user(current_user: dict = Depends(get_current_user)) -> dict:
-    """Dependency that ensures the JWT token belongs to a Super‑Admin.
-    The token payload must contain "type": "superadmin".
-    """
-    if current_user.get("user_type") != "superadmin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Super‑Admin privileges required",
-        )
-    return current_user
-
+async def get_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    token_cookie: Optional[str] = Cookie(default=None, alias="access_token")
+) -> dict:
     """Dependency to extract and validate current user from JWT token (Cookie or Header)"""
     token = None
     
@@ -122,6 +115,18 @@ async def get_superadmin_user(current_user: dict = Depends(get_current_user)) ->
         )
     
     return {"user_id": user_id, "user_type": user_type}
+
+
+async def get_superadmin_user(current_user: dict = Depends(get_current_user)) -> dict:
+    """Dependency that ensures the JWT token belongs to a Super‑Admin.
+    The token payload must contain "type": "superadmin".
+    """
+    if current_user.get("user_type") != "superadmin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Super‑Admin privileges required",
+        )
+    return current_user
 
 
 async def get_farmer_user(current_user: dict = Depends(get_current_user)) -> dict:
