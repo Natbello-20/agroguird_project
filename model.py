@@ -5,10 +5,11 @@ Handles loading and running the TensorFlow Lite model for maize disease detectio
 
 import os
 import json
-import cv2 as cv2_module
 from typing import Tuple, Optional, Dict
 import random
 from pathlib import Path
+from PIL import Image
+import io
 
 # Lazy imports
 np = None
@@ -173,7 +174,7 @@ class DiseaseDetectionModel:
         Preprocess image for model input.
         
         Args:
-            image: Input image (OpenCV format)
+            image: Input image (numpy array or PIL Image)
         
         Returns:
             Preprocessed image array
@@ -181,36 +182,61 @@ class DiseaseDetectionModel:
         try:
             np_module = _ensure_numpy()
             
-            # Resize to model input size
-            resized = cv2_module.resize(image, self.image_size)
+            # Convert to PIL Image if it's a numpy array
+            if isinstance(image, np_module.ndarray):
+                # Assume it's RGB format from reading the file
+                pil_image = Image.fromarray(image.astype('uint8'))
+            elif isinstance(image, Image.Image):
+                pil_image = image
+            else:
+                print(f"[ERROR] Unsupported image type: {type(image)}")
+                return None
             
-            # Normalize pixel values to [0, 1] or [-1, 1]
-            normalized = resized.astype('float32') / 255.0
+            # Convert to RGB if needed (in case of RGBA or grayscale)
+            if pil_image.mode != 'RGB':
+                pil_image = pil_image.convert('RGB')
+            
+            # Resize to model input size
+            resized = pil_image.resize(self.image_size, Image.Resampling.BILINEAR)
+            
+            # Convert to numpy array
+            img_array = np_module.array(resized)
+            
+            # Normalize pixel values to [0, 1]
+            normalized = img_array.astype('float32') / 255.0
             
             # Add batch dimension
             batch = np_module.expand_dims(normalized, axis=0)
             
+            print(f"[DEBUG] Preprocessed batch shape: {batch.shape}")
             return batch
         
         except Exception as e:
-            print(f"Error preprocessing image: {e}")
+            print(f"[ERROR] Error preprocessing image: {e}")
+            import traceback
+            traceback.print_exc()
             return None
     
-    def predict(self, image) -> Tuple[Optional[str], float]:
+    def predict(self, image) -> Tuple[Optional[str], float, float, float]:
         """
         Predict disease class and confidence from an image.
         
         Args:
-            image: Input image (OpenCV format - BGR numpy array)
+            image: Input image (numpy array or PIL Image)
         
         Returns:
-            Tuple of (disease_class, confidence_score)
+            Tuple of (disease_class, confidence_score, entropy, confidence_gap)
         """
+        print(f"[DEBUG] predict() called - image is None: {image is None}, use_mock: {self.use_mock}, model_loaded: {self.model_loaded}")
+        
         if image is None:
-            return None, 0.0
+            print("[DEBUG] Image is None, returning None")
+            return None, 0.0, 0.0, 0.0
         
         if self.use_mock or not self.model_loaded:
-            return self._mock_predict()
+            print("[DEBUG] Using mock prediction")
+            result = self._mock_predict()
+            return result[0], result[1], 0.5, 0.3  # Add dummy entropy and gap for mock
         
         try:
             np_module = _ensure_numpy()
@@ -219,6 +245,7 @@ class DiseaseDetectionModel:
             processed = self.preprocess_image(image)
             
             if processed is None:
+                print("[DEBUG] Preprocessing failed, returning None")
                 return None, 0.0
             
             # Set the input tensor
@@ -236,11 +263,29 @@ class DiseaseDetectionModel:
             
             disease_class = self.labels.get(class_idx, "Unknown")
             
-            return disease_class, confidence
+            # Calculate prediction entropy (measure of uncertainty)
+            # High entropy = uncertain = likely non-maize
+            # Low entropy = confident = likely maize
+            probs = output_data[0]
+            entropy = -np_module.sum(probs * np_module.log(probs + 1e-10))
+            
+            # Calculate gap between top 2 predictions
+            sorted_probs = np_module.sort(probs)[::-1]
+            confidence_gap = float(sorted_probs[0] - sorted_probs[1])
+            
+            print(f"[DEBUG] Model output: {output_data[0]}")
+            print(f"[DEBUG] Predicted: {disease_class} with confidence: {confidence:.4f}")
+            print(f"[DEBUG] Entropy: {entropy:.4f} (lower = more certain)")
+            print(f"[DEBUG] Confidence gap: {confidence_gap:.4f} (higher = more decisive)")
+            print(f"[DEBUG] All class confidences: {[f'{self.labels[i]}: {output_data[0][i]:.4f}' for i in range(len(output_data[0]))]}")
+            
+            return disease_class, confidence, entropy, confidence_gap
         
         except Exception as e:
             print(f"Error during prediction: {e}")
-            return None, 0.0
+            import traceback
+            traceback.print_exc()
+            return None, 0.0, 0.0, 0.0
     
     def is_maize_leaf(self, image_bytes) -> bool:
         """Return True if the predicted class corresponds to a maize leaf (Corn)."""

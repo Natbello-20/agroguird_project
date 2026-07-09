@@ -147,7 +147,10 @@ async def predict_disease(
             })
 
         # Run prediction FIRST (the model only knows maize, so any valid prediction = maize leaf)
-        disease, confidence = model.predict(img)
+        result = model.predict(img)
+        disease, confidence = result[0], result[1]
+        entropy = result[2] if len(result) > 2 else 0.0
+        confidence_gap = result[3] if len(result) > 3 else 0.0
         
         if disease is None:
             return JSONResponse({
@@ -158,15 +161,45 @@ async def predict_disease(
                 "recommendations": []
             })
         
-        # Maize validation: Check if prediction is confident
-        # Low confidence (<0.5) likely means non-maize or poor quality image
-        if confidence < 0.5:
+        # Multi-criteria validation for non-maize detection
+        # 1. Low confidence (< 0.7)
+        # 2. High entropy (> 1.0) - model is uncertain
+        # 3. Low confidence gap (< 0.5) - no clear winner among classes
+        
+        CONFIDENCE_THRESHOLD = 0.7
+        ENTROPY_THRESHOLD = 1.0
+        GAP_THRESHOLD = 0.5
+        
+        is_likely_non_maize = (
+            confidence < CONFIDENCE_THRESHOLD or
+            entropy > ENTROPY_THRESHOLD or
+            confidence_gap < GAP_THRESHOLD
+        )
+        
+        if is_likely_non_maize:
+            rejection_reasons = []
+            if confidence < CONFIDENCE_THRESHOLD:
+                rejection_reasons.append(f"low confidence ({confidence:.2f} < {CONFIDENCE_THRESHOLD})")
+            if entropy > ENTROPY_THRESHOLD:
+                rejection_reasons.append(f"high uncertainty (entropy: {entropy:.2f})")
+            if confidence_gap < GAP_THRESHOLD:
+                rejection_reasons.append(f"unclear prediction (gap: {confidence_gap:.2f})")
+            
+            reason_text = ", ".join(rejection_reasons)
+            print(f"[REJECT] Likely non-maize or poor quality - {reason_text}")
+            
             return JSONResponse({
-                "error": "Image quality too low or non-maize leaf detected. Please upload a clear maize leaf image.",
+                "error": f"Image quality too low or non-maize leaf detected. Please upload a clear maize leaf image.",
                 "disease": "Unknown",
                 "confidence": round(confidence, 2),
                 "treatment": "",
-                "recommendations": []
+                "recommendations": [],
+                "debug_info": {
+                    "rejection_reason": reason_text,
+                    "confidence": round(confidence, 4),
+                    "entropy": round(entropy, 4),
+                    "confidence_gap": round(confidence_gap, 4)
+                }
             }, status_code=400)
         
         # Additional safety: Verify it's a corn disease (model should only output Corn___ classes)
@@ -221,7 +254,7 @@ async def predict_disease(
         if device_id and not device_id.startswith("anonymous_"):
             database.register_farmer_scan(device_id, crop, disease, confidence, location, status_text, segment_id)
         
-        return JSONResponse({
+        response_data = {
             "disease": treatment_title,
             "disease_class": disease.replace("___", " "),
             "confidence": round(confidence, 2),
@@ -236,7 +269,12 @@ async def predict_disease(
                 "scientific_name": disease_info.get("scientific_name", "")
             },
             "location": location
-        })
+        }
+        
+        print(f"[SUCCESS] Returning response: disease='{treatment_title}', confidence={confidence:.2f}")
+        print(f"[SUCCESS] Full disease name: {disease}")
+        
+        return JSONResponse(response_data)
     
     except Exception as e:
         return JSONResponse({
