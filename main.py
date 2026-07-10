@@ -187,6 +187,7 @@ async def predict_disease(
             
             reason_text = ", ".join(rejection_reasons)
             print(f"[REJECT] Likely non-maize or poor quality - {reason_text}")
+            print(f"[REJECT] Returning HTTP 400 Bad Request")
             
             return JSONResponse({
                 "error": "No maize leaf detected. Please capture a maize leaf image for disease analysis.",

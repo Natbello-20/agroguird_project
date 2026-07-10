@@ -1114,19 +1114,29 @@
                     body: formData
                 });
                 const data = await res.json();
+                
+                // Log for debugging
+                console.log('Response status:', res.status, 'OK:', res.ok);
+                console.log('Response data:', data);
+                
                 if (!res.ok) {
-                    // Show error modal
-                    document.getElementById('error-modal-message').innerText = data.error || 'Server error';
+                    // Show error modal with clear message
+                    const errorMessage = data.error || 'Server error';
+                    console.log('Showing error modal:', errorMessage);
+                    document.getElementById('error-modal-message').innerText = errorMessage;
                     const modal = document.getElementById('errorModal');
                     if (typeof modal.showModal === 'function') {
                         modal.showModal();
                     } else {
-                        alert(data.error);
+                        alert(errorMessage);
                     }
+                    // Don't show result card for errors
+                    document.getElementById('result-card').style.display = 'none';
+                    document.getElementById('scan-actions').style.display = 'flex';
                     return;
                 }
 
-                // Show Results
+                // Show Results (only for successful scans)
                 document.getElementById('result-disease').innerText = data.disease;
                 document.getElementById('result-confidence').innerText = Math.round(data.confidence * 100) + '%';
                 document.getElementById('result-treatment').innerText = data.treatment;
@@ -1134,7 +1144,7 @@
                 document.getElementById('result-card').classList.add('content-loaded');
                 document.getElementById('scan-actions').style.display = 'none';
 
-                // Save to Local History
+                // Save to Local History (only successful scans)
                 saveScanToHistory(data.disease, data.confidence, data.treatment);
 
             } catch (e) {
