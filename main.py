@@ -415,14 +415,73 @@ async def login_page(request: Request):
 
 
 @app.post("/login")
-async def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    user = database.verify_officer(username, password)
-    if not user:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials"})
+async def login(
+    request: Request,
+    ghana_card: str = Form(None),
+    staff_id: str = Form(None),
+    password: str = Form(...)
+):
+    """
+    AEO Officer login - accepts Ghana Card OR Staff ID with password created by SuperAdmin
+    """
+    # Determine which identifier was provided
+    identifier = ghana_card or staff_id
     
-    # Generate JWT
-    access_token = auth.create_access_token(data={"sub": username, "type": "officer"})
+    if not identifier:
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Please provide either Ghana Card ID or Staff ID"
+            }
+        )
     
+    # Retrieve AEO record by identifier
+    aeo = database.get_aeo_by_identifier(identifier.strip())
+    
+    if not aeo:
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Invalid credentials. Please check your ID and password."
+            }
+        )
+    
+    # Check if account is active
+    if not aeo['is_active']:
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Your account has been deactivated. Please contact administrator."
+            }
+        )
+    
+    # Verify password using passlib context from database module
+    from passlib.context import CryptContext
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    
+    if not pwd_context.verify(password, aeo['hashed_password']):
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Invalid credentials. Please check your ID and password."
+            }
+        )
+    
+    # Generate JWT token
+    access_token = auth.create_access_token(
+        data={
+            "sub": str(aeo['id']),
+            "type": "aeo",
+            "staff_id": aeo['staff_id'],
+            "name": aeo['name']
+        }
+    )
+    
+    # Set cookie and redirect to dashboard
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(key="access_token", value=access_token, httponly=True)
     return response
@@ -430,35 +489,20 @@ async def login(request: Request, username: str = Form(...), password: str = For
 
 @app.get("/signup", response_class=HTMLResponse)
 async def signup_page(request: Request):
-    return templates.TemplateResponse("signup.html", {"request": request, "error": None, "success": None})
+    """Signup disabled - AEO accounts are created by SuperAdmin only"""
+    return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
 
 
 @app.post("/signup")
-async def signup(request: Request, username: str = Form(...), password: str = Form(...), confirm_password: str = Form(...)):
-    # Validate passwords match
-    if password != confirm_password:
-        return templates.TemplateResponse("signup.html", {"request": request, "error": "Passwords do not match", "success": None})
-    
-    # Validate password length
-    if len(password) < 6:
-        return templates.TemplateResponse("signup.html", {"request": request, "error": "Password must be at least 6 characters", "success": None})
-    
-    # Try to create the officer
-    try:
-        database.create_officer(username, password)
-        # Auto-login
-        access_token = auth.create_access_token(data={"sub": username, "type": "officer"})
-        response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
-        response.set_cookie(key="access_token", value=access_token, httponly=True)
-        return response
-    except Exception as e:
-        return templates.TemplateResponse("signup.html", {"request": request, "error": "Username already exists", "success": None})
+async def signup(request: Request):
+    """Signup disabled - AEO accounts are created by SuperAdmin only"""
+    return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
 
 
-@app.post("/aeo/login", response_model=schemas.TokenResponse)
-async def aeo_login(login_data: schemas.AEOLoginRequest):
+@app.post("/api/aeo/login", response_model=schemas.TokenResponse)
+async def aeo_login_api(login_data: schemas.AEOLoginRequest):
     """
-    AEO login endpoint - accepts staff_id, ghana_card, or phone as identifier
+    AEO login API endpoint (for mobile/API clients) - accepts staff_id, ghana_card, or phone as identifier
     along with password. Returns JWT token on success.
     """
     # Determine which identifier was provided
