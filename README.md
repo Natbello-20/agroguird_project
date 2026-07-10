@@ -182,3 +182,5 @@ agroguird_project/
 ---
 
 *AgroGuard — Protecting Ghanaian crops through intelligent, accessible technology.*
+#   D e p l o y m e n t   F i x  
+ 
