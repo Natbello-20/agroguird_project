@@ -112,7 +112,7 @@ async def predict_disease(
         if not file.content_type.startswith("image/"):
             return JSONResponse({
                 "error": "Invalid file type. Please upload an image.",
-                "disease": "Unknown",
+                "disease": "Invalid File",
                 "confidence": 0,
                 "treatment": "",
                 "recommendations": []
@@ -125,7 +125,7 @@ async def predict_disease(
         if len(contents) > 5 * 1024 * 1024:
             return JSONResponse({
                 "error": "Image too large (max 5MB)",
-                "disease": "Unknown",
+                "disease": "File Too Large",
                 "confidence": 0,
                 "treatment": "",
                 "recommendations": []
@@ -140,7 +140,7 @@ async def predict_disease(
         if img is None:
             return JSONResponse({
                 "error": "Could not decode image. Please try another image.",
-                "disease": "Unknown",
+                "disease": "Invalid Image",
                 "confidence": 0,
                 "treatment": "",
                 "recommendations": []
@@ -155,7 +155,7 @@ async def predict_disease(
         if disease is None:
             return JSONResponse({
                 "error": "Prediction failed. Please try again.",
-                "disease": "Unknown",
+                "disease": "Analysis Failed",
                 "confidence": 0,
                 "treatment": "",
                 "recommendations": []
@@ -189,8 +189,8 @@ async def predict_disease(
             print(f"[REJECT] Likely non-maize or poor quality - {reason_text}")
             
             return JSONResponse({
-                "error": f"Image quality too low or non-maize leaf detected. Please upload a clear maize leaf image.",
-                "disease": "Unknown",
+                "error": "No maize leaf detected. Please capture a maize leaf image for disease analysis.",
+                "disease": "Not Maize Leaf",
                 "confidence": round(confidence, 2),
                 "treatment": "",
                 "recommendations": [],
@@ -205,8 +205,8 @@ async def predict_disease(
         # Additional safety: Verify it's a corn disease (model should only output Corn___ classes)
         if not disease.startswith('Corn___'):
             return JSONResponse({
-                "error": "Non-maize leaf detected. Please upload a maize leaf image.",
-                "disease": disease.replace("___", " "),
+                "error": "No maize leaf detected. Please capture a maize leaf image for disease analysis.",
+                "disease": "Not Maize Leaf",
                 "confidence": round(confidence, 2),
                 "treatment": "",
                 "recommendations": []
