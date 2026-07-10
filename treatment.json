@@ -71,8 +71,8 @@
   },
   "Corn___Healthy": {
     "en": {
-      "title": "Healthy Corn",
-      "treatment": "Plant is healthy. Continue regular weeding, watering, and monitoring for pests."
+      "title": "Healthy Maize",
+      "treatment": "Your maize is healthy! Keep removing weeds, water regularly, and watch for insects."
     },
     "tw": {
       "title": "Ɔkukɔ Ayɛ pɛ",
@@ -86,7 +86,7 @@
   "Corn___Common_Rust": {
     "en": {
       "title": "Common Rust",
-      "treatment": "Apply fungicides like Propiconazole or Azoxystrobin when pustules first appear. Plant resistant corn hybrids. Reduce plant density for better air circulation."
+      "treatment": "Remove leaves with orange or brown spots. Spray disease medicine on your maize (ask for rust medicine at the agro shop). Space plants apart for better air flow."
     },
     "tw": {
       "title": "Ɔkukɔ Ntini Rust",
@@ -100,7 +100,7 @@
   "Corn___Northern_Leaf_Blight": {
     "en": {
       "title": "Northern Leaf Blight",
-      "treatment": "Apply fungicides like Azoxystrobin or Propiconazole when first symptoms appear. Plant resistant hybrids. Rotate crops annually and plow under infected residue."
+      "treatment": "Remove sick leaves immediately. Spray disease medicine when you first see long gray spots on leaves. Plant different crops next season. Burn or bury old infected plants after harvest."
     },
     "tw": {
       "title": "Ɔkukɔ Atifi Fa Blight",
@@ -114,7 +114,7 @@
   "Corn___Gray_Leaf_Spot": {
     "en": {
       "title": "Gray Leaf Spot",
-      "treatment": "Apply fungicides like Azoxystrobin, Propiconazole, or Trifloxystrobin when early symptoms appear. Use resistant varieties. Practice 2-year crop rotation and bury infected residue deeply."
+      "treatment": "Remove leaves with small gray spots quickly. Spray disease medicine right away. Don't plant maize in the same field for 2 years. Use resistant maize seeds. Dig infected plants deep into the soil after harvest."
     },
     "tw": {
       "title": "Ɔkukɔ Fa Spot Ntakra",
