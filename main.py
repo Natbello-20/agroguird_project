@@ -192,14 +192,14 @@ async def predict_disease(
             return JSONResponse({
                 "error": "This is not a maize leaf. Please capture a maize leaf to check for diseases.",
                 "disease": "Not Maize Leaf",
-                "confidence": round(confidence, 2),
+                "confidence": float(round(confidence, 2)),
                 "treatment": "",
                 "recommendations": [],
                 "debug_info": {
                     "rejection_reason": reason_text,
-                    "confidence": round(confidence, 4),
-                    "entropy": round(entropy, 4),
-                    "confidence_gap": round(confidence_gap, 4)
+                    "confidence": float(round(confidence, 4)),
+                    "entropy": float(round(entropy, 4)),
+                    "confidence_gap": float(round(confidence_gap, 4))
                 }
             }, status_code=400)
         
@@ -208,7 +208,7 @@ async def predict_disease(
             return JSONResponse({
                 "error": "This is not a maize leaf. Please capture a maize leaf to check for diseases.",
                 "disease": "Not Maize Leaf",
-                "confidence": round(confidence, 2),
+                "confidence": float(round(confidence, 2)),
                 "treatment": "",
                 "recommendations": []
             }, status_code=400)
@@ -258,7 +258,7 @@ async def predict_disease(
         response_data = {
             "disease": treatment_title,
             "disease_class": disease.replace("___", " "),
-            "confidence": round(confidence, 2),
+            "confidence": float(round(confidence, 2)),
             "treatment": treatment_text,
             "status": status_text,
             "recommendations": recommendations,
