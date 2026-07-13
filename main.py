@@ -190,7 +190,7 @@ async def predict_disease(
             print(f"[REJECT] Returning HTTP 400 Bad Request")
             
             return JSONResponse({
-                "error": "No maize leaf detected. Please capture a maize leaf image for disease analysis.",
+                "error": "This is not a maize leaf. Please capture a maize leaf to check for diseases.",
                 "disease": "Not Maize Leaf",
                 "confidence": round(confidence, 2),
                 "treatment": "",
@@ -206,7 +206,7 @@ async def predict_disease(
         # Additional safety: Verify it's a corn disease (model should only output Corn___ classes)
         if not disease.startswith('Corn___'):
             return JSONResponse({
-                "error": "No maize leaf detected. Please capture a maize leaf image for disease analysis.",
+                "error": "This is not a maize leaf. Please capture a maize leaf to check for diseases.",
                 "disease": "Not Maize Leaf",
                 "confidence": round(confidence, 2),
                 "treatment": "",
@@ -280,11 +280,11 @@ async def predict_disease(
     except Exception as e:
         return JSONResponse({
             "error": f"Server error: {str(e)}",
-            "disease": "Unknown",
+            "disease": "System Error",
             "confidence": 0,
             "treatment": "",
             "recommendations": []
-        })
+        }, status_code=500)
 
 
 def _load_treatment_data() -> dict:
