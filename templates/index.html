@@ -652,6 +652,88 @@
             margin-top: 1.25rem;
             margin-bottom: 0;
         }
+
+        /* Error Modal Styling */
+        .error-modal {
+            border: none;
+            border-radius: 24px;
+            padding: 0;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            width: 400px;
+            background: transparent;
+        }
+
+        .error-modal::backdrop {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .error-modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+        }
+
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: errorPulse 2s ease-in-out infinite;
+        }
+
+        .error-icon i {
+            font-size: 3rem;
+            color: white;
+        }
+
+        @keyframes errorPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 107, 107, 0); }
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.75rem;
+        }
+
+        .error-message {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #6c757d;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-error-close {
+            background: linear-gradient(135deg, var(--primary-green), #1aab55);
+            border: none;
+            border-radius: 12px;
+            padding: 0.875rem 2.5rem;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+            width: 100%;
+        }
+
+        .btn-error-close:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-error-close:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 
@@ -964,11 +1046,16 @@
         <div id="sheet-content"></div>
     </div>
     <dialog id="errorModal" class="error-modal">
-        <form method="dialog">
-            <h3>Error</h3>
-            <p id="error-modal-message"></p>
-            <button class="btn btn-primary">Close</button>
-        </form>
+        <div class="error-modal-content">
+            <div class="error-icon">
+                <i class="bi bi-exclamation-circle"></i>
+            </div>
+            <h3 class="error-title">Oops!</h3>
+            <p id="error-modal-message" class="error-message"></p>
+            <form method="dialog">
+                <button class="btn-error-close">Try Again</button>
+            </form>
+        </div>
     </dialog>
 
     <script>
