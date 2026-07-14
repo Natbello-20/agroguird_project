@@ -151,6 +151,51 @@ async def predict_disease(
                 "recommendations": []
             })
 
+        # PRE-FILTER: Check if image has green colors (maize leaves are green)
+        # This catches non-plant objects before sending to model
+        # REASON: The TFLite model was trained ONLY on 4 maize disease classes
+        #         It has NO "background" or "not-maize" class
+        #         So it ALWAYS predicts one of the 4 diseases, even for fabric/hands/tables
+        #         We must filter non-green objects BEFORE the model sees them
+        print(f"[PRE-FILTER] Checking if image contains plant-like colors...")
+        
+        # Calculate color statistics
+        import numpy as np_check
+        img_array = np_check.array(img)
+        
+        # Convert to HSV to detect green
+        from PIL import Image as PILImage
+        img_pil = PILImage.fromarray(img_array.astype('uint8'))
+        img_hsv = img_pil.convert('HSV')
+        hsv_array = np_check.array(img_hsv)
+        
+        # Green hue range: 60-180 in HSV (30-90 degrees)
+        # Saturation: > 20 (not gray/white)
+        # Value: > 20 (not black)
+        h, s, v = hsv_array[:,:,0], hsv_array[:,:,1], hsv_array[:,:,2]
+        
+        green_pixels = np_check.sum((h >= 30) & (h <= 150) & (s > 25) & (v > 25))
+        total_pixels = h.size
+        green_ratio = green_pixels / total_pixels
+        
+        print(f"[PRE-FILTER] Green pixel ratio: {green_ratio:.3f} ({green_pixels}/{total_pixels})")
+        
+        # Reject if less than 15% green pixels (too low for a leaf)
+        if green_ratio < 0.15:
+            print(f"[PRE-FILTER] REJECT - Not enough green content (ratio: {green_ratio:.3f} < 0.15)")
+            return JSONResponse({
+                "error": "This is not a maize leaf. Please capture a maize leaf to check for diseases.",
+                "disease": "Not Maize Leaf",
+                "confidence": 0,
+                "treatment": "",
+                "recommendations": [],
+                "debug_info": {
+                    "rejection_reason": f"insufficient green content (ratio: {green_ratio:.3f})",
+                    "green_pixels": int(green_pixels),
+                    "total_pixels": int(total_pixels)
+                }
+            }, status_code=400)
+
         # Run prediction FIRST (the model only knows maize, so any valid prediction = maize leaf)
         print(f"[PREDICT] Starting prediction with real TensorFlow model...")
         print(f"[PREDICT] Model status - model_loaded: {model.model_loaded}")
