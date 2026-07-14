@@ -162,13 +162,13 @@ async def predict_disease(
             })
         
         # Multi-criteria validation for non-maize detection
-        # 1. Low confidence (< 0.7)
-        # 2. High entropy (> 1.0) - model is uncertain
-        # 3. Low confidence gap (< 0.5) - no clear winner among classes
+        # 1. Low confidence (< 0.40) - very uncertain prediction
+        # 2. High entropy (> 1.3) - model is very confused
+        # 3. Low confidence gap (< 0.15) - all predictions are similar (no clear winner)
         
-        CONFIDENCE_THRESHOLD = 0.7
-        ENTROPY_THRESHOLD = 1.0
-        GAP_THRESHOLD = 0.5
+        CONFIDENCE_THRESHOLD = 0.40  # Lowered from 0.7 - real maize often 0.5-0.85
+        ENTROPY_THRESHOLD = 1.3      # Increased from 1.0 - allow more uncertainty
+        GAP_THRESHOLD = 0.15         # Lowered from 0.5 - less strict on class separation
         
         is_likely_non_maize = (
             confidence < CONFIDENCE_THRESHOLD or
