@@ -162,29 +162,33 @@ async def predict_disease(
             })
         
         # Multi-criteria validation for non-maize detection
-        # 1. Low confidence (< 0.40) - very uncertain prediction
-        # 2. High entropy (> 1.3) - model is very confused
-        # 3. Low confidence gap (< 0.15) - all predictions are similar (no clear winner)
+        # Balanced approach: Accept real maize (0.5-0.9), reject non-maize (0.1-0.4)
+        # 1. Low confidence (< 0.50) - uncertain prediction indicates non-maize
+        # 2. High entropy (> 1.1) - model confusion indicates non-maize
+        # 3. Low confidence gap (< 0.25) - no clear winner indicates non-maize
         
-        CONFIDENCE_THRESHOLD = 0.40  # Lowered from 0.7 - real maize often 0.5-0.85
-        ENTROPY_THRESHOLD = 1.3      # Increased from 1.0 - allow more uncertainty
-        GAP_THRESHOLD = 0.15         # Lowered from 0.5 - less strict on class separation
+        CONFIDENCE_THRESHOLD = 0.50  # Real maize: 0.55-0.90, Non-maize: 0.15-0.45
+        ENTROPY_THRESHOLD = 1.1      # Real maize: 0.4-1.0, Non-maize: 1.1-1.8
+        GAP_THRESHOLD = 0.25         # Real maize: 0.30-0.60, Non-maize: 0.05-0.20
         
-        is_likely_non_maize = (
-            confidence < CONFIDENCE_THRESHOLD or
-            entropy > ENTROPY_THRESHOLD or
-            confidence_gap < GAP_THRESHOLD
-        )
+        # Count how many rejection criteria are met
+        rejection_count = 0
+        rejection_reasons = []
+        
+        if confidence < CONFIDENCE_THRESHOLD:
+            rejection_count += 1
+            rejection_reasons.append(f"low confidence ({confidence:.2f} < {CONFIDENCE_THRESHOLD})")
+        if entropy > ENTROPY_THRESHOLD:
+            rejection_count += 1
+            rejection_reasons.append(f"high uncertainty (entropy: {entropy:.2f} > {ENTROPY_THRESHOLD})")
+        if confidence_gap < GAP_THRESHOLD:
+            rejection_count += 1
+            rejection_reasons.append(f"unclear prediction (gap: {confidence_gap:.2f} < {GAP_THRESHOLD})")
+        
+        # Reject if at least 2 out of 3 criteria are met (more robust)
+        is_likely_non_maize = rejection_count >= 2
         
         if is_likely_non_maize:
-            rejection_reasons = []
-            if confidence < CONFIDENCE_THRESHOLD:
-                rejection_reasons.append(f"low confidence ({confidence:.2f} < {CONFIDENCE_THRESHOLD})")
-            if entropy > ENTROPY_THRESHOLD:
-                rejection_reasons.append(f"high uncertainty (entropy: {entropy:.2f})")
-            if confidence_gap < GAP_THRESHOLD:
-                rejection_reasons.append(f"unclear prediction (gap: {confidence_gap:.2f})")
-            
             reason_text = ", ".join(rejection_reasons)
             print(f"[REJECT] Likely non-maize or poor quality - {reason_text}")
             print(f"[REJECT] Returning HTTP 400 Bad Request")
