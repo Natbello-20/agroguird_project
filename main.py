@@ -171,15 +171,13 @@ async def predict_disease(
                 "recommendations": []
             })
         
-        # Multi-criteria validation for non-maize detection
-        # Balanced approach: Accept real maize (0.5-0.9), reject non-maize (0.1-0.4)
-        # 1. Low confidence (< 0.50) - uncertain prediction indicates non-maize
-        # 2. High entropy (> 1.1) - model confusion indicates non-maize
-        # 3. Low confidence gap (< 0.25) - no clear winner indicates non-maize
+        # STRICT multi-criteria validation for non-maize detection
+        # Goal: Reject anything that's not clearly a maize leaf
+        # Strategy: Reject if ANY single criterion fails (OR logic)
         
-        CONFIDENCE_THRESHOLD = 0.50  # Real maize: 0.55-0.90, Non-maize: 0.15-0.45
-        ENTROPY_THRESHOLD = 1.1      # Real maize: 0.4-1.0, Non-maize: 1.1-1.8
-        GAP_THRESHOLD = 0.25         # Real maize: 0.30-0.60, Non-maize: 0.05-0.20
+        CONFIDENCE_THRESHOLD = 0.60  # Must be confident it's maize
+        ENTROPY_THRESHOLD = 1.0      # Must have low uncertainty
+        GAP_THRESHOLD = 0.30         # Must have clear winner
         
         # Count how many rejection criteria are met
         rejection_count = 0
@@ -195,8 +193,8 @@ async def predict_disease(
             rejection_count += 1
             rejection_reasons.append(f"unclear prediction (gap: {confidence_gap:.2f} < {GAP_THRESHOLD})")
         
-        # Reject if at least 2 out of 3 criteria are met (more robust)
-        is_likely_non_maize = rejection_count >= 2
+        # STRICT: Reject if ANY criterion fails (1 or more)
+        is_likely_non_maize = rejection_count >= 1
         
         if is_likely_non_maize:
             reason_text = ", ".join(rejection_reasons)
