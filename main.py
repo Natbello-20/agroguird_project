@@ -63,13 +63,18 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 # Import the disease detection model
 from model import DiseaseDetectionModel
 
-# Initialize model
-# Set use_mock=False to use the real TFLite model (requires tensorflow)
+# Initialize model - FORCE REAL MODEL ONLY (No mock mode confusion)
 # The real model is at: mobile_assets/maize_model.tflite
-USE_REAL_MODEL = os.getenv("USE_REAL_MODEL", "false").lower() == "true"
-model = DiseaseDetectionModel(use_mock=not USE_REAL_MODEL)
-
-print(f"✓ Disease model initialized (real_model={USE_REAL_MODEL}, loaded={model.model_loaded if not model.use_mock else 'N/A'})")
+print("[INIT] Initializing disease detection model...")
+try:
+    model = DiseaseDetectionModel(model_path="mobile_assets/maize_model.tflite")
+    print(f"✅ [MODEL] Real TensorFlow model loaded successfully!")
+    print(f"✅ [MODEL] Input size: {model.image_size}, Classes: {len(model.labels)}")
+except Exception as e:
+    print(f"❌ [MODEL] CRITICAL ERROR: Failed to load TensorFlow model!")
+    print(f"❌ [MODEL] Error: {e}")
+    print(f"❌ [MODEL] Application cannot start without the model.")
+    raise  # Stop the application - don't run without model
 
 # ============================================================================
 # ROUTES
@@ -147,10 +152,15 @@ async def predict_disease(
             })
 
         # Run prediction FIRST (the model only knows maize, so any valid prediction = maize leaf)
+        print(f"[PREDICT] Starting prediction with real TensorFlow model...")
+        print(f"[PREDICT] Model status - model_loaded: {model.model_loaded}")
+        
         result = model.predict(img)
         disease, confidence = result[0], result[1]
         entropy = result[2] if len(result) > 2 else 0.0
         confidence_gap = result[3] if len(result) > 3 else 0.0
+        
+        print(f"[PREDICT] Result - Disease: {disease}, Confidence: {confidence:.4f}, Entropy: {entropy:.4f}, Gap: {confidence_gap:.4f}")
         
         if disease is None:
             return JSONResponse({

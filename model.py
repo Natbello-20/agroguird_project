@@ -77,18 +77,16 @@ class DiseaseDetectionModel:
     Supports both real TFLite models and mock predictions.
     """
     
-    def __init__(self, model_path: Optional[str] = None, use_mock: bool = False):
+    def __init__(self, model_path: Optional[str] = None):
         """
         Initialize the disease detection model.
         
         Args:
             model_path: Path to the TFLite model file (.tflite)
-            use_mock: Force use of mock model even if TensorFlow is available
         """
         self.interpreter = None
         self.input_details = None
         self.output_details = None
-        self.use_mock = use_mock
         self.model_loaded = False
         self.image_size = (224, 224)  # Standard input size for most models
         self.labels = MAIZE_CLASSES
@@ -97,18 +95,16 @@ class DiseaseDetectionModel:
         # Load disease information
         self._load_disease_info()
         
-        # Only try to load real model if not forced to mock
-        if not self.use_mock:
-            # Auto-detect model if not specified
-            if model_path is None:
-                model_path = "mobile_assets/maize_model.tflite"
-            
-            if model_path and os.path.exists(model_path):
-                self.load_model(model_path)
-            else:
-                print(f"⚠ Model file not found: {model_path if model_path else 'None'}")
-                print("  Using mock model for testing.")
-                self.use_mock = True
+        # Auto-detect model if not specified
+        if model_path is None:
+            model_path = "mobile_assets/maize_model.tflite"
+        
+        if model_path and os.path.exists(model_path):
+            self.load_model(model_path)
+        else:
+            error_msg = f"Model file not found: {model_path if model_path else 'None'}"
+            print(f"❌ {error_msg}")
+            raise FileNotFoundError(error_msg)
     
     def _load_disease_info(self):
         """Load disease information from JSON file"""
@@ -136,14 +132,14 @@ class DiseaseDetectionModel:
             _load_tensorflow_lite()
             
             if not TFLITE_AVAILABLE:
-                print("⚠ TensorFlow Lite not available, cannot load model")
-                self.use_mock = True
-                return False
+                error_msg = "TensorFlow Lite not available, cannot load model"
+                print(f"❌ {error_msg}")
+                raise RuntimeError(error_msg)
             
             if not os.path.exists(model_path):
-                print(f"⚠ Model file not found: {model_path}")
-                self.use_mock = True
-                return False
+                error_msg = f"Model file not found: {model_path}"
+                print(f"❌ {error_msg}")
+                raise FileNotFoundError(error_msg)
             
             # Load TFLite model and allocate tensors
             self.interpreter = tf.lite.Interpreter(model_path=model_path)
@@ -158,15 +154,15 @@ class DiseaseDetectionModel:
             self.image_size = (input_shape[1], input_shape[2])
             
             self.model_loaded = True
-            print(f"✓ TFLite model loaded from {model_path}")
-            print(f"  Input shape: {input_shape}")
-            print(f"  Output shape: {self.output_details[0]['shape']}")
+            print(f"✅ TFLite model loaded from {model_path}")
+            print(f"   Input shape: {input_shape}")
+            print(f"   Output shape: {self.output_details[0]['shape']}")
             return True
         
         except Exception as e:
-            print(f"✗ Error loading model: {e}")
+            print(f"❌ Error loading model: {e}")
             self.model_loaded = False
-            self.use_mock = True
+            raise  # Re-raise the exception so initialization fails
             return False
     
     def preprocess_image(self, image) -> object:
@@ -227,16 +223,15 @@ class DiseaseDetectionModel:
         Returns:
             Tuple of (disease_class, confidence_score, entropy, confidence_gap)
         """
-        print(f"[DEBUG] predict() called - image is None: {image is None}, use_mock: {self.use_mock}, model_loaded: {self.model_loaded}")
+        print(f"[DEBUG] predict() called - image is None: {image is None}, model_loaded: {self.model_loaded}")
         
         if image is None:
             print("[DEBUG] Image is None, returning None")
             return None, 0.0, 0.0, 0.0
         
-        if self.use_mock or not self.model_loaded:
-            print("[DEBUG] Using mock prediction")
-            result = self._mock_predict()
-            return result[0], result[1], 0.5, 0.3  # Add dummy entropy and gap for mock
+        if not self.model_loaded:
+            print("[ERROR] Model not loaded! Cannot make prediction.")
+            raise RuntimeError("Model not loaded. Prediction cannot proceed.")
         
         try:
             np_module = _ensure_numpy()
@@ -246,7 +241,7 @@ class DiseaseDetectionModel:
             
             if processed is None:
                 print("[DEBUG] Preprocessing failed, returning None")
-                return None, 0.0
+                return None, 0.0, 0.0, 0.0
             
             # Set the input tensor
             self.interpreter.set_tensor(self.input_details[0]['index'], processed)
@@ -310,25 +305,6 @@ class DiseaseDetectionModel:
         
         return self.disease_info.get(disease_key, {})
     
-    def _mock_predict(self) -> Tuple[str, float]:
-        """
-        Mock prediction for testing purposes.
-        Simulates maize detection with ~20% chance of rejecting non-maize images.
-        
-        Returns:
-            Disease class and confidence (or None for non-maize)
-        """
-        # 20% chance to simulate non-maize leaf detection
-        if random.random() < 0.2:
-            # Return low confidence to trigger rejection
-            return random.choice(list(MAIZE_CLASSES.values())), random.uniform(0.15, 0.45)
-        
-        # 80% chance of valid maize prediction
-        disease_class = random.choice(list(MAIZE_CLASSES.values()))
-        confidence = random.uniform(0.75, 0.98)
-        return disease_class, round(confidence, 2)
-        return disease_class, round(confidence, 2)
-    
     def batch_predict(self, images) -> Tuple[list, list]:
         """
         Predict multiple images at once.
@@ -353,13 +329,12 @@ class DiseaseDetectionModel:
 # Global model instance
 _model_instance = None
 
-def get_model(model_path: Optional[str] = None, use_mock: bool = False) -> DiseaseDetectionModel:
+def get_model(model_path: Optional[str] = None) -> DiseaseDetectionModel:
     """
     Get or create a global model instance.
     
     Args:
         model_path: Path to model file
-        use_mock: Force mock model
     
     Returns:
         DiseaseDetectionModel instance
@@ -367,7 +342,7 @@ def get_model(model_path: Optional[str] = None, use_mock: bool = False) -> Disea
     global _model_instance
     
     if _model_instance is None:
-        _model_instance = DiseaseDetectionModel(model_path=model_path, use_mock=use_mock)
+        _model_instance = DiseaseDetectionModel(model_path=model_path)
     
     return _model_instance
 
