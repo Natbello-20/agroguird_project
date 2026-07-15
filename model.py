@@ -43,11 +43,13 @@ def _ensure_numpy():
     return np
 
 # Maize disease class mapping (from labels.txt)
+# Updated with retrained model that includes "not_maize" class
 MAIZE_CLASSES = {
-    0: "Corn___Healthy",
-    1: "Corn___Common_Rust",
-    2: "Corn___Northern_Leaf_Blight",
-    3: "Corn___Gray_Leaf_Spot",
+    0: "Corn___Common_Rust",
+    1: "Corn___Gray_Leaf_Spot",
+    2: "Corn___Healthy",
+    3: "Corn___Northern_Leaf_Blight",
+    4: "Corn___Not_Maize",  # NEW: Model can now detect non-maize objects!
 }
 
 # Reverse mapping for checking if it's maize

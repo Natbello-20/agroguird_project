@@ -19,6 +19,26 @@
       "Ensure proper spacing for air circulation"
     ]
   },
+  "not_maize": {
+    "name": "Not a Maize Leaf",
+    "description": "The captured image is not a maize leaf.",
+    "symptoms": [
+      "Image does not show maize plant",
+      "Non-plant object detected",
+      "Other crop or plant type"
+    ],
+    "causes": "Incorrect image captured",
+    "management": [
+      "Capture a clear photo of a maize leaf",
+      "Ensure proper lighting",
+      "Focus on the leaf surface"
+    ],
+    "prevention": [
+      "Point camera directly at maize plant",
+      "Avoid capturing background objects",
+      "Take photo in good lighting conditions"
+    ]
+  },
   "common_rust": {
     "name": "Common Rust",
     "scientific_name": "Puccinia sorghi",

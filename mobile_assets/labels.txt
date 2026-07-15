@@ -1,4 +1,5 @@
-0 healthy
-1 common_rust
-2 northern_leaf_blight
-3 gray_leaf_spot
+0 common_rust
+1 gray_leaf_spot
+2 healthy
+3 northern_leaf_blight
+4 not_maize

@@ -151,52 +151,11 @@ async def predict_disease(
                 "recommendations": []
             })
 
-        # PRE-FILTER: Check if image has green colors (maize leaves are green)
-        # This catches non-plant objects before sending to model
-        # REASON: The TFLite model was trained ONLY on 4 maize disease classes
-        #         It has NO "background" or "not-maize" class
-        #         So it ALWAYS predicts one of the 4 diseases, even for fabric/hands/tables
-        #         We must filter non-green objects BEFORE the model sees them
-        print(f"[PRE-FILTER] Checking if image contains plant-like colors...")
-        
-        # Calculate color statistics
-        import numpy as np_check
-        img_array = np_check.array(img)
-        
-        # Convert to HSV to detect green
-        from PIL import Image as PILImage
-        img_pil = PILImage.fromarray(img_array.astype('uint8'))
-        img_hsv = img_pil.convert('HSV')
-        hsv_array = np_check.array(img_hsv)
-        
-        # Green hue range: 60-180 in HSV (30-90 degrees)
-        # Saturation: > 20 (not gray/white)
-        # Value: > 20 (not black)
-        h, s, v = hsv_array[:,:,0], hsv_array[:,:,1], hsv_array[:,:,2]
-        
-        green_pixels = np_check.sum((h >= 30) & (h <= 150) & (s > 25) & (v > 25))
-        total_pixels = h.size
-        green_ratio = green_pixels / total_pixels
-        
-        print(f"[PRE-FILTER] Green pixel ratio: {green_ratio:.3f} ({green_pixels}/{total_pixels})")
-        
-        # Reject if less than 15% green pixels (too low for a leaf)
-        if green_ratio < 0.15:
-            print(f"[PRE-FILTER] REJECT - Not enough green content (ratio: {green_ratio:.3f} < 0.15)")
-            return JSONResponse({
-                "error": "This is not a maize leaf. Please capture a maize leaf to check for diseases.",
-                "disease": "Not Maize Leaf",
-                "confidence": 0,
-                "treatment": "",
-                "recommendations": [],
-                "debug_info": {
-                    "rejection_reason": f"insufficient green content (ratio: {green_ratio:.3f})",
-                    "green_pixels": int(green_pixels),
-                    "total_pixels": int(total_pixels)
-                }
-            }, status_code=400)
+        # GREEN PRE-FILTER REMOVED: Model now has "not_maize" class and can detect non-maize objects!
+        # The retrained model is smart enough to reject fabric, hands, tables, etc.
+        # We rely on the AI model's intelligence instead of simple color filtering.
 
-        # Run prediction FIRST (the model only knows maize, so any valid prediction = maize leaf)
+        # Run prediction with the NEW retrained model (now has "not_maize" class!)
         print(f"[PREDICT] Starting prediction with real TensorFlow model...")
         print(f"[PREDICT] Model status - model_loaded: {model.model_loaded}")
         
@@ -216,36 +175,9 @@ async def predict_disease(
                 "recommendations": []
             })
         
-        # STRICT multi-criteria validation for non-maize detection
-        # Goal: Reject anything that's not clearly a maize leaf
-        # Strategy: Reject if ANY single criterion fails (OR logic)
-        
-        CONFIDENCE_THRESHOLD = 0.60  # Must be confident it's maize
-        ENTROPY_THRESHOLD = 1.0      # Must have low uncertainty
-        GAP_THRESHOLD = 0.30         # Must have clear winner
-        
-        # Count how many rejection criteria are met
-        rejection_count = 0
-        rejection_reasons = []
-        
-        if confidence < CONFIDENCE_THRESHOLD:
-            rejection_count += 1
-            rejection_reasons.append(f"low confidence ({confidence:.2f} < {CONFIDENCE_THRESHOLD})")
-        if entropy > ENTROPY_THRESHOLD:
-            rejection_count += 1
-            rejection_reasons.append(f"high uncertainty (entropy: {entropy:.2f} > {ENTROPY_THRESHOLD})")
-        if confidence_gap < GAP_THRESHOLD:
-            rejection_count += 1
-            rejection_reasons.append(f"unclear prediction (gap: {confidence_gap:.2f} < {GAP_THRESHOLD})")
-        
-        # STRICT: Reject if ANY criterion fails (1 or more)
-        is_likely_non_maize = rejection_count >= 1
-        
-        if is_likely_non_maize:
-            reason_text = ", ".join(rejection_reasons)
-            print(f"[REJECT] Likely non-maize or poor quality - {reason_text}")
-            print(f"[REJECT] Returning HTTP 400 Bad Request")
-            
+        # NEW: Check if model predicted "Not_Maize" class
+        if disease == "Corn___Not_Maize":
+            print(f"[MODEL-REJECT] Model detected non-maize object with confidence: {confidence:.4f}")
             return JSONResponse({
                 "error": "This is not a maize leaf. Please capture a maize leaf to check for diseases.",
                 "disease": "Not Maize Leaf",
@@ -253,7 +185,28 @@ async def predict_disease(
                 "treatment": "",
                 "recommendations": [],
                 "debug_info": {
-                    "rejection_reason": reason_text,
+                    "rejection_reason": "model_predicted_not_maize",
+                    "confidence": float(round(confidence, 4)),
+                    "entropy": float(round(entropy, 4)),
+                    "confidence_gap": float(round(confidence_gap, 4))
+                }
+            }, status_code=400)
+        
+        # Additional validation for maize classes (confidence threshold)
+        # Even if model says it's maize, check if it's confident enough
+        
+        CONFIDENCE_THRESHOLD = 0.55  # Lowered from 0.60 since model now has not_maize class
+        
+        if confidence < CONFIDENCE_THRESHOLD:
+            print(f"[REJECT] Low confidence - model uncertain: {confidence:.4f} < {CONFIDENCE_THRESHOLD}")
+            return JSONResponse({
+                "error": "Image quality is too poor or unclear. Please try again with better lighting.",
+                "disease": "Poor Image Quality",
+                "confidence": float(round(confidence, 2)),
+                "treatment": "",
+                "recommendations": [],
+                "debug_info": {
+                    "rejection_reason": f"low confidence ({confidence:.2f} < {CONFIDENCE_THRESHOLD})",
                     "confidence": float(round(confidence, 4)),
                     "entropy": float(round(entropy, 4)),
                     "confidence_gap": float(round(confidence_gap, 4))
