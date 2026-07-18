@@ -334,12 +334,41 @@
                                 <th>Ghana Card</th>
                                 <th>Status</th>
                                 <th>Must Change Password</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="aeo-table-body">
                             <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">
+                                <td colspan="7" class="text-center py-4 text-muted">
                                     <i class="bi bi-hourglass-split me-2"></i>Loading AEO accounts...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Log Section -->
+        <div class="card-custom">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>Recent Activity Log
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Action</th>
+                                <th>Details</th>
+                                <th>Performed By</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-log-body">
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    <i class="bi bi-hourglass-split me-2"></i>Loading activity log...
                                 </td>
                             </tr>
                         </tbody>
@@ -370,6 +399,15 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             `;
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                const alert = alertContainer.querySelector('.alert');
+                if (alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 5000);
         }
 
         // Create AEO Account
@@ -377,10 +415,10 @@
             e.preventDefault();
 
             const formData = {
-                staff_id: document.getElementById('staff_id').value,
-                ghana_card: document.getElementById('ghana_card').value,
-                phone: document.getElementById('phone').value,
-                name: document.getElementById('name').value,
+                staff_id: document.getElementById('staff_id').value.trim(),
+                ghana_card: document.getElementById('ghana_card').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                name: document.getElementById('name').value.trim(),
                 temporary_password: document.getElementById('temporary_password').value
             };
 
@@ -388,8 +426,7 @@
                 const response = await fetch('/superadmin/aeo/create', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(formData)
                 });
@@ -397,7 +434,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    showAlert(`AEO account created successfully for ${data.name}!`, 'success');
+                    showAlert(`✅ AEO account created successfully for <strong>${data.name}</strong>! Credentials: Staff ID: <code>${data.staff_id}</code>, Temp Password: <code>${formData.temporary_password}</code>`, 'success');
                     document.getElementById('create-aeo-form').reset();
                     loadAEOList(); // Refresh the list
                 } else {
@@ -408,26 +445,214 @@
             }
         });
 
-        // Load AEO List (Mock data for now - replace with actual API endpoint)
-        function loadAEOList() {
-            // This is a placeholder - you would create an API endpoint to list AEOs
+        // Load AEO List with real data
+        async function loadAEOList() {
             const tableBody = document.getElementById('aeo-table-body');
+            
+            // Show loading
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center py-4 text-muted">
-                        <i class="bi bi-info-circle me-2"></i>No AEO accounts yet. Create one above!
+                    <td colspan="7" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 mb-0">Loading AEO accounts...</p>
                     </td>
                 </tr>
             `;
 
-            // Update stats
-            document.getElementById('total-aeos').textContent = '0';
-            document.getElementById('active-aeos').textContent = '0';
-            document.getElementById('recent-actions').textContent = '0';
+            try {
+                const response = await fetch('/api/superadmin/aeo/list');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to load AEOs');
+                }
+
+                // Update stats
+                document.getElementById('total-aeos').textContent = data.stats.total;
+                document.getElementById('active-aeos').textContent = data.stats.active;
+                document.getElementById('recent-actions').textContent = data.stats.recent_actions;
+
+                // Populate table
+                if (data.aeos.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox me-2"></i>No AEO accounts yet. Create one above!
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    tableBody.innerHTML = data.aeos.map(aeo => `
+                        <tr>
+                            <td><strong>${aeo.staff_id}</strong></td>
+                            <td>${aeo.name}</td>
+                            <td>${aeo.phone || '—'}</td>
+                            <td><code class="small">${aeo.ghana_card}</code></td>
+                            <td>
+                                ${aeo.is_active 
+                                    ? '<span class="badge badge-active"><i class="bi bi-check-circle me-1"></i>Active</span>' 
+                                    : '<span class="badge badge-inactive"><i class="bi bi-x-circle me-1"></i>Inactive</span>'}
+                            </td>
+                            <td>
+                                ${aeo.must_change_password 
+                                    ? '<span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>Yes</span>' 
+                                    : '<span class="badge bg-secondary">No</span>'}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm ${aeo.is_active ? 'btn-warning' : 'btn-success'}" 
+                                        onclick="toggleAEOStatus(${aeo.id}, '${aeo.name}', ${aeo.is_active})"
+                                        title="${aeo.is_active ? 'Deactivate' : 'Activate'} account">
+                                    <i class="bi bi-${aeo.is_active ? 'pause' : 'play'}-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" 
+                                        onclick="deleteAEO(${aeo.id}, '${aeo.name}')"
+                                        title="Delete account permanently">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+            } catch (error) {
+                console.error('Load AEO list error:', error);
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Failed to load AEO accounts. ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Toggle AEO Status (Activate/Deactivate)
+        async function toggleAEOStatus(aeoId, aeoName, isCurrentlyActive) {
+            const action = isCurrentlyActive ? 'deactivate' : 'activate';
+            
+            if (!confirm(`Are you sure you want to ${action} the account for "${aeoName}"?\n\n${isCurrentlyActive ? 'This will prevent them from logging in.' : 'This will allow them to log in again.'}`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/superadmin/aeo/${aeoId}/toggle`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert(`✅ Account for <strong>${aeoName}</strong> has been ${action}d successfully!`, 'success');
+                    loadAEOList(); // Refresh list
+                } else {
+                    showAlert(data.detail || `Failed to ${action} account`, 'danger');
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.', 'danger');
+            }
+        }
+
+        // Delete AEO Account
+        async function deleteAEO(aeoId, aeoName) {
+            if (!confirm(`⚠️ DANGER: Permanently delete account for "${aeoName}"?\n\nThis action CANNOT be undone!\n\nAll their data will be lost. Are you absolutely sure?`)) {
+                return;
+            }
+
+            // Double confirmation for safety
+            const confirmation = prompt(`Type "DELETE" to confirm permanent deletion of ${aeoName}'s account:`);
+            if (confirmation !== 'DELETE') {
+                showAlert('Deletion cancelled. Account is safe.', 'info');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/superadmin/aeo/${aeoId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert(`✅ Account for <strong>${aeoName}</strong> has been permanently deleted.`, 'success');
+                    loadAEOList(); // Refresh list
+                } else {
+                    showAlert(data.detail || 'Failed to delete account', 'danger');
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.', 'danger');
+            }
+        }
+
+        // Load Audit Log
+        async function loadAuditLog() {
+            try {
+                const response = await fetch('/api/superadmin/audit-log?limit=20');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to load audit log');
+                }
+
+                const auditBody = document.getElementById('audit-log-body');
+                
+                if (data.logs.length === 0) {
+                    auditBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">
+                                <i class="bi bi-clipboard-data me-2"></i>No activity yet
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    auditBody.innerHTML = data.logs.map(log => {
+                        const date = new Date(log.timestamp);
+                        const timeAgo = getTimeAgo(date);
+                        
+                        return `
+                            <tr>
+                                <td><small class="text-muted">${date.toLocaleString()}</small><br><small>${timeAgo}</small></td>
+                                <td>
+                                    <span class="badge bg-primary">${log.action.replace('_', ' ').toUpperCase()}</span>
+                                </td>
+                                <td><small>${log.details || '—'}</small></td>
+                                <td><strong>${log.performed_by_username || 'System'}</strong></td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+            } catch (error) {
+                console.error('Load audit log error:', error);
+            }
+        }
+
+        // Helper: Time ago formatter
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            if (seconds < 60) return 'Just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+            return `${Math.floor(seconds / 86400)}d ago`;
         }
 
         // Load initial data
-        loadAEOList();
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAEOList();
+            loadAuditLog();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                loadAEOList();
+                loadAuditLog();
+            }, 30000);
+        });
     </script>
 </body>
 

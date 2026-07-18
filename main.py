@@ -785,6 +785,193 @@ async def create_aeo_account(
         )
 
 
+@app.get("/api/superadmin/aeo/list")
+async def list_all_aeos(current_user: dict = Depends(auth.get_superadmin_user)):
+    """
+    Super Admin endpoint to list all AEO accounts with their details and statistics
+    """
+    try:
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        
+        # Get all AEOs
+        aeos = cur.execute("""
+            SELECT id, staff_id, ghana_card, phone, name, email, district,
+                   must_change_password, is_active
+            FROM aeo
+            ORDER BY id DESC
+        """).fetchall()
+        
+        # Get stats
+        total_count = len(aeos)
+        active_count = sum(1 for aeo in aeos if aeo['is_active'])
+        
+        # Get recent audit log count (last 7 days)
+        recent_actions = cur.execute("""
+            SELECT COUNT(*) as count
+            FROM audit_log
+            WHERE performed_by = ? AND timestamp >= datetime('now', '-7 days')
+        """, (current_user["user_id"],)).fetchone()['count']
+        
+        conn.close()
+        
+        return {
+            "aeos": [dict(aeo) for aeo in aeos],
+            "stats": {
+                "total": total_count,
+                "active": active_count,
+                "inactive": total_count - active_count,
+                "recent_actions": recent_actions
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch AEO list: {str(e)}"
+        )
+
+
+@app.put("/api/superadmin/aeo/{aeo_id}/toggle")
+async def toggle_aeo_status(
+    aeo_id: int,
+    current_user: dict = Depends(auth.get_superadmin_user)
+):
+    """
+    Super Admin endpoint to activate/deactivate an AEO account
+    """
+    try:
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        
+        # Get current status
+        aeo = cur.execute("SELECT * FROM aeo WHERE id = ?", (aeo_id,)).fetchone()
+        
+        if not aeo:
+            conn.close()
+            raise HTTPException(status_code=404, detail="AEO not found")
+        
+        # Toggle status
+        new_status = 0 if aeo['is_active'] else 1
+        cur.execute("UPDATE aeo SET is_active = ? WHERE id = ?", (new_status, aeo_id))
+        conn.commit()
+        
+        # Log the action
+        database.log_audit(
+            action="toggle_aeo_status",
+            entity="aeo",
+            entity_id=aeo_id,
+            performed_by=current_user["user_id"],
+            details=f"{'Activated' if new_status else 'Deactivated'} AEO account: {aeo['name']} ({aeo['staff_id']})"
+        )
+        
+        conn.close()
+        
+        return {
+            "success": True,
+            "message": f"AEO account {'activated' if new_status else 'deactivated'} successfully",
+            "is_active": bool(new_status)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to toggle AEO status: {str(e)}"
+        )
+
+
+@app.delete("/api/superadmin/aeo/{aeo_id}")
+async def delete_aeo_account(
+    aeo_id: int,
+    current_user: dict = Depends(auth.get_superadmin_user)
+):
+    """
+    Super Admin endpoint to permanently delete an AEO account
+    WARNING: This cannot be undone!
+    """
+    try:
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        
+        # Get AEO details before deletion
+        aeo = cur.execute("SELECT * FROM aeo WHERE id = ?", (aeo_id,)).fetchone()
+        
+        if not aeo:
+            conn.close()
+            raise HTTPException(status_code=404, detail="AEO not found")
+        
+        # Log the action BEFORE deleting
+        database.log_audit(
+            action="delete_aeo",
+            entity="aeo",
+            entity_id=aeo_id,
+            performed_by=current_user["user_id"],
+            details=f"Deleted AEO account: {aeo['name']} ({aeo['staff_id']}) - Ghana Card: {aeo['ghana_card']}"
+        )
+        
+        # Delete the AEO
+        cur.execute("DELETE FROM aeo WHERE id = ?", (aeo_id,))
+        conn.commit()
+        conn.close()
+        
+        return {
+            "success": True,
+            "message": f"AEO account for {aeo['name']} deleted permanently"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete AEO: {str(e)}"
+        )
+
+
+@app.get("/api/superadmin/audit-log")
+async def get_audit_log(
+    limit: int = Query(50, le=200),
+    current_user: dict = Depends(auth.get_superadmin_user)
+):
+    """
+    Super Admin endpoint to view audit log of all admin actions
+    """
+    try:
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        
+        logs = cur.execute("""
+            SELECT 
+                al.id,
+                al.action,
+                al.entity,
+                al.entity_id,
+                al.timestamp,
+                al.details,
+                sa.username as performed_by_username
+            FROM audit_log al
+            LEFT JOIN superadmin sa ON al.performed_by = sa.id
+            ORDER BY al.timestamp DESC
+            LIMIT ?
+        """, (limit,)).fetchall()
+        
+        conn.close()
+        
+        return {
+            "logs": [dict(log) for log in logs],
+            "total": len(logs)
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch audit log: {str(e)}"
+        )
+        )
+
+
 # Removed duplicate login route
 
 
