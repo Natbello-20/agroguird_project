@@ -498,8 +498,15 @@ async def login(
         }
     )
     
-    # Check if profile is complete (has email and phone)
-    profile_complete = aeo.get('email') and aeo.get('phone')
+    # Check if profile is complete (email and district must be filled)
+    # Note: phone is set during account creation by superadmin, but email and district are completed by AEO
+    profile_complete = (
+        aeo.get('email') and aeo.get('email').strip() and
+        aeo.get('district') and aeo.get('district').strip()
+    )
+    
+    print(f"[LOGIN] AEO {aeo['staff_id']} - Profile complete: {profile_complete}")
+    print(f"[LOGIN] Email: {aeo.get('email')}, District: {aeo.get('district')}")
     
     # Set cookie
     response = RedirectResponse(
