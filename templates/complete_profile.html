@@ -425,15 +425,23 @@
     <script>
         // Save profile information
         async function saveProfile() {
+            console.log('[saveProfile] Function called');
+            
             const form = document.getElementById('profileForm');
             const btn = form.querySelector('.btn-save');
             const btnText = document.getElementById('saveBtnText');
 
+            console.log('[saveProfile] Form:', form);
+            console.log('[saveProfile] Button:', btn);
+
             // Validate form
             if (!form.checkValidity()) {
+                console.log('[saveProfile] Form validation failed');
                 form.reportValidity();
                 return;
             }
+
+            console.log('[saveProfile] Form is valid, proceeding...');
 
             // Get form data
             const formData = new FormData(form);
@@ -444,11 +452,15 @@
                 district: formData.get('district')
             };
 
+            console.log('[saveProfile] Data to send:', data);
+
             // Show loading state
             btn.disabled = true;
             btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
 
             try {
+                console.log('[saveProfile] Sending request to /api/aeo/complete-profile');
+                
                 // Send to backend
                 const response = await fetch('/api/aeo/complete-profile', {
                     method: 'POST',
@@ -458,9 +470,16 @@
                     body: JSON.stringify(data)
                 });
 
+                console.log('[saveProfile] Response status:', response.status);
+                
+                const responseData = await response.json();
+                console.log('[saveProfile] Response data:', responseData);
+
                 if (!response.ok) {
-                    throw new Error('Failed to save profile');
+                    throw new Error(responseData.detail || 'Failed to save profile');
                 }
+
+                console.log('[saveProfile] Profile saved successfully!');
 
                 // Show success and move to biometric step
                 document.getElementById('step1').classList.remove('active');
@@ -470,8 +489,8 @@
                 document.getElementById('successMessage').style.display = 'flex';
 
             } catch (error) {
-                console.error('Profile save error:', error);
-                alert('Failed to save profile. Please try again.');
+                console.error('[saveProfile] Error:', error);
+                alert('Failed to save profile: ' + error.message + '\n\nPlease check the console for more details.');
                 btn.disabled = false;
                 btnText.innerHTML = 'Save Profile';
             }
