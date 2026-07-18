@@ -82,6 +82,12 @@ except Exception as e:
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
+    """Landing page - Role selection"""
+    return templates.TemplateResponse("role_selection.html", {"request": request})
+
+@app.get("/farmer", response_class=HTMLResponse)
+async def farmer_app(request: Request):
+    """Farmer mobile app"""
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/predict")

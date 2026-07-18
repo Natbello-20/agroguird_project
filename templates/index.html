@@ -18,6 +18,24 @@
             --gray-text: #6c757d;
             --nav-height: 70px;
         }
+        
+        * {
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        html {
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        
+        html::-webkit-scrollbar {
+            display: none;
+        }
+        
+        html {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
         body {
             background-color: var(--light-bg);
@@ -25,6 +43,17 @@
             padding-bottom: calc(var(--nav-height) + 20px);
             user-select: none;
             /* App-like feel */
+            overflow-x: hidden;
+        }
+        
+        /* Hide scrollbars on iOS and all browsers */
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        
+        body {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
         }
 
         /* App Header */
@@ -35,7 +64,7 @@
             top: 0;
             z-index: 100;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
@@ -46,7 +75,21 @@
             color: var(--primary-green);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.35rem;
+        }
+        
+        .brand-logo img {
+            height: 35px;
+            width: auto;
+            object-fit: contain;
+            background: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+        
+        .brand-logo span {
+            font-weight: 800;
+            color: var(--primary-green);
+            line-height: 1;
         }
 
         .lang-switch {
@@ -181,18 +224,20 @@
         }
 
         .image-preview-area {
-            max-width: 100%;
-            border-radius: 12px;
+            max-width: 90%;
+            margin: 0 auto 1.5rem;
+            border-radius: 16px;
             overflow: hidden;
-            margin-bottom: 1rem;
             display: none;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .image-preview-area img {
             width: 100%;
+            max-height: 400px;
+            object-fit: contain;
             display: block;
-            border-radius: 10%;
+            background: #f8f9fa;
         }
 
         .scan-result-card {
@@ -203,6 +248,167 @@
             box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
             margin-top: 1rem;
             display: none;
+        }
+
+        .result-thumbnail {
+            width: 100%;
+            max-height: 180px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .result-header {
+            margin-bottom: 1rem;
+        }
+
+        .result-label {
+            font-size: 0.75rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .result-disease-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .result-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-confidence {
+            background: #e8f8f0;
+            color: #27ae60;
+        }
+
+        .badge-affected {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .result-section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary-green);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .treatment-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1rem 0;
+        }
+
+        .treatment-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #495057;
+        }
+
+        .treatment-icon {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            background: var(--primary-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.85rem;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .btn-result-primary {
+            flex: 1;
+            background: var(--primary-green);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0.85rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-result-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-result-secondary {
+            flex: 1;
+            background: white;
+            color: var(--primary-green);
+            border: 2px solid var(--primary-green);
+            border-radius: 12px;
+            padding: 0.85rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-result-secondary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-result-link {
+            width: 100%;
+            background: #f8f9fa;
+            color: #495057;
+            border: none;
+            border-radius: 12px;
+            padding: 0.85rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-result-link:active {
+            background: #e9ecef;
         }
 
         /* Profile/More View */
@@ -520,7 +726,7 @@
         #welcome-overlay {
             position: fixed;
             inset: 0;
-            background: linear-gradient(145deg, #0d2137 0%, #1e3a5f 45%, #14472e 100%);
+            background: #fafafa;
             z-index: 9999;
             display: flex;
             align-items: center;
@@ -533,17 +739,14 @@
             pointer-events: none;
         }
         .welcome-card {
-            background: rgba(255, 255, 255, 0.07);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.13);
-            border-radius: 28px;
+            background: white;
+            border-radius: 24px;
             padding: 2.5rem 2rem 2rem;
             width: 100%;
-            max-width: 390px;
-            color: white;
+            max-width: 420px;
+            color: #2c3e50;
             text-align: center;
-            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
             animation: welcomeSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         @keyframes welcomeSlideUp {
@@ -551,42 +754,43 @@
             to   { transform: translateY(0);    opacity: 1; }
         }
         .welcome-icon {
-            width: 84px;
-            height: 84px;
-            background: linear-gradient(135deg, #2ecc71, #1aab55);
-            border-radius: 50%;
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1.25rem;
-            font-size: 2.6rem;
-            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.45);
+            margin: 0 auto 1.5rem;
+            font-size: 2.8rem;
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.25);
         }
         .welcome-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            background: rgba(46, 204, 113, 0.18);
-            border: 1px solid rgba(46, 204, 113, 0.35);
+            gap: 0.5rem;
+            background: #e8f8f0;
+            border: 1px solid #d0f0e0;
             border-radius: 30px;
-            padding: 0.3rem 0.9rem;
-            font-size: 0.78rem;
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            color: #4ade80;
+            color: #27ae60;
             margin-bottom: 1rem;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.03em;
         }
         .welcome-card h2 {
-            font-size: 1.65rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            line-height: 1.2;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            line-height: 1.3;
+            color: #1e3a5f;
         }
         .welcome-card .welcome-sub {
-            font-size: 0.88rem;
-            opacity: 0.72;
+            font-size: 0.95rem;
+            color: #6c757d;
             margin-bottom: 2rem;
-            line-height: 1.55;
+            line-height: 1.6;
         }
         .welcome-input-wrap {
             position: relative;
@@ -597,28 +801,28 @@
             left: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: rgba(255,255,255,0.45);
+            color: #95a5a6;
             font-size: 1rem;
             pointer-events: none;
         }
         .welcome-input {
             width: 100%;
-            background: rgba(255, 255, 255, 0.10);
-            border: 1.5px solid rgba(255, 255, 255, 0.18);
-            border-radius: 14px;
-            padding: 0.95rem 1rem 0.95rem 2.8rem;
-            color: white;
-            font-size: 0.97rem;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 1rem 1rem 1rem 2.8rem;
+            color: #2c3e50;
+            font-size: 0.95rem;
             outline: none;
             transition: border-color 0.2s, background 0.2s;
         }
-        .welcome-input::placeholder { color: rgba(255, 255, 255, 0.42); }
+        .welcome-input::placeholder { color: #adb5bd; }
         .welcome-input:focus {
             border-color: #2ecc71;
-            background: rgba(255, 255, 255, 0.16);
+            background: white;
         }
         .welcome-error {
-            color: #ff7b7b;
+            color: #e74c3c;
             font-size: 0.8rem;
             margin-top: -0.5rem;
             margin-bottom: 0.75rem;
@@ -628,28 +832,29 @@
         }
         .welcome-btn {
             width: 100%;
-            background: linear-gradient(135deg, #2ecc71, #1aab55);
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
             border: none;
-            border-radius: 14px;
+            border-radius: 12px;
             padding: 1rem;
             color: white;
             font-size: 1rem;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
-            margin-top: 0.25rem;
+            margin-top: 0.5rem;
             transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
-            box-shadow: 0 8px 24px rgba(46, 204, 113, 0.45);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
         }
-        .welcome-btn:active  { transform: scale(0.97); }
+        .welcome-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(46, 204, 113, 0.35); }
+        .welcome-btn:active  { transform: scale(0.98); }
         .welcome-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .welcome-footer-note {
-            font-size: 0.72rem;
-            opacity: 0.42;
-            margin-top: 1.25rem;
+            font-size: 0.75rem;
+            color: #95a5a6;
+            margin-top: 1.5rem;
             margin-bottom: 0;
         }
 
@@ -734,25 +939,274 @@
         .btn-error-close:active {
             transform: translateY(0);
         }
+
+        /* ========== SPLASH SCREEN ========== */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #0a1a0f;
+            overflow: hidden;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Hide scrollbars completely */
+        #splash-screen::-webkit-scrollbar {
+            display: none;
+        }
+        
+        #splash-screen {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        #splash-screen.splash-exit {
+            opacity: 0;
+            transform: scale(1.05);
+            pointer-events: none;
+        }
+
+        .splash-bg {
+            position: absolute;
+            inset: 0;
+            background: url('/static/images/splash_background.png') center center / cover no-repeat;
+            filter: brightness(0.35) saturate(1.2);
+        }
+
+        .splash-bg-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(10, 26, 15, 0.6) 0%,
+                rgba(10, 26, 15, 0.3) 35%,
+                rgba(10, 26, 15, 0.4) 65%,
+                rgba(10, 26, 15, 0.85) 100%
+            );
+        }
+
+        .splash-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+        }
+
+        /* Logo */
+        .splash-logo-wrap {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 1rem;
+            animation: splashLogoIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+            position: relative;
+        }
+
+        .splash-logo-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: transparent;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+        }
+
+        .splash-logo-glow {
+            position: absolute;
+            inset: -20px;
+            background: radial-gradient(circle, rgba(46, 204, 113, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: splashGlow 2s ease-in-out infinite;
+        }
+
+        /* Title */
+        .splash-title {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #2ecc71, #f1c40f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            animation: splashFadeUp 0.8s ease-out 0.5s both;
+        }
+
+        .splash-subtitle {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.55);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            animation: splashFadeUp 0.8s ease-out 0.65s both;
+        }
+
+        /* Tagline */
+        .splash-tagline {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.75);
+            line-height: 1.6;
+            max-width: 280px;
+            margin-bottom: 2.5rem;
+            animation: splashFadeUp 0.8s ease-out 0.8s both;
+        }
+
+        /* Powered By AI badge */
+        .splash-powered {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 50px;
+            padding: 0.5rem 1.25rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            backdrop-filter: blur(10px);
+            animation: splashFadeUp 0.8s ease-out 1s both;
+            margin: 0 auto 2rem;
+        }
+
+        .splash-powered i {
+            color: #2ecc71;
+            font-size: 0.9rem;
+        }
+
+        /* Loading bar */
+        .splash-loader-track {
+            width: 160px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            animation: splashFadeUp 0.6s ease-out 1.1s both;
+            margin: 0 auto 1.5rem;
+        }
+
+        .splash-loader-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #2ecc71, #f1c40f);
+            border-radius: 10px;
+            animation: splashLoad 2.8s ease-in-out 0.5s forwards;
+        }
+
+        /* Version text */
+        .splash-version {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.25);
+            letter-spacing: 0.05em;
+            animation: splashFadeUp 0.6s ease-out 1.2s both;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        /* Splash Animations */
+        @keyframes splashLogoIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5) rotate(-10deg);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        @keyframes splashFadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes splashGlow {
+            0%, 100% {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes splashLoad {
+            0% { width: 0%; }
+            20% { width: 25%; }
+            50% { width: 55%; }
+            80% { width: 85%; }
+            100% { width: 100%; }
+        }
     </style>
 </head>
 
 <body>
 
+    <!-- ===== SPLASH SCREEN ===== -->
+    <div id="splash-screen">
+        <div class="splash-bg"></div>
+        <div class="splash-bg-overlay"></div>
+
+        <div class="splash-content">
+            <div class="splash-logo-wrap">
+                <div class="splash-logo-glow"></div>
+                <img src="/static/images/agroguard_logo.png" alt="AgroGuard Logo">
+            </div>
+
+            <div class="splash-title">AgroGuard</div>
+            <div class="splash-subtitle">ai-powered crop protection</div>
+
+            <p class="splash-tagline">
+                Securing the future of farming with<br>precision intelligence
+            </p>
+
+            <div class="splash-powered">
+                <i class="bi bi-cpu-fill"></i>
+                POWERED BY AI
+            </div>
+
+            <div class="splash-loader-track">
+                <div class="splash-loader-bar"></div>
+            </div>
+
+            <div class="splash-version">Version 1.0.0 · AgroGuard Ghana</div>
+        </div>
+    </div>
+
     <!-- ===== WELCOME MODAL — First Launch Only ===== -->
     <div id="welcome-overlay">
         <div class="welcome-card">
             <div class="welcome-icon">
-                <i class="bi bi-flower1"></i>
+                <i class="bi bi-person-check-fill"></i>
             </div>
             <div class="welcome-badge">
                 <i class="bi bi-shield-check-fill"></i> AgroGuard Ghana
             </div>
-            <h2>Welcome, Farmer! 🌿</h2>
+            <h2>Welcome to AgroGuard</h2>
             <p class="welcome-sub">
                 To help connect you with extension officers and government support,
-                please tell us your name and phone number.
-                <br><strong>We will never ask again.</strong>
+                please provide your name and phone number.
             </p>
 
             <div class="welcome-input-wrap">
@@ -784,7 +1238,7 @@
             <div id="welcome-error" class="welcome-error"></div>
 
             <button class="welcome-btn" id="welcome-submit-btn" onclick="submitFarmerProfile()">
-                <i class="bi bi-arrow-right-circle-fill"></i> Get Started
+                <i class="bi bi-check-circle-fill"></i> Continue
             </button>
 
             <p class="welcome-footer-note">
@@ -797,13 +1251,9 @@
     <!-- App Header -->
     <header class="app-header">
         <div class="brand-logo">
-            <i class="bi bi-flower1"></i> AgroGuard
+            <img src="/static/images/agroguard_logo.png" alt="AgroGuard" style="height: 35px; width: auto;">
+            <span>AgroGuard</span>
         </div>
-        <select id="languageSelect" class="lang-switch" onchange="changeLanguage()">
-            <option value="en">🇬🇧 EN</option>
-            <option value="tw">🇬🇭 TW</option>
-            <option value="ff">🇬🇭 FF</option>
-        </select>
     </header>
 
     <!-- VIEW: HOME -->
@@ -896,17 +1346,48 @@
 
             <!-- Result Card -->
             <div id="result-card" class="scan-result-card">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h6 class="text-muted mb-1">Detected Issue</h6>
-                        <h3 class="fw-bold text-dark m-0" id="result-disease">--</h3>
+                <!-- Thumbnail of scanned image -->
+                <img id="result-thumbnail" class="result-thumbnail" src="" alt="Scanned Leaf">
+                
+                <div class="result-header">
+                    <div class="result-label">Detected Issue</div>
+                    <h3 class="result-disease-name" id="result-disease">--</h3>
+                    
+                    <div class="result-badges">
+                        <span class="result-badge badge-confidence">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span id="result-confidence">--%</span> Confidence
+                        </span>
+                        <span class="result-badge badge-affected">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            Affected: <span id="result-affected">~15%</span>
+                        </span>
                     </div>
-                    <span class="badge bg-success rounded-pill" id="result-confidence">--%</span>
                 </div>
-                <hr>
-                <h6 class="fw-bold" style="color: var(--primary-green);">RECOMMENDED TREATMENT</h6>
-                <p class="text-muted small" style="line-height: 1.6;" id="result-treatment">--</p>
-                <button class="btn btn-light w-100 mt-3 rounded-pill" onclick="resetScan()">Done</button>
+
+                <hr style="border-color: #e9ecef; margin: 1rem 0;">
+
+                <div class="result-section-title">
+                    <i class="bi bi-prescription2"></i>
+                    RECOMMENDED TREATMENT
+                </div>
+                
+                <ul class="treatment-list" id="result-treatment-list">
+                    <!-- Treatment items will be inserted here -->
+                </ul>
+
+                <div class="result-actions">
+                    <button class="btn-result-secondary" onclick="showCallAEO()">
+                        <i class="bi bi-telephone-fill"></i> Call AEO
+                    </button>
+                    <button class="btn-result-primary" onclick="resetScan()">
+                        Got It
+                    </button>
+                </div>
+
+                <button class="btn-result-link" onclick="showTreatmentProducts()">
+                    <i class="bi bi-cart3"></i> Show Treatment Products
+                </button>
             </div>
         </div>
     </div>
@@ -954,10 +1435,10 @@
         </div>
 
         <!-- Risk Explanation Card -->
-        <div class="card border-0 shadow-sm p-3 rounded-4">
+        <div class="card border-0 shadow-sm p-3 rounded-4" id="weather-risk-card">
             <h6 class="fw-bold mb-2"><i class="bi bi-info-circle-fill text-primary me-2"></i>What does Disease Risk
                 mean?</h6>
-            <p class="small text-muted mb-0">When it's very wet and humid, your maize is more likely to get sick. Check your farm more often when the risk is high.</p>
+            <p class="small text-muted mb-0" id="weather-risk-explanation">When it's very wet and humid, your maize is more likely to get sick. Check your farm more often when the risk is high.</p>
         </div>
     </div>
 
@@ -966,47 +1447,18 @@
         <h2 class="fw-bold mb-4" id="profile-title">Resources</h2>
 
         <div class="menu-list">
-            <div class="menu-item" onclick="openBottomSheet('history')">
-                <i class="bi bi-clock-history"></i>
-                <span id="menu-history">Scan History</span>
-            </div>
             <div class="menu-item" onclick="openBottomSheet('tips')">
                 <i class="bi bi-lightbulb"></i>
                 <span id="menu-tips">Farming Tips</span>
             </div>
-            <div class="menu-item" onclick="alert('Coming soon!')">
+            <div class="menu-item" onclick="resetRoleChoice()">
+                <i class="bi bi-arrow-repeat"></i>
+                <span id="menu-reset-role">Change User Type</span>
+            </div>
+            <div class="menu-item" onclick="openBottomSheet('settings')">
                 <i class="bi bi-gear"></i>
                 <span id="menu-settings">Settings</span>
             </div>
-        </div>
-
-        <div class="mt-4 p-3 bg-white rounded-4 shadow-sm">
-            <h6 class="fw-bold mb-2">AgroGuard App</h6>
-            <small class="text-muted d-block">Version 1.0.0 (Phase 1)</small>
-            <small class="text-muted d-block">Offline capable</small>
-        </div>
-
-        <!-- Extension Officer Signup CTA -->
-        <div class="mt-4 p-4 rounded-4 shadow-sm"
-            style="background: linear-gradient(135deg, #1e3a5f, #2d5a87); color: white;">
-            <div class="d-flex align-items-center gap-3 mb-3">
-                <div
-                    style="width: 48px; height: 48px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-person-badge-fill" style="font-size: 1.5rem;"></i>
-                </div>
-                <div>
-                    <h6 class="fw-bold mb-0">Extension Officer?</h6>
-                    <small style="opacity: 0.85;">Join the AgroGuard team</small>
-                </div>
-            </div>
-            <p class="small mb-3" style="opacity: 0.9; line-height: 1.5;">
-                Are you an agricultural extension officer? Register to access the officer dashboard, monitor farmer
-                activities, and provide expert guidance.
-            </p>
-            <a href="/login" class="btn w-100 fw-semibold"
-                style="background: var(--primary-green); color: white; border-radius: 12px; padding: 0.75rem;">
-                <i class="bi bi-person-fill me-2"></i>Sign In as Officer
-            </a>
         </div>
     </div>
 
@@ -1028,9 +1480,9 @@
             </a>
         </div>
 
-        <a href="#" class="nav-item" onclick="alert('Community coming soon!'); return false;">
-            <i class="bi bi-people-fill"></i>
-            <span id="nav-community">Community</span>
+        <a href="#" class="nav-item" onclick="openBottomSheet('history'); return false;">
+            <i class="bi bi-clock-history"></i>
+            <span id="nav-history">History</span>
         </a>
         <a href="#" class="nav-item" onclick="switchView('profile'); return false;">
             <i class="bi bi-person-circle"></i>
@@ -1059,6 +1511,46 @@
     </dialog>
 
     <script>
+        // ============================================================
+        // SPLASH SCREEN — Auto-dismiss after 3 seconds
+        // ============================================================
+        (function initSplash() {
+            const splash = document.getElementById('splash-screen');
+            const welcomeOverlay = document.getElementById('welcome-overlay');
+
+            // Hide welcome overlay during splash
+            if (welcomeOverlay) welcomeOverlay.style.opacity = '0';
+
+            // Dismiss splash after 3 seconds
+            setTimeout(function() {
+                if (splash) {
+                    splash.classList.add('splash-exit');
+                    // Remove from DOM after fade-out animation completes
+                    setTimeout(function() {
+                        splash.style.display = 'none';
+                        splash.remove();
+
+                        // Now show welcome overlay (for first-time users) or hide it
+                        if (welcomeOverlay) {
+                            const profile = localStorage.getItem('agroguard_profile');
+                            if (profile) {
+                                // Returning user — hide welcome, show app
+                                welcomeOverlay.style.display = 'none';
+                                const parsed = JSON.parse(profile);
+                                const firstName = (parsed.name || 'Farmer').split(' ')[0];
+                                const greetEl = document.getElementById('greeting');
+                                if (greetEl) greetEl.innerText = 'Hello, ' + firstName;
+                            } else {
+                                // First time — fade in welcome overlay
+                                welcomeOverlay.style.transition = 'opacity 0.4s ease';
+                                welcomeOverlay.style.opacity = '1';
+                            }
+                        }
+                    }, 600); // matches CSS transition duration
+                }
+            }, 3000); // 3 second splash duration
+        })();
+
         // --- Identity Management (Anonymous) ---
         function getFarmerId() {
             let id = localStorage.getItem('agroguard_did');
@@ -1073,7 +1565,7 @@
         const farmerId = getFarmerId();
 
         // State & Config
-        let currentLang = 'en';
+        let currentLang = localStorage.getItem('agroguard_language') || 'en';
         let deferredPrompt;
 
         // Preload Scan History if exists
@@ -1085,7 +1577,7 @@
                 greeting: "Hello, Farmer", "main-title": "My Farm Status", "location-text": "Local Farm",
                 "recent-scans-title": "Recent Scans", "diagnose-title": "Diagnose Crop",
                 "tap-instruction": "Tap to take a photo", "nav-home": "Home", "nav-weather": "Weather",
-                "nav-community": "Community", "nav-profile": "Profile", "weather-title": "Weather",
+                "nav-history": "History", "nav-profile": "Profile", "weather-title": "Weather",
                 "profile-title": "Resources", "menu-history": "Scan History", "menu-tips": "Farming Tips",
                 "menu-settings": "Settings", "sheet-history": "Scan History", "sheet-tips": "Farming Tips"
             },
@@ -1093,7 +1585,7 @@
                 greeting: "Maakye, Odwan", "main-title": "Me Fuo", "location-text": "Wo Fuo So",
                 "recent-scans-title": "Nneɛma a W'ahwɛ", "diagnose-title": "Hwim Yare",
                 "tap-instruction": "Mia ha na fa 'photo'", "nav-home": "Fie", "nav-weather": "Ewiem",
-                "nav-community": "Kurom", "nav-profile": "Me Ho", "weather-title": "Ewiem Tebea",
+                "nav-history": "Akra", "nav-profile": "Me Ho", "weather-title": "Ewiem Tebea",
                 "profile-title": "Nneɛma", "menu-history": "Akra", "menu-tips": "Afotu",
                 "menu-settings": "Nsesa", "sheet-history": "Akra a W'ahwɛ", "sheet-tips": "Kuayɛ Afotu"
             },
@@ -1101,7 +1593,7 @@
                 greeting: "Maakye, Odwan", "main-title": "Me Fuo", "location-text": "Wo Fuo So",
                 "recent-scans-title": "Nneɛma a W'ahwɛ", "diagnose-title": "Hwim Yare",
                 "tap-instruction": "Mia ha na fa 'photo'", "nav-home": "Fie", "nav-weather": "Ewiem",
-                "nav-community": "Kurom", "nav-profile": "Me Ho", "weather-title": "Ewiem Tebea",
+                "nav-history": "Akra", "nav-profile": "Me Ho", "weather-title": "Ewiem Tebea",
                 "profile-title": "Nneɛma", "menu-history": "Akra", "menu-tips": "Afotu",
                 "menu-settings": "Nsesa", "sheet-history": "Akra a W'ahwɛ", "sheet-tips": "Kuayɛ Afotu"
             }
@@ -1223,10 +1715,67 @@
                     return;
                 }
 
+                // Calculate affected area based on confidence (inverse relationship)
+                // Lower confidence = potentially more affected area
+                const confidence = data.confidence || 0;
+                let affectedArea;
+                if (confidence >= 0.9) {
+                    affectedArea = '5-10%';
+                } else if (confidence >= 0.8) {
+                    affectedArea = '10-15%';
+                } else if (confidence >= 0.7) {
+                    affectedArea = '15-25%';
+                } else if (confidence >= 0.6) {
+                    affectedArea = '25-35%';
+                } else {
+                    affectedArea = '35-50%';
+                }
+
                 // Show Results (only for successful scans)
                 document.getElementById('result-disease').innerText = data.disease;
-                document.getElementById('result-confidence').innerText = Math.round(data.confidence * 100) + '%';
-                document.getElementById('result-treatment').innerText = data.treatment;
+                document.getElementById('result-confidence').innerText = Math.round(confidence * 100) + '%';
+                document.getElementById('result-affected').innerText = affectedArea;
+                
+                // Set thumbnail image
+                document.getElementById('result-thumbnail').src = document.getElementById('preview-img').src;
+                
+                // Hide the preview area (top image) and show only result card
+                previewArea.style.display = 'none';
+                
+                // Parse and display treatment with icons
+                const treatmentText = data.treatment || '';
+                const treatmentList = document.getElementById('result-treatment-list');
+                
+                // Split treatment by common delimiters and create list items with icons
+                const treatments = treatmentText.split(/[.;]\s+/).filter(t => t.trim().length > 0);
+                
+                // Icon mapping for different treatment actions
+                const getIcon = (text) => {
+                    const lower = text.toLowerCase();
+                    if (lower.includes('remove') || lower.includes('cut') || lower.includes('prune')) {
+                        return 'bi-scissors';
+                    } else if (lower.includes('spray') || lower.includes('apply') || lower.includes('fungicide')) {
+                        return 'bi-droplet-fill';
+                    } else if (lower.includes('rotate') || lower.includes('crop')) {
+                        return 'bi-arrow-repeat';
+                    } else if (lower.includes('burn') || lower.includes('destroy') || lower.includes('debris')) {
+                        return 'bi-fire';
+                    } else if (lower.includes('water') || lower.includes('irrigat')) {
+                        return 'bi-moisture';
+                    } else {
+                        return 'bi-check-circle-fill';
+                    }
+                };
+                
+                treatmentList.innerHTML = treatments.map(treatment => `
+                    <li class="treatment-item">
+                        <div class="treatment-icon">
+                            <i class="${getIcon(treatment)}"></i>
+                        </div>
+                        <span>${treatment.trim()}</span>
+                    </li>
+                `).join('');
+                
                 document.getElementById('result-card').style.display = 'block';
                 document.getElementById('result-card').classList.add('content-loaded');
                 document.getElementById('scan-actions').style.display = 'none';
@@ -1351,6 +1900,35 @@
                 else if (data.risk === 'Medium') riskEl.style.color = '#f39c12';
                 else riskEl.style.color = '#2ecc71';
 
+                // Update risk explanation dynamically based on actual conditions
+                const riskExplanation = document.getElementById('weather-risk-explanation');
+                const riskCard = document.getElementById('weather-risk-card');
+                
+                if (data.risk === 'High') {
+                    riskCard.style.borderLeft = '4px solid #e74c3c';
+                    riskExplanation.innerHTML = `
+                        <strong style="color: #e74c3c;">⚠️ High Risk Alert</strong><br>
+                        Current conditions (${data.humidity}% humidity, ${data.temp}°C) create ideal conditions for disease spread. 
+                        <strong>Inspect your crops daily</strong> and look for early signs of infection like spots or wilting leaves. 
+                        Consider applying preventive fungicides if available.
+                    `;
+                } else if (data.risk === 'Medium') {
+                    riskCard.style.borderLeft = '4px solid #f39c12';
+                    riskExplanation.innerHTML = `
+                        <strong style="color: #f39c12;">⚡ Moderate Risk</strong><br>
+                        With ${data.humidity}% humidity and ${data.temp}°C temperature, disease development is possible. 
+                        <strong>Check your farm every 2-3 days</strong> for any unusual changes in plant health. 
+                        Keep the area clean and remove any dead leaves.
+                    `;
+                } else {
+                    riskCard.style.borderLeft = '4px solid #2ecc71';
+                    riskExplanation.innerHTML = `
+                        <strong style="color: #2ecc71;">✅ Low Risk - Good Conditions</strong><br>
+                        Current weather (${data.humidity}% humidity, ${data.temp}°C) is favorable for healthy crop growth. 
+                        <strong>Regular weekly monitoring</strong> is sufficient. Continue good farming practices like proper spacing and weed control.
+                    `;
+                }
+
             } catch (e) { console.error('Weather load failed:', e); }
         }
 
@@ -1378,12 +1956,154 @@
 
             } else if (type === 'tips') {
                 title.innerText = i18n[currentLang]['sheet-tips'];
+                
+                // Dynamic daily farming tips - changes based on day of year
+                const today = new Date();
+                const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+                
+                // Comprehensive tip categories
+                const tipCategories = [
+                    // Disease Prevention
+                    [
+                        { icon: 'bi-eye-fill', text: 'Inspect your maize leaves daily for yellow spots or unusual discoloration - early detection saves crops.' },
+                        { icon: 'bi-droplet-fill', text: 'Remove and burn infected leaves immediately to prevent disease spread to healthy plants.' },
+                        { icon: 'bi-shield-check-fill', text: 'Space your plants properly (75cm apart) to improve air circulation and reduce disease risk.' },
+                        { icon: 'bi-sun-fill', text: 'Plant in areas with good sunlight - diseases thrive in shaded, damp conditions.' }
+                    ],
+                    // Watering & Irrigation
+                    [
+                        { icon: 'bi-moisture', text: 'Water your crops early morning (6-8am) to reduce evaporation and fungal growth.' },
+                        { icon: 'bi-thermometer-half', text: 'Check soil moisture before watering - stick your finger 2 inches deep; if dry, water deeply.' },
+                        { icon: 'bi-cloud-rain-fill', text: 'During rainy season, ensure proper drainage to prevent waterlogging and root rot.' },
+                        { icon: 'bi-bucket-fill', text: 'Water at the base of plants, not on leaves, to minimize disease development.' }
+                    ],
+                    // Soil & Fertilization
+                    [
+                        { icon: 'bi-gem', text: 'Apply NPK fertilizer 3-4 weeks after planting when plants are knee-high for best results.' },
+                        { icon: 'bi-recycle', text: 'Add compost or manure before planting to enrich soil and improve water retention.' },
+                        { icon: 'bi-graph-up', text: 'Test your soil pH every season - maize grows best in slightly acidic soil (pH 5.8-7.0).' },
+                        { icon: 'bi-layers-fill', text: 'Practice crop rotation - alternate maize with legumes to restore soil nitrogen naturally.' }
+                    ],
+                    // Pest Control
+                    [
+                        { icon: 'bi-bug-fill', text: 'Check for armyworms weekly - look for holes in leaves and small green/brown caterpillars.' },
+                        { icon: 'bi-flower1', text: 'Plant marigolds around your farm boundary - they naturally repel many pests.' },
+                        { icon: 'bi-hand-thumbs-up-fill', text: 'Mix neem leaves with water and spray on crops as a natural pesticide.' },
+                        { icon: 'bi-trash-fill', text: 'Remove weeds regularly - they compete for nutrients and harbor pests.' }
+                    ],
+                    // Harvesting & Storage
+                    [
+                        { icon: 'bi-calendar-check-fill', text: 'Harvest maize when kernels are hard and husks turn brown - usually 3-4 months after planting.' },
+                        { icon: 'bi-sun-fill', text: 'Dry your maize thoroughly in the sun for 2-3 weeks before storage to prevent mold.' },
+                        { icon: 'bi-box-seam', text: 'Store dried maize in airtight containers or bags to protect from weevils and moisture.' },
+                        { icon: 'bi-thermometer-sun', text: 'Keep stored maize in a cool, dry place away from direct sunlight and rain.' }
+                    ],
+                    // General Best Practices
+                    [
+                        { icon: 'bi-clock-fill', text: 'Plant at the start of rainy season (March-April or September-October) for optimal growth.' },
+                        { icon: 'bi-shuffle', text: 'Use certified seeds from trusted sources for better disease resistance and higher yields.' },
+                        { icon: 'bi-people-fill', text: 'Join your local farmer group to share knowledge and access better market prices.' },
+                        { icon: 'bi-journal-text', text: 'Keep a farm diary to track planting dates, rainfall, and harvest yields for future planning.' }
+                    ],
+                    // Weather-Smart Farming
+                    [
+                        { icon: 'bi-cloud-sun-fill', text: 'Check weather forecasts regularly using AgroGuard to plan your farming activities.' },
+                        { icon: 'bi-lightning-fill', text: 'Avoid working in the farm during thunderstorms for your safety.' },
+                        { icon: 'bi-wind', text: 'On very hot days (above 35°C), water crops in the evening to prevent heat stress.' },
+                        { icon: 'bi-umbrella-fill', text: 'After heavy rains, check for erosion and replant washed-away areas quickly.' }
+                    ]
+                ];
+                
+                // Select tip category based on day of week (7-day rotation)
+                const categoryIndex = dayOfYear % tipCategories.length;
+                const todaysTips = tipCategories[categoryIndex];
+                
+                // Generate tip list with icons
+                const tipsHTML = todaysTips.map(tip => `
+                    <li class="list-group-item d-flex align-items-start gap-3">
+                        <div style="flex-shrink: 0; width: 32px; height: 32px; background: linear-gradient(135deg, #2ecc71, #27ae60); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                            <i class="${tip.icon}" style="font-size: 0.9rem;"></i>
+                        </div>
+                        <span style="line-height: 1.6; color: #495057;">${tip.text}</span>
+                    </li>
+                `).join('');
+                
+                const categoryNames = [
+                    'Disease Prevention',
+                    'Watering & Irrigation', 
+                    'Soil & Fertilization',
+                    'Pest Control',
+                    'Harvesting & Storage',
+                    'General Best Practices',
+                    'Weather-Smart Farming'
+                ];
+                
                 content.innerHTML = `
+                    <div class="alert alert-success d-flex align-items-center gap-2 mb-3" style="border-radius: 12px;">
+                        <i class="bi bi-calendar-day-fill"></i>
+                        <div>
+                            <strong>Today's Topic: ${categoryNames[categoryIndex]}</strong>
+                            <small class="d-block" style="opacity: 0.8;">Fresh tips every day to help your farm thrive</small>
+                        </div>
+                    </div>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Check plants daily for spots.</li>
-                        <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Water early morning.</li>
-                        <li class="list-group-item"><i class="bi bi-check-circle-fill text-success me-2"></i>Rotate crops every season.</li>
+                        ${tipsHTML}
                     </ul>
+                `;
+            } else if (type === 'settings') {
+                title.innerText = 'Settings';
+                content.innerHTML = `
+                    <div class="p-3 bg-light rounded-3 mb-3">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-info-circle-fill text-primary me-2"></i>About AgroGuard</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">Version</span>
+                            <span class="fw-semibold">1.0.0 (Phase 1)</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">Status</span>
+                            <span class="badge bg-success">Offline Capable</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Build</span>
+                            <span class="fw-semibold">2024.01</span>
+                        </div>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <i class="bi bi-translate text-primary me-2"></i>
+                                    <span class="fw-semibold">Language</span>
+                                </div>
+                            </div>
+                            <select id="settingsLanguageSelect" class="form-select" onchange="changeLanguageFromSettings(this.value)">
+                                <option value="en" ${currentLang === 'en' ? 'selected' : ''}>🇬🇧 English</option>
+                                <option value="tw" ${currentLang === 'tw' ? 'selected' : ''}>🇬🇭 Twi</option>
+                                <option value="ff" ${currentLang === 'ff' ? 'selected' : ''}>🇬🇭 Fante</option>
+                            </select>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center" style="cursor: pointer;" onclick="alert('Notifications settings coming soon!')">
+                            <div>
+                                <i class="bi bi-bell-fill text-primary me-2"></i>
+                                <span>Notifications</span>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted"></i>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center" style="cursor: pointer;" onclick="alert('Privacy policy coming soon!')">
+                            <div>
+                                <i class="bi bi-shield-lock-fill text-primary me-2"></i>
+                                <span>Privacy Policy</span>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted"></i>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center" style="cursor: pointer;" onclick="alert('Help center coming soon!')">
+                            <div>
+                                <i class="bi bi-question-circle-fill text-primary me-2"></i>
+                                <span>Help & Support</span>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted"></i>
+                        </div>
+                    </div>
                 `;
             }
         }
@@ -1408,6 +2128,43 @@
             }
         }
 
+        // Language change from settings
+        function changeLanguageFromSettings(lang) {
+            currentLang = lang;
+            const t = i18n[currentLang];
+            for (const key in t) {
+                const el = document.getElementById(key);
+                if (el) el.innerText = t[key];
+            }
+            // Re-apply personalized greeting
+            const profile = getFarmerProfile();
+            if (profile && profile.name) {
+                updateGreeting(profile.name);
+            }
+            // Save language preference
+            localStorage.setItem('agroguard_language', lang);
+        }
+
+        // Reset role choice (for switching between Farmer and AEO)
+        function resetRoleChoice() {
+            if (confirm('Are you sure you want to change your user type? You will be redirected to the role selection page.')) {
+                // Clear the saved role
+                localStorage.removeItem('agroguard_user_role');
+                // Redirect to home page (role selection)
+                window.location.href = '/';
+            }
+        }
+
+        // Show Call AEO dialog
+        function showCallAEO() {
+            alert('📞 Contact Extension Officer\n\nCall your local Agricultural Extension Officer for expert guidance.\n\nThis feature will connect you directly to AEOs in your area.');
+        }
+
+        // Show Treatment Products
+        function showTreatmentProducts() {
+            alert('🛒 Treatment Products\n\nView recommended products and suppliers in your area.\n\nThis feature is coming soon!');
+        }
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/static/sw.js')
@@ -1428,7 +2185,7 @@
         function updateGreeting(fullName) {
             const firstName = (fullName || 'Farmer').split(' ')[0];
             const greetEl = document.getElementById('greeting');
-            if (greetEl) greetEl.innerText = `Hello, ${firstName} 👋`;
+            if (greetEl) greetEl.innerText = `Hello, ${firstName}`;
         }
 
         function checkFirstTimeLaunch() {
