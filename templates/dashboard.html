@@ -308,6 +308,28 @@
             .stat-value {
                 font-size: 1.5rem;
             }
+
+            /* Make tables scroll horizontally */
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .table {
+                min-width: 600px;
+            }
+
+            /* Compact buttons */
+            .btn {
+                font-size: 0.85rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            /* Hide some table columns on mobile */
+            .table th:nth-child(5),
+            .table td:nth-child(5) {
+                display: none;
+            }
         }
 
         @media (max-width: 480px) {
@@ -329,6 +351,22 @@
 
             #diseaseMap {
                 height: 200px;
+            }
+
+            /* Hide more table columns on very small screens */
+            .table th:nth-child(4),
+            .table td:nth-child(4),
+            .table th:nth-child(6),
+            .table td:nth-child(6) {
+                display: none;
+            }
+
+            h2.fw-bold {
+                font-size: 1.5rem;
+            }
+
+            h4.fw-bold {
+                font-size: 1.2rem;
             }
         }
     </style>
@@ -624,9 +662,7 @@
             </div>
         </div>
 
-    </main>
-
-            <!-- Registered Farmers Table -->
+        <!-- Registered Farmers Table -->
         <div class="mt-4">
             <h4 class="fw-bold mb-3">Registered Farmers</h4>
             <div class="table-responsive table-custom">
@@ -663,6 +699,8 @@
                 </table>
             </div>
         </div>
+
+    </main>
         <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
@@ -758,34 +796,7 @@
                 document.getElementById('stats-row').classList.add('content-loaded');
 
                 // Update Alerts List
-                // Fetch and render registered farmers
-                async function fetchFarmers() {
-                    try {
-                        const res = await fetch('/api/farmers');
-                        const data = await res.json();
-                        renderFarmers(data);
-                    } catch (e) {
-                        console.error('Farmers fetch error:', e);
-                    }
-                }
-
-                function renderFarmers(farmers) {
-                    const tbody = document.getElementById('farmers-table-body');
-                    if (!farmers || farmers.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4">No farmers found</td></tr>';
-                        return;
-                    }
-                    tbody.innerHTML = farmers.map(f => `
-                        <tr>
-                            <td>${f.device_id}</td>
-                            <td>${f.name}</td>
-                            <td>${f.phone}</td>
-                            <td>${f.last_seen}</td>
-                        </tr>
-                    `).join('');
-                }
                 renderAlerts(data.recent_alerts);
-                fetchFarmers();
 
                 // Update Main Table
                 renderTable(data.recent_scans);
@@ -793,9 +804,41 @@
                 // Render Charts
                 renderCharts(data.disease_distribution, data.daily_scans);
 
+                // Fetch and render registered farmers
+                fetchFarmers();
+
             } catch (e) {
                 console.error("Dashboard fetch error:", e);
             }
+        }
+
+        // Fetch and render registered farmers
+        async function fetchFarmers() {
+            try {
+                const res = await fetch('/api/farmers');
+                const data = await res.json();
+                renderFarmersTable(data.farmers);
+            } catch (e) {
+                console.error('Farmers fetch error:', e);
+                const tbody = document.getElementById('farmers-table-body');
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-danger">Error loading farmers data</td></tr>';
+            }
+        }
+
+        function renderFarmersTable(farmers) {
+            const tbody = document.getElementById('farmers-table-body');
+            if (!farmers || farmers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-muted">No registered farmers yet</td></tr>';
+                return;
+            }
+            tbody.innerHTML = farmers.map(f => `
+                <tr>
+                    <td><code class="text-muted small">${f.device_id.substring(0, 16)}...</code></td>
+                    <td><strong>${f.name}</strong></td>
+                    <td>${f.phone}</td>
+                    <td><small class="text-muted">${f.last_seen || 'Never'}</small></td>
+                </tr>
+            `).join('');
         }
 
         function renderAlerts(alerts) {
