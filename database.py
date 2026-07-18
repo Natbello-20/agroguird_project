@@ -127,6 +127,46 @@ def init_db():
         )
     ''')
     
+    # 7. Alerts Table (for broadcast alerts to farmers)
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS alerts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            alert_type TEXT NOT NULL,
+            target_audience TEXT NOT NULL,
+            district TEXT,
+            message TEXT NOT NULL,
+            sent_by INTEGER NOT NULL,
+            recipient_count INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (sent_by) REFERENCES aeo(id)
+        )
+    ''')
+    
+    # 8. Support Tickets Table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS support_tickets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            category TEXT NOT NULL,
+            priority TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            description TEXT NOT NULL,
+            contact TEXT,
+            submitted_by INTEGER NOT NULL,
+            status TEXT DEFAULT 'open',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            resolved_at DATETIME,
+            resolved_by INTEGER,
+            FOREIGN KEY (submitted_by) REFERENCES aeo(id)
+        )
+    ''')
+    
+    # --- Safe migration: add additional columns to farmers table for manual registration ---
+    for col in ["ghana_card", "district", "crops", "registration_method", "registered_by"]:
+        try:
+            c.execute(f"ALTER TABLE farmers ADD COLUMN {col} TEXT")
+        except Exception:
+            pass  # Column already exists
+    
     conn.commit()
     conn.close()
     print("Database initialized.")

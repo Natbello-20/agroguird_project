@@ -838,5 +838,247 @@ async def get_farmers(current_user: dict = Depends(auth.get_current_user)):
     return JSONResponse({"farmers": farmers})
 
 
+# ============================================================================
+# NEW FEATURES: Add Farmer, Send Alert, Support Ticket
+# ============================================================================
+
+@app.post("/api/farmer/add")
+async def add_farmer_manually(request: Request, current_user: dict = Depends(auth.get_current_user)):
+    """
+    AEO manually adds a farmer (for farmers without smartphones).
+    Creates a virtual device_id and stores farmer information.
+    """
+    try:
+        data = await request.json()
+        
+        # Validate required fields
+        name = data.get('name', '').strip()
+        phone = data.get('phone', '').strip()
+        district = data.get('district', '').strip()
+        
+        if not name or not phone or not district:
+            raise HTTPException(
+                status_code=400,
+                detail="Name, phone, and district are required"
+            )
+        
+        # Optional fields
+        ghana_card = data.get('ghana_card', '').strip() or None
+        crops = data.get('crops', '').strip() or None
+        
+        # Generate a virtual device_id for manually added farmers
+        import hashlib
+        device_id = f"manual_{hashlib.md5(phone.encode()).hexdigest()[:16]}"
+        
+        # Check if farmer already exists
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        existing = cur.execute(
+            "SELECT id FROM farmers WHERE phone = ? OR device_id = ?",
+            (phone, device_id)
+        ).fetchone()
+        
+        if existing:
+            conn.close()
+            raise HTTPException(
+                status_code=400,
+                detail="A farmer with this phone number already exists"
+            )
+        
+        # Insert farmer
+        cur.execute("""
+            INSERT INTO farmers (device_id, name, phone, ghana_card, district, crops, registration_method, registered_by, last_seen)
+            VALUES (?, ?, ?, ?, ?, ?, 'manual', ?, datetime('now'))
+        """, (device_id, name, phone, ghana_card, district, crops, current_user['user_id']))
+        
+        farmer_id = cur.lastrowid
+        conn.commit()
+        conn.close()
+        
+        # Log the action
+        database.log_audit(
+            action="add_farmer_manual",
+            entity="farmer",
+            entity_id=farmer_id,
+            performed_by=current_user['user_id'],
+            details=f"Manually added farmer: {name} ({phone})"
+        )
+        
+        return JSONResponse({
+            "success": True,
+            "message": f"Farmer '{name}' added successfully",
+            "farmer_id": farmer_id,
+            "device_id": device_id
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[add-farmer] Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to add farmer: {str(e)}")
+
+
+@app.post("/api/alert/send")
+async def send_alert_to_farmers(request: Request, current_user: dict = Depends(auth.get_current_user)):
+    """
+    AEO sends broadcast alert/notification to farmers.
+    Can target all farmers, specific district, or specific crop type.
+    """
+    try:
+        data = await request.json()
+        
+        # Validate required fields
+        alert_type = data.get('alert_type', '').strip()
+        target = data.get('target', '').strip()
+        message = data.get('message', '').strip()
+        
+        if not alert_type or not target or not message:
+            raise HTTPException(
+                status_code=400,
+                detail="Alert type, target audience, and message are required"
+            )
+        
+        # Optional fields
+        district = data.get('district', '').strip() or None
+        
+        # Validate district for district-specific alerts
+        if target == 'district' and not district:
+            raise HTTPException(
+                status_code=400,
+                detail="District must be specified for district-specific alerts"
+            )
+        
+        # Build query to find target farmers
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        
+        if target == 'all':
+            # All farmers
+            query = "SELECT id, name, phone FROM farmers WHERE phone IS NOT NULL"
+            params = ()
+        elif target == 'district':
+            # Specific district
+            query = "SELECT id, name, phone FROM farmers WHERE district = ? AND phone IS NOT NULL"
+            params = (district,)
+        elif target == 'crop':
+            # Specific crop type (crops field contains the crop name)
+            query = "SELECT id, name, phone FROM farmers WHERE crops LIKE ? AND phone IS NOT NULL"
+            params = (f"%{district}%",)  # district field is reused for crop name in UI
+        else:
+            raise HTTPException(status_code=400, detail="Invalid target audience")
+        
+        farmers = cur.execute(query, params).fetchall()
+        recipient_count = len(farmers)
+        
+        if recipient_count == 0:
+            conn.close()
+            raise HTTPException(
+                status_code=400,
+                detail="No farmers found matching the target criteria"
+            )
+        
+        # Store alert in database (for tracking and history)
+        cur.execute("""
+            INSERT INTO alerts (alert_type, target_audience, district, message, sent_by, recipient_count, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+        """, (alert_type, target, district, message, current_user['user_id'], recipient_count))
+        
+        alert_id = cur.lastrowid
+        conn.commit()
+        conn.close()
+        
+        # Log the action
+        database.log_audit(
+            action="send_alert",
+            entity="alert",
+            entity_id=alert_id,
+            performed_by=current_user['user_id'],
+            details=f"Sent {alert_type} alert to {recipient_count} farmers"
+        )
+        
+        # TODO: In production, integrate with SMS gateway (e.g., Twilio, Africa's Talking)
+        # For now, we just store the alert in the database
+        
+        recipients_text = f"{recipient_count} farmer{'s' if recipient_count != 1 else ''}"
+        if target == 'district':
+            recipients_text += f" in {district}"
+        
+        return JSONResponse({
+            "success": True,
+            "message": "Alert sent successfully",
+            "alert_id": alert_id,
+            "recipients": recipients_text,
+            "recipient_count": recipient_count
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[send-alert] Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to send alert: {str(e)}")
+
+
+@app.post("/api/support/ticket")
+async def create_support_ticket(request: Request, current_user: dict = Depends(auth.get_current_user)):
+    """
+    AEO submits a support ticket for technical issues or help requests.
+    Creates a ticket that can be tracked and resolved by system administrators.
+    """
+    try:
+        data = await request.json()
+        
+        # Validate required fields
+        category = data.get('category', '').strip()
+        priority = data.get('priority', '').strip()
+        subject = data.get('subject', '').strip()
+        description = data.get('description', '').strip()
+        
+        if not category or not priority or not subject or not description:
+            raise HTTPException(
+                status_code=400,
+                detail="Category, priority, subject, and description are required"
+            )
+        
+        # Optional fields
+        contact = data.get('contact', '').strip() or None
+        
+        # Insert ticket into database
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        
+        cur.execute("""
+            INSERT INTO support_tickets (
+                category, priority, subject, description, contact, 
+                submitted_by, status, created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, 'open', datetime('now'))
+        """, (category, priority, subject, description, contact, current_user['user_id']))
+        
+        ticket_id = cur.lastrowid
+        conn.commit()
+        conn.close()
+        
+        # Log the action
+        database.log_audit(
+            action="create_support_ticket",
+            entity="support_ticket",
+            entity_id=ticket_id,
+            performed_by=current_user['user_id'],
+            details=f"Created {priority} priority ticket: {subject}"
+        )
+        
+        return JSONResponse({
+            "success": True,
+            "message": "Support ticket submitted successfully",
+            "ticket_id": f"TICK-{ticket_id:05d}"
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[support-ticket] Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create ticket: {str(e)}")
+
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host=HOST, port=PORT, reload=DEBUG)
