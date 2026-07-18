@@ -428,7 +428,7 @@ async def startup_event():
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    return templates.TemplateResponse("aeo_login.html", {"request": request, "error": None})
+    return templates.TemplateResponse("login.html", {"request": request, "error": None})
 
 
 @app.post("/login")
@@ -446,7 +446,7 @@ async def login(
     
     if not identifier:
         return templates.TemplateResponse(
-            "aeo_login.html",
+            "login.html",
             {
                 "request": request,
                 "error": "Please provide either Ghana Card ID or Staff ID"
@@ -458,7 +458,7 @@ async def login(
     
     if not aeo:
         return templates.TemplateResponse(
-            "aeo_login.html",
+            "login.html",
             {
                 "request": request,
                 "error": "Invalid credentials. Please check your ID and password."
@@ -468,7 +468,7 @@ async def login(
     # Check if account is active
     if not aeo['is_active']:
         return templates.TemplateResponse(
-            "aeo_login.html",
+            "login.html",
             {
                 "request": request,
                 "error": "Your account has been deactivated. Please contact administrator."
@@ -481,7 +481,7 @@ async def login(
     
     if not pwd_context.verify(password, aeo['hashed_password']):
         return templates.TemplateResponse(
-            "aeo_login.html",
+            "login.html",
             {
                 "request": request,
                 "error": "Invalid credentials. Please check your ID and password."
