@@ -428,7 +428,7 @@ async def startup_event():
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+    return templates.TemplateResponse("aeo_login.html", {"request": request, "error": None})
 
 
 @app.post("/login")
@@ -446,7 +446,7 @@ async def login(
     
     if not identifier:
         return templates.TemplateResponse(
-            "login.html",
+            "aeo_login.html",
             {
                 "request": request,
                 "error": "Please provide either Ghana Card ID or Staff ID"
@@ -458,7 +458,7 @@ async def login(
     
     if not aeo:
         return templates.TemplateResponse(
-            "login.html",
+            "aeo_login.html",
             {
                 "request": request,
                 "error": "Invalid credentials. Please check your ID and password."
@@ -468,7 +468,7 @@ async def login(
     # Check if account is active
     if not aeo['is_active']:
         return templates.TemplateResponse(
-            "login.html",
+            "aeo_login.html",
             {
                 "request": request,
                 "error": "Your account has been deactivated. Please contact administrator."
@@ -481,7 +481,7 @@ async def login(
     
     if not pwd_context.verify(password, aeo['hashed_password']):
         return templates.TemplateResponse(
-            "login.html",
+            "aeo_login.html",
             {
                 "request": request,
                 "error": "Invalid credentials. Please check your ID and password."
@@ -498,10 +498,56 @@ async def login(
         }
     )
     
-    # Set cookie and redirect to dashboard
-    response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    # Check if profile is complete (has email and phone)
+    profile_complete = aeo.get('email') and aeo.get('phone')
+    
+    # Set cookie
+    response = RedirectResponse(
+        url="/complete-profile" if not profile_complete else "/dashboard",
+        status_code=status.HTTP_303_SEE_OTHER
+    )
     response.set_cookie(key="access_token", value=access_token, httponly=True)
     return response
+
+
+@app.get("/complete-profile", response_class=HTMLResponse)
+async def complete_profile_page(request: Request, current_user: dict = Depends(auth.get_current_user)):
+    """Profile completion page for first-time AEO login"""
+    return templates.TemplateResponse("complete_profile.html", {"request": request})
+
+
+@app.post("/api/aeo/complete-profile")
+async def complete_profile(request: Request, current_user: dict = Depends(auth.get_current_user)):
+    """Save AEO profile information"""
+    try:
+        data = await request.json()
+        
+        # Update AEO profile in database
+        aeo_id = current_user["user_id"]
+        
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        
+        cur.execute("""
+            UPDATE aeos
+            SET name = ?, email = ?, phone = ?, district = ?
+            WHERE id = ?
+        """, (
+            data.get('name'),
+            data.get('email'),
+            data.get('phone'),
+            data.get('district'),
+            aeo_id
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        return JSONResponse({"success": True, "message": "Profile updated successfully"})
+        
+    except Exception as e:
+        print(f"[complete-profile] Error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update profile")
 
 
 @app.get("/signup", response_class=HTMLResponse)

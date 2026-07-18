@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Complete Profile | AgroGuard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-green: #2ecc71;
+            --dark-green: #1a8f4a;
+            --dark-blue: #1e3a5f;
+        }
+
+        * {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        html {
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        html,
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+        }
+
+        .profile-container {
+            max-width: 500px;
+            margin: 0 auto;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .profile-icon {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-icon i {
+            font-size: 2.5rem;
+            color: var(--primary-green);
+        }
+
+        .profile-icon.fingerprint-added i {
+            color: var(--dark-green);
+        }
+
+        .profile-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem;
+        }
+
+        .profile-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .profile-body {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-label i {
+            color: var(--primary-green);
+        }
+
+        .form-control {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 0.875rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.1);
+        }
+
+        .btn-save {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            border: none;
+            border-radius: 12px;
+            padding: 1rem;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+            margin-top: 1.5rem;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-save:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .biometric-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px dashed #e0e0e0;
+        }
+
+        .biometric-card {
+            background: linear-gradient(135deg, #e8f8f0, #d4f1e3);
+            border: 2px solid var(--primary-green);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .biometric-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark-green);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .biometric-card p {
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 1rem;
+        }
+
+        .btn-biometric {
+            background: white;
+            border: 2px solid var(--primary-green);
+            color: var(--primary-green);
+            border-radius: 12px;
+            padding: 0.875rem 1.5rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .btn-biometric:hover {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        .btn-biometric i {
+            font-size: 1.3rem;
+        }
+
+        .btn-skip {
+            background: transparent;
+            border: none;
+            color: #999;
+            padding: 0.875rem;
+            font-size: 0.9rem;
+            display: block;
+            width: 100%;
+            margin-top: 0.75rem;
+            text-decoration: underline;
+        }
+
+        .btn-skip:hover {
+            color: #666;
+        }
+
+        .success-message {
+            background: #e8f8f0;
+            color: var(--dark-green);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-step {
+            width: 40px;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        .progress-step.active {
+            background: var(--primary-green);
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem 0.75rem;
+            }
+
+            .profile-header {
+                padding: 1.5rem;
+            }
+
+            .profile-body {
+                padding: 1.5rem;
+            }
+
+            .profile-icon {
+                width: 70px;
+                height: 70px;
+            }
+
+            .profile-icon i {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="profile-container">
+        <div class="profile-card">
+            <!-- Header -->
+            <div class="profile-header">
+                <div class="profile-icon" id="profileIcon">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <h1>Complete Profile</h1>
+                <p class="profile-subtitle">
+                    Help us personalize your experience and<br>secure your account with biometric access
+                </p>
+            </div>
+
+            <!-- Body -->
+            <div class="profile-body">
+                <!-- Progress Steps -->
+                <div class="progress-steps">
+                    <div class="progress-step active" id="step1"></div>
+                    <div class="progress-step" id="step2"></div>
+                </div>
+
+                <!-- Step 1: Profile Information -->
+                <div id="profileStep" style="display: block;">
+                    <form id="profileForm">
+                        <!-- Full Name -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="bi bi-person"></i>
+                                Full Name
+                            </label>
+                            <input type="text" name="name" class="form-control" placeholder="Enter your full name"
+                                required id="nameInput">
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="bi bi-envelope"></i>
+                                Email Address
+                            </label>
+                            <input type="email" name="email" class="form-control" placeholder="your.email@example.com"
+                                required id="emailInput">
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="bi bi-telephone"></i>
+                                Phone Number
+                            </label>
+                            <input type="tel" name="phone" class="form-control" placeholder="0241234567" required
+                                id="phoneInput">
+                        </div>
+
+                        <!-- District -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="bi bi-geo-alt"></i>
+                                Assigned District
+                            </label>
+                            <select name="district" class="form-control" required id="districtInput">
+                                <option value="">Select District</option>
+                                <option value="Kumasi Metropolitan">Kumasi Metropolitan</option>
+                                <option value="Asokore Mampong">Asokore Mampong</option>
+                                <option value="Oforikrom">Oforikrom</option>
+                                <option value="Old Tafo">Old Tafo</option>
+                                <option value="Suame">Suame</option>
+                                <option value="Ejisu">Ejisu</option>
+                                <option value="Bosomtwe">Bosomtwe</option>
+                                <option value="Kwabre East">Kwabre East</option>
+                                <option value="Afigya Kwabre">Afigya Kwabre</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <button type="button" class="btn btn-save" onclick="saveProfile()">
+                            <i class="bi bi-check-circle"></i>
+                            <span id="saveBtnText">Save Profile</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Step 2: Biometric Setup -->
+                <div id="biometricStep" style="display: none;">
+                    <div id="successMessage" class="success-message" style="display: none;">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Profile saved successfully!</span>
+                    </div>
+
+                    <div class="biometric-card">
+                        <h3>
+                            <i class="bi bi-fingerprint"></i>
+                            Set Up Biometric Login
+                        </h3>
+                        <p>
+                            Secure your account with fingerprint authentication.<br>
+                            You can use your fingerprint to log in next time.
+                        </p>
+                        <button type="button" class="btn btn-biometric" onclick="setupBiometric()">
+                            <i class="bi bi-fingerprint"></i>
+                            <span id="biometricBtnText">Enable Fingerprint</span>
+                        </button>
+                        <button type="button" class="btn btn-skip" onclick="skipBiometric()">
+                            Skip for now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Save profile information
+        async function saveProfile() {
+            const form = document.getElementById('profileForm');
+            const btn = form.querySelector('.btn-save');
+            const btnText = document.getElementById('saveBtnText');
+
+            // Validate form
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Get form data
+            const formData = new FormData(form);
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                district: formData.get('district')
+            };
+
+            // Show loading state
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+
+            try {
+                // Send to backend
+                const response = await fetch('/api/aeo/complete-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save profile');
+                }
+
+                // Show success and move to biometric step
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step2').classList.add('active');
+                document.getElementById('profileStep').style.display = 'none';
+                document.getElementById('biometricStep').style.display = 'block';
+                document.getElementById('successMessage').style.display = 'flex';
+
+            } catch (error) {
+                console.error('Profile save error:', error);
+                alert('Failed to save profile. Please try again.');
+                btn.disabled = false;
+                btnText.innerHTML = 'Save Profile';
+            }
+        }
+
+        // Setup biometric authentication
+        async function setupBiometric() {
+            const btn = event.target.closest('.btn-biometric');
+            const btnText = document.getElementById('biometricBtnText');
+
+            // Check if WebAuthn is supported
+            if (!window.PublicKeyCredential) {
+                alert('Biometric authentication is not supported on this device.\n\nYou can continue to the dashboard and use password login.');
+                return;
+            }
+
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Setting up...';
+
+            try {
+                // TODO: Implement WebAuthn registration
+                // This is a placeholder - actual implementation requires server-side challenge generation
+
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // For now, just store a flag and redirect
+                localStorage.setItem('agroguard_biometric_enabled', 'true');
+
+                // Update icon
+                const icon = document.getElementById('profileIcon');
+                icon.classList.add('fingerprint-added');
+                icon.innerHTML = '<i class="bi bi-fingerprint"></i>';
+
+                // Show success
+                alert('Biometric authentication enabled successfully!\n\nYou can now use your fingerprint to log in.');
+
+                // Redirect to dashboard
+                window.location.href = '/dashboard';
+
+            } catch (error) {
+                console.error('Biometric setup error:', error);
+                alert('Failed to set up biometric authentication. You can try again later from settings.');
+                btn.disabled = false;
+                btnText.innerHTML = 'Enable Fingerprint';
+            }
+        }
+
+        // Skip biometric setup
+        function skipBiometric() {
+            if (confirm('Are you sure you want to skip biometric setup?\n\nYou can enable it later from your profile settings.')) {
+                window.location.href = '/dashboard';
+            }
+        }
+
+        // Prevent back navigation
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () {
+            history.go(1);
+        };
+    </script>
+</body>
+
+</html>

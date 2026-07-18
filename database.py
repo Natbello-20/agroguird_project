@@ -77,9 +77,18 @@ def init_db():
             name TEXT NOT NULL,
             hashed_password TEXT NOT NULL,
             must_change_password INTEGER DEFAULT 1,
-            is_active INTEGER DEFAULT 1
+            is_active INTEGER DEFAULT 1,
+            email TEXT,
+            district TEXT
         )
     ''')
+    
+    # --- Safe migration: add email and district columns if DB already existed ---
+    for col in ["email", "district"]:
+        try:
+            c.execute(f"ALTER TABLE aeo ADD COLUMN {col} TEXT")
+        except Exception:
+            pass  # Column already exists
 
     # 5. Super Admin Table
     c.execute('''
