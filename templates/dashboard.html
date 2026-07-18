@@ -21,6 +21,30 @@
             --sidebar-bg: #1e3a5f;
             --active-item: #2c5282;
             --primary-green: #2ecc71;
+            --dark-green: #1a8f4a;
+        }
+
+        /* Dark Mode */
+        [data-theme="dark"] {
+            --primary-bg: #1a1a1a;
+            --sidebar-bg: #0d1b2a;
+            --active-item: #1b3a52;
+        }
+
+        [data-theme="dark"] body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        [data-theme="dark"] .stat-card,
+        [data-theme="dark"] .card,
+        [data-theme="dark"] .table-custom {
+            background: #2d2d2d;
+            color: #e0e0e0;
+        }
+
+        [data-theme="dark"] .table-custom thead {
+            background: #3d3d3d;
         }
 
         body {
@@ -50,6 +74,65 @@
             font-weight: 700;
             color: var(--primary-green);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* User Profile Section in Sidebar */
+        .user-profile-section {
+            padding: 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .user-info h6 {
+            color: white;
+            margin: 0 0 0.25rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-info small {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            background: rgba(46, 204, 113, 0.2);
+            color: var(--primary-green);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .nav-link {
@@ -130,6 +213,152 @@
             font-size: 2rem;
             font-weight: 700;
             color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .trend-indicator {
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .trend-up {
+            background: #e8fdf5;
+            color: #2ecc71;
+        }
+
+        .trend-down {
+            background: #ffebee;
+            color: #e74c3c;
+        }
+
+        /* Notification Dropdown */
+        .notification-dropdown {
+            position: relative;
+        }
+
+        .notification-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            width: 360px;
+            max-height: 480px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            margin-top: 0.5rem;
+        }
+
+        .notification-menu.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .notification-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-item {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background: #f0f9ff;
+        }
+
+        /* Dark Mode Toggle */
+        .theme-toggle {
+            width: 50px;
+            height: 26px;
+            background: #ccc;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .theme-toggle.dark {
+            background: var(--primary-green);
+        }
+
+        .theme-toggle-slider {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s;
+        }
+
+        .theme-toggle.dark .theme-toggle-slider {
+            transform: translateX(24px);
+        }
+
+        /* Quick Actions Panel */
+        .quick-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .quick-action-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 0.875rem 1.25rem;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: #555;
+            transition: all 0.3s;
+        }
+
+        .quick-action-btn:hover {
+            border-color: var(--primary-green);
+            color: var(--primary-green);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.15);
+        }
+
+        .quick-action-btn i {
+            font-size: 1.2rem;
         }
 
         .stat-label {
@@ -389,6 +618,20 @@
             <i class="bi bi-flower1"></i> AgroGuard
             <small class="d-block text-white-50 fs-6 fw-normal mt-1">Officer Portal</small>
         </div>
+
+        <!-- User Profile Section -->
+        <div class="user-profile-section">
+            <div class="user-avatar" id="userAvatar">{{ user[0] if user else 'A' }}</div>
+            <div class="user-info">
+                <h6 id="userName">{{ user }}</h6>
+                <small id="userDistrict">Kumasi Metropolitan</small>
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    Online
+                </div>
+            </div>
+        </div>
+
         <div class="nav flex-column mt-3">
             <a href="#" class="nav-link active" onclick="loadView('overview')">
                 <i class="bi bi-grid-1x2-fill"></i> Overview
@@ -402,8 +645,11 @@
             <a href="#" class="nav-link" onclick="loadView('reports')">
                 <i class="bi bi-file-earmark-text-fill"></i> Reports
             </a>
+            <a href="#" class="nav-link" onclick="loadView('settings')">
+                <i class="bi bi-gear-fill"></i> Settings
+            </a>
             <div class="mt-auto p-3">
-                <a href="/" class="btn btn-outline-light w-100">
+                <a href="/logout" class="btn btn-outline-light w-100">
                     <i class="bi bi-box-arrow-right"></i> Logout
                 </a>
             </div>
@@ -420,11 +666,19 @@
                 <p class="text-muted">Welcome back, <strong>{{ user }}</strong></p>
             </div>
             <div class="d-flex align-items-center gap-3">
+                <!-- Dark Mode Toggle -->
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-sun-fill text-warning"></i>
+                    <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+                        <div class="theme-toggle-slider"></div>
+                    </div>
+                    <i class="bi bi-moon-fill text-primary"></i>
+                </div>
+
                 <!-- Live Weather Widget -->
                 <div id="weather-widget"
                     class="d-flex align-items-center gap-2 px-3 py-2 bg-white rounded-3 shadow-sm border"
                     style="font-size:0.9rem;">
-                    <!-- Weather skeleton -->
                     <div id="weather-widget-skeleton" class="d-flex align-items-center gap-2">
                         <div class="skeleton" style="width:20px; height:20px; border-radius:4px;"></div>
                         <div class="skeleton" style="width:40px; height:14px;"></div>
@@ -433,7 +687,6 @@
                         <span class="text-muted">|</span>
                         <div class="skeleton" style="width:80px; height:20px; border-radius:10px;"></div>
                     </div>
-                    <!-- Actual weather content (hidden until loaded) -->
                     <div id="weather-widget-content" style="display:none;" class="d-flex align-items-center gap-2">
                         <i id="dash-weather-icon" class="bi bi-cloud-sun-fill text-warning fs-5"></i>
                         <span id="dash-temp" class="fw-bold">--°C</span>
@@ -444,13 +697,77 @@
                         <span class="badge" id="dash-risk" style="font-size:0.75rem;">--</span>
                     </div>
                 </div>
-                <button class="btn btn-white border shadow-sm">
-                    <i class="bi bi-bell"></i> <span class="badge bg-danger rounded-pill">3</span>
-                </button>
+
+                <!-- Notifications Dropdown -->
+                <div class="notification-dropdown">
+                    <button class="btn btn-white border shadow-sm position-relative" onclick="toggleNotifications()">
+                        <i class="bi bi-bell"></i>
+                        <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle" id="notifCount">3</span>
+                    </button>
+                    <div class="notification-menu" id="notificationMenu">
+                        <div class="notification-header">
+                            <h6 class="m-0 fw-bold">Notifications</h6>
+                            <button class="btn btn-sm btn-link text-primary">Mark all read</button>
+                        </div>
+                        <div id="notificationList">
+                            <div class="notification-item unread">
+                                <div class="d-flex gap-2">
+                                    <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold small">Critical Alert</div>
+                                        <div class="small text-muted">New disease outbreak in Kumasi</div>
+                                        <div class="small text-muted mt-1">2 hours ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="notification-item unread">
+                                <div class="d-flex gap-2">
+                                    <i class="bi bi-person-plus-fill text-success"></i>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold small">New Farmer</div>
+                                        <div class="small text-muted">John Mensah registered</div>
+                                        <div class="small text-muted mt-1">5 hours ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="notification-item">
+                                <div class="d-flex gap-2">
+                                    <i class="bi bi-graph-up-arrow text-primary"></i>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold small">Weekly Report</div>
+                                        <div class="small text-muted">View your weekly performance</div>
+                                        <div class="small text-muted mt-1">1 day ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <button class="btn btn-primary" onclick="refreshData()">
                     <i class="bi bi-arrow-clockwise"></i> Refresh
                 </button>
             </div>
+        </div>
+
+        <!-- Quick Actions Panel -->
+        <div class="quick-actions">
+            <button class="quick-action-btn" onclick="alert('Add Farmer feature coming soon!')">
+                <i class="bi bi-person-plus"></i>
+                Add Farmer
+            </button>
+            <button class="quick-action-btn" onclick="alert('Send Alert feature coming soon!')">
+                <i class="bi bi-megaphone"></i>
+                Send Alert
+            </button>
+            <button class="quick-action-btn" onclick="exportReport()">
+                <i class="bi bi-download"></i>
+                Export Report
+            </button>
+            <button class="quick-action-btn" onclick="alert('Support feature coming soon!')">
+                <i class="bi bi-headset"></i>
+                Support
+            </button>
         </div>
 
         <!-- Stats Row -->
@@ -462,6 +779,9 @@
                         <div class="skeleton skeleton-text lg"></div>
                     </div>
                     <div class="stat-label">Total Scans</div>
+                    <div class="trend-indicator trend-up mt-2" style="display:none;" id="trend-scans">
+                        <i class="bi bi-arrow-up"></i> <span>12%</span>
+                    </div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -471,6 +791,9 @@
                         <div class="skeleton skeleton-text lg"></div>
                     </div>
                     <div class="stat-label">Critical Alerts</div>
+                    <div class="trend-indicator trend-down mt-2" style="display:none;" id="trend-critical">
+                        <i class="bi bi-arrow-down"></i> <span>5%</span>
+                    </div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -480,6 +803,9 @@
                         <div class="skeleton skeleton-text lg"></div>
                     </div>
                     <div class="stat-label">Active Farmers</div>
+                    <div class="trend-indicator trend-up mt-2" style="display:none;" id="trend-farmers">
+                        <i class="bi bi-arrow-up"></i> <span>8%</span>
+                    </div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -489,6 +815,9 @@
                         <div class="skeleton skeleton-text lg"></div>
                     </div>
                     <div class="stat-label">Districts</div>
+                    <div class="trend-indicator trend-up mt-2" style="display:none;" id="trend-districts">
+                        <i class="bi bi-arrow-up"></i> <span>2%</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -795,6 +1124,9 @@
                 // Add fade-in to stats row
                 document.getElementById('stats-row').classList.add('content-loaded');
 
+                // Show trend indicators
+                showTrends();
+
                 // Update Alerts List
                 renderAlerts(data.recent_alerts);
 
@@ -899,6 +1231,77 @@
 
         function refreshData() {
             fetchDashboardData();
+            fetchWeather();
+        }
+
+        // Dark Mode Toggle
+        function toggleTheme() {
+            const toggle = document.getElementById('themeToggle');
+            const html = document.documentElement;
+            
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                toggle.classList.remove('dark');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                toggle.classList.add('dark');
+            }
+        }
+
+        // Load saved theme on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('themeToggle').classList.add('dark');
+            }
+        });
+
+        // Notifications Toggle
+        function toggleNotifications() {
+            const menu = document.getElementById('notificationMenu');
+            menu.classList.toggle('show');
+            
+            // Close when clicking outside
+            document.addEventListener('click', function closeMenu(e) {
+                if (!e.target.closest('.notification-dropdown')) {
+                    menu.classList.remove('show');
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }
+
+        // Export Report Function
+        function exportReport() {
+            const reportData = {
+                exported_at: new Date().toISOString(),
+                total_scans: document.getElementById('stats-scans').innerText,
+                critical_alerts: document.getElementById('stats-critical').innerText,
+                active_farmers: document.getElementById('stats-farmers').innerText,
+                districts: document.getElementById('stats-districts').innerText
+            };
+            
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `agroguard_report_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            
+            alert('Report exported successfully!');
+        }
+
+        // Show trend indicators after data loads
+        function showTrends() {
+            setTimeout(() => {
+                document.getElementById('trend-scans').style.display = 'inline-flex';
+                document.getElementById('trend-critical').style.display = 'inline-flex';
+                document.getElementById('trend-farmers').style.display = 'inline-flex';
+                document.getElementById('trend-districts').style.display = 'inline-flex';
+            }, 500);
         }
 
         let diseaseChartInstance = null;
