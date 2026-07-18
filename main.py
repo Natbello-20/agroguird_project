@@ -969,7 +969,6 @@ async def get_audit_log(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch audit log: {str(e)}"
         )
-        )
 
 
 # Removed duplicate login route
