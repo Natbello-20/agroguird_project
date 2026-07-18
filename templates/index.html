@@ -1000,6 +1000,7 @@
             width: 100%;
             max-width: 400px;
             overflow: hidden;
+            justify-content: center;
         }
 
         /* Logo */
@@ -1065,7 +1066,7 @@
 
         /* Powered By AI badge */
         .splash-powered {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
@@ -1080,6 +1081,7 @@
             text-transform: uppercase;
             backdrop-filter: blur(10px);
             animation: splashFadeUp 0.8s ease-out 1s both;
+            width: fit-content;
             margin: 0 auto 2rem;
         }
 
@@ -1096,6 +1098,7 @@
             border-radius: 10px;
             overflow: hidden;
             animation: splashFadeUp 0.6s ease-out 1.1s both;
+            display: block;
             margin: 0 auto 1.5rem;
         }
 
@@ -1115,6 +1118,8 @@
             animation: splashFadeUp 0.6s ease-out 1.2s both;
             white-space: nowrap;
             text-align: center;
+            display: block;
+            width: 100%;
         }
 
         /* Splash Animations */
@@ -1183,7 +1188,7 @@
 
             <div class="splash-powered">
                 <i class="bi bi-cpu-fill"></i>
-                AI-ENABLED
+                Powered by AI
             </div>
 
             <div class="splash-loader-track">
