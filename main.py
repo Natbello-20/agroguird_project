@@ -412,18 +412,30 @@ async def get_weather(lat: Optional[float] = None, lon: Optional[float] = None):
 # Initialize DB on startup
 @app.on_event("startup")
 async def startup_event():
+    print("🚀 [STARTUP] Initializing AgroGuard...")
+    
     first_run = not os.path.exists("agroguard.db")
-    database.init_db()  # Always run — safely migrates existing DB
+    
+    # Always run init_db - it safely creates missing tables and columns
+    print("📊 [STARTUP] Checking database schema...")
+    database.init_db()
+    
     if first_run:
+        print("🆕 [STARTUP] First run detected - creating default accounts...")
         database.create_officer("admin", "admin123")  # Default officer credentials
         database.create_superadmin("superadmin", "SuperAdmin@123", "System Administrator")  # Default superadmin
-        print("✓ Database initialized with default officer and superadmin accounts")
+        print("✅ [STARTUP] Database initialized with default officer and superadmin accounts")
     else:
+        print("✅ [STARTUP] Database schema updated (if needed)")
         # Ensure superadmin exists even on subsequent runs (in case DB was created before superadmin feature)
         existing_superadmin = database.get_superadmin_by_username("superadmin")
         if not existing_superadmin:
+            print("🔧 [STARTUP] Creating default superadmin account...")
             database.create_superadmin("superadmin", "SuperAdmin@123", "System Administrator")
-            print("✓ Default superadmin account created")
+            print("✅ [STARTUP] Default superadmin account created")
+    
+    print("✅ [STARTUP] AgroGuard backend ready!")
+
 
 
 @app.get("/login", response_class=HTMLResponse)
