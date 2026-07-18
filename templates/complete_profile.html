@@ -337,17 +337,18 @@
                                 Full Name
                             </label>
                             <input type="text" name="name" class="form-control" placeholder="Enter your full name"
-                                required id="nameInput" style="text-transform: capitalize;" autocapitalize="words">
+                                required id="nameInput" value="{{ aeo.name if aeo and aeo.name else '' }}" 
+                                style="text-transform: capitalize;" autocapitalize="words">
                         </div>
 
                         <!-- Email -->
                         <div class="form-group">
                             <label class="form-label">
                                 <i class="bi bi-envelope"></i>
-                                Email Address
+                                Email Address <small class="text-muted">(Optional)</small>
                             </label>
                             <input type="email" name="email" class="form-control" placeholder="your.email@example.com"
-                                required id="emailInput">
+                                id="emailInput" value="{{ aeo.email if aeo and aeo.email else '' }}">
                         </div>
 
                         <!-- Phone -->
@@ -356,8 +357,12 @@
                                 <i class="bi bi-telephone"></i>
                                 Phone Number
                             </label>
-                            <input type="tel" name="phone" class="form-control" placeholder="0241234567" required
-                                id="phoneInput">
+                            <input type="tel" name="phone" class="form-control" 
+                                value="{{ aeo.phone if aeo and aeo.phone else '' }}" 
+                                readonly
+                                style="background-color: #f5f5f5; cursor: not-allowed;"
+                                title="Phone number is set by Administrator and cannot be changed">
+                            <small class="text-muted">Phone number is set by Administrator</small>
                         </div>
 
                         <!-- District -->
@@ -368,16 +373,16 @@
                             </label>
                             <select name="district" class="form-control" required id="districtInput">
                                 <option value="">Select District</option>
-                                <option value="Kumasi Metropolitan">Kumasi Metropolitan</option>
-                                <option value="Asokore Mampong">Asokore Mampong</option>
-                                <option value="Oforikrom">Oforikrom</option>
-                                <option value="Old Tafo">Old Tafo</option>
-                                <option value="Suame">Suame</option>
-                                <option value="Ejisu">Ejisu</option>
-                                <option value="Bosomtwe">Bosomtwe</option>
-                                <option value="Kwabre East">Kwabre East</option>
-                                <option value="Afigya Kwabre">Afigya Kwabre</option>
-                                <option value="Other">Other</option>
+                                <option value="Kumasi Metropolitan" {% if aeo and aeo.district == 'Kumasi Metropolitan' %}selected{% endif %}>Kumasi Metropolitan</option>
+                                <option value="Asokore Mampong" {% if aeo and aeo.district == 'Asokore Mampong' %}selected{% endif %}>Asokore Mampong</option>
+                                <option value="Oforikrom" {% if aeo and aeo.district == 'Oforikrom' %}selected{% endif %}>Oforikrom</option>
+                                <option value="Old Tafo" {% if aeo and aeo.district == 'Old Tafo' %}selected{% endif %}>Old Tafo</option>
+                                <option value="Suame" {% if aeo and aeo.district == 'Suame' %}selected{% endif %}>Suame</option>
+                                <option value="Ejisu" {% if aeo and aeo.district == 'Ejisu' %}selected{% endif %}>Ejisu</option>
+                                <option value="Bosomtwe" {% if aeo and aeo.district == 'Bosomtwe' %}selected{% endif %}>Bosomtwe</option>
+                                <option value="Kwabre East" {% if aeo and aeo.district == 'Kwabre East' %}selected{% endif %}>Kwabre East</option>
+                                <option value="Afigya Kwabre" {% if aeo and aeo.district == 'Afigya Kwabre' %}selected{% endif %}>Afigya Kwabre</option>
+                                <option value="Other" {% if aeo and aeo.district == 'Other' %}selected{% endif %}>Other</option>
                             </select>
                         </div>
 
@@ -434,8 +439,8 @@
             const formData = new FormData(form);
             const data = {
                 name: formData.get('name'),
-                email: formData.get('email'),
-                phone: formData.get('phone'),
+                email: formData.get('email') || null,  // Optional - can be null
+                phone: document.getElementById('phoneInput').value,  // Pre-filled, read-only
                 district: formData.get('district')
             };
 

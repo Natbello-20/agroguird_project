@@ -532,7 +532,18 @@ async def login(
 @app.get("/complete-profile", response_class=HTMLResponse)
 async def complete_profile_page(request: Request, current_user: dict = Depends(auth.get_current_user)):
     """Profile completion page for first-time AEO login"""
-    return templates.TemplateResponse("complete_profile.html", {"request": request})
+    # Get current AEO data from database
+    aeo_id = current_user["user_id"]
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    aeo = cur.execute("SELECT * FROM aeo WHERE id = ?", (aeo_id,)).fetchone()
+    conn.close()
+    
+    # Pass AEO data to template
+    return templates.TemplateResponse("complete_profile.html", {
+        "request": request,
+        "aeo": dict(aeo) if aeo else {}
+    })
 
 
 @app.post("/api/aeo/complete-profile")
