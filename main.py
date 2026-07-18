@@ -548,7 +548,7 @@ async def complete_profile(request: Request, current_user: dict = Depends(auth.g
         cur = conn.cursor()
         
         cur.execute("""
-            UPDATE aeos
+            UPDATE aeo
             SET name = ?, email = ?, phone = ?, district = ?
             WHERE id = ?
         """, (
@@ -566,7 +566,7 @@ async def complete_profile(request: Request, current_user: dict = Depends(auth.g
         
     except Exception as e:
         print(f"[complete-profile] Error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to update profile")
+        raise HTTPException(status_code=500, detail=f"Failed to update profile: {str(e)}")
 
 
 @app.get("/signup", response_class=HTMLResponse)
