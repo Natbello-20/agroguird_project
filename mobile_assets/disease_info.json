@@ -1,119 +1,131 @@
 {
-  "healthy": {
-    "name": "Healthy Maize Leaf",
-    "description": "The maize leaf shows no visible disease symptoms.",
-    "symptoms": [
-      "Green leaf color",
-      "No spots or lesions",
-      "No discoloration"
-    ],
-    "causes": "N/A - Plant is healthy",
-    "management": [
-      "Continue regular crop management",
-      "Monitor for disease development",
-      "Maintain proper nutrition"
-    ],
-    "prevention": [
-      "Maintain crop rotation",
-      "Use disease-resistant varieties",
-      "Ensure proper spacing for air circulation"
-    ]
+  "schema_version": "1.0",
+  "region": "Ghana",
+  "diseases": {
+    "northern_leaf_blight": {
+      "display_name": "Northern Leaf Blight",
+      "pathogen": "Exserohilum turcicum",
+      "type": "fungal",
+      "symptoms_summary": "Long, narrow, gray-green to tan lesions unrestricted by leaf veins.",
+      "cultural_control": [
+        "Remove sick leaves immediately",
+        "Spray disease medicine when you first see lung gray spots on leaves",
+        "Plant different crops next season",
+        "Burn or bury old infected plants after harvest"
+      ],
+      "fungicide": {
+        "active_ingredients_recommended": ["mancozeb", "azoxystrobin", "propiconazole"],
+        "note": "Ask your local agro-dealer for disease medicine containing one of these: mancozeb, azoxystrobin, or propiconazole."
+      },
+      "severity_modifiers": {
+        "low": {
+          "range": "0-15%",
+          "message": "Spray disease medicine now — early treatment works best",
+          "spray_recommended": true
+        },
+        "moderate": {
+          "range": "15-50%",
+          "message": "Spray disease medicine as soon as possible. Check plants again in a few days",
+          "spray_recommended": true
+        },
+        "high": {
+          "range": "50%+",
+          "message": "Disease medicine gives limited results at this stage. Focus on stopping spread to healthy plants and use resistant varieties next season",
+          "spray_recommended": false
+        }
+      },
+      "timing_window": "Most effective from tasseling to early grain formation."
+    },
+    "gray_leaf_spot": {
+      "display_name": "Gray Leaf Spot",
+      "pathogen": "Cercospora zeae-maydis",
+      "type": "fungal",
+      "symptoms_summary": "Rectangular tan-to-gray lesions with sharp parallel edges, following leaf veins.",
+      "cultural_control": [
+        "Remove sick leaves immediately",
+        "Spray disease medicine when you first see rectangular gray spots",
+        "Plant resistant maize varieties next season",
+        "Don't plant maize on the same field continuously"
+      ],
+      "fungicide": {
+        "active_ingredients_recommended": ["mancozeb", "azoxystrobin", "propiconazole"],
+        "note": "Ask your local agro-dealer for disease medicine containing one of these: mancozeb, azoxystrobin, or propiconazole."
+      },
+      "severity_modifiers": {
+        "low": {
+          "range": "0-15%",
+          "message": "Spray disease medicine now — treating early gives best results",
+          "spray_recommended": true
+        },
+        "moderate": {
+          "range": "15-50%",
+          "message": "Spray disease medicine soon. Disease spreads quickly in humid weather — check plants again in a few days",
+          "spray_recommended": true
+        },
+        "high": {
+          "range": "50%+",
+          "message": "Heavy infection can damage the whole plant. Disease medicine is less effective now — focus on stopping spread and use resistant varieties next season",
+          "spray_recommended": false
+        }
+      },
+      "timing_window": "Most effective from tasseling to early grain formation."
+    },
+    "common_rust": {
+      "display_name": "Common Rust",
+      "pathogen": "Puccinia sorghi",
+      "type": "fungal",
+      "symptoms_summary": "Cinnamon-brown, oval pustules on both leaf surfaces; rupture to release powdery spores.",
+      "cultural_control": [
+        "Remove sick leaves if you see rust spots",
+        "Plant rust-resistant maize varieties next season",
+        "Rust often gets better in hot, dry weather — watch before treating"
+      ],
+      "fungicide": {
+        "active_ingredients_recommended": ["azoxystrobin", "propiconazole"],
+        "note": "Disease medicine is rarely needed for common rust — mainly for severe cases. Ask your agro-dealer if unsure."
+      },
+      "severity_modifiers": {
+        "low": {
+          "range": "0-15%",
+          "message": "Usually no treatment needed. Continue checking weekly",
+          "spray_recommended": false
+        },
+        "moderate": {
+          "range": "15-50%",
+          "message": "Spray disease medicine only if rust spots are still few per leaf. Rust is often not worth treating",
+          "spray_recommended": true
+        },
+        "high": {
+          "range": "50%+",
+          "message": "Check tassels and ears for spread. Disease medicine has limited benefit now — focus on resistant varieties for next season",
+          "spray_recommended": false
+        }
+      },
+      "timing_window": "Most effective when rust spots are still few per leaf."
+    },
+    "healthy": {
+      "display_name": "No Disease Detected",
+      "pathogen": null,
+      "type": null,
+      "symptoms_summary": "Leaf shows no visible signs of disease.",
+      "cultural_control": [
+        "Continue normal fertilizer and watering schedule",
+        "Keep checking weekly, especially after rain",
+        "Your maize looks healthy — keep up the good work!"
+      ],
+      "fungicide": {
+        "active_ingredients_recommended": [],
+        "note": "No medicine needed — your plant is healthy."
+      },
+      "severity_modifiers": {},
+      "timing_window": null,
+      "ui_notes": "Use neutral/green tone, not red/orange urgency colors. No 'Call AEO' button needed — show 'Scan Again Next Week' reminder instead."
+    }
   },
-  "not_maize": {
-    "name": "Not a Maize Leaf",
-    "description": "The captured image is not a maize leaf.",
-    "symptoms": [
-      "Image does not show maize plant",
-      "Non-plant object detected",
-      "Other crop or plant type"
-    ],
-    "causes": "Incorrect image captured",
-    "management": [
-      "Capture a clear photo of a maize leaf",
-      "Ensure proper lighting",
-      "Focus on the leaf surface"
-    ],
-    "prevention": [
-      "Point camera directly at maize plant",
-      "Avoid capturing background objects",
-      "Take photo in good lighting conditions"
-    ]
+  "confidence_display_rule": "Always show confidence % alongside detected disease. If confidence is below 70%, show caution: 'Result uncertain — try scanning again in better light or ask your AEO to confirm.'",
+  "escalation": {
+    "trigger": "severity == 'high' OR confidence < 70%",
+    "action": "Show 'Call AEO' button prominently"
   },
-  "common_rust": {
-    "name": "Common Rust",
-    "scientific_name": "Puccinia sorghi",
-    "description": "A fungal disease that produces reddish-brown pustules on corn leaves.",
-    "symptoms": [
-      "Small, reddish-brown, oval pustules",
-      "Pustules usually on lower leaf surfaces first",
-      "Yellow halo around pustules",
-      "Premature leaf death in severe cases"
-    ],
-    "causes": "Fungal infection by Puccinia sorghi",
-    "management": [
-      "Apply fungicides (e.g., Propiconazole, Azoxystrobin)",
-      "Plant resistant corn hybrids",
-      "Reduce plant density for better air circulation",
-      "Apply early when pustules are visible"
-    ],
-    "prevention": [
-      "Use rust-resistant varieties",
-      "Practice crop rotation",
-      "Destroy infected crop residue",
-      "Monitor fields regularly during susceptible periods"
-    ]
-  },
-  "northern_leaf_blight": {
-    "name": "Northern Leaf Blight",
-    "scientific_name": "Setosphaeria turcica",
-    "description": "A fungal disease causing long, narrow lesions on corn leaves.",
-    "symptoms": [
-      "Long (0.5-3 inches), narrow, elliptical lesions",
-      "Tan or gray lesions with dark borders",
-      "Lesions often with halo effect",
-      "Progression from lower to upper leaves",
-      "Multiple lesions can cause leaf death"
-    ],
-    "causes": "Fungal infection by Setosphaeria turcica (Exserohilum turcicum)",
-    "management": [
-      "Apply fungicides (Azoxystrobin, Propiconazole)",
-      "Plant resistant hybrids",
-      "Reduce plant population",
-      "Apply when first symptoms appear"
-    ],
-    "prevention": [
-      "Use NLB-resistant corn hybrids",
-      "Rotate crops annually",
-      "Plow under infected residue",
-      "Space plants for good air circulation",
-      "Avoid overwatering"
-    ]
-  },
-  "gray_leaf_spot": {
-    "name": "Gray Leaf Spot",
-    "scientific_name": "Cercospora zeae-maydis",
-    "description": "A fungal disease causing rectangular gray-brown lesions on corn leaves.",
-    "symptoms": [
-      "Rectangular lesions with sharp borders",
-      "Gray or tan center with darker brown borders",
-      "Small black dots visible in lesions",
-      "Lesions often between leaf veins",
-      "Extensive spotting causes severe defoliation"
-    ],
-    "causes": "Fungal infection by Cercospora zeae-maydis",
-    "management": [
-      "Apply fungicides (Azoxystrobin, Propiconazole, Trifloxystrobin)",
-      "Plant resistant varieties",
-      "Reduce plant population for better air circulation",
-      "Apply when early symptoms appear"
-    ],
-    "prevention": [
-      "Use GLS-resistant corn hybrids",
-      "Practice 2-year crop rotation",
-      "Bury infected residue deeply",
-      "Maintain adequate spacing",
-      "Avoid excess nitrogen fertilization",
-      "Monitor fields from V6 growth stage onward"
-    ]
-  }
+  "disclaimer": "Disease medicine recommendations are general guidance. Always check with your local agro-input dealer before buying and follow product label instructions."
 }

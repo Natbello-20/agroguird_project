@@ -114,8 +114,19 @@ class DiseaseDetectionModel:
             info_path = Path("mobile_assets/disease_info.json")
             if info_path.exists():
                 with open(info_path, 'r', encoding='utf-8') as f:
-                    self.disease_info = json.load(f)
-                print(f"✓ Loaded disease info for {len(self.disease_info)} conditions")
+                    data = json.load(f)
+                    # Extract diseases from new structure
+                    if "diseases" in data:
+                        self.disease_info = data["diseases"]
+                        self.disease_schema_version = data.get("schema_version", "1.0")
+                        self.disease_region = data.get("region", "Ghana")
+                        self.disease_disclaimer = data.get("disclaimer", "")
+                        self.confidence_rule = data.get("confidence_display_rule", "")
+                        self.escalation_rule = data.get("escalation", {})
+                    else:
+                        # Fallback to old structure
+                        self.disease_info = data
+                    print(f"✓ Loaded disease info for {len(self.disease_info)} conditions")
         except Exception as e:
             print(f"⚠ Could not load disease info: {e}")
     
@@ -289,6 +300,78 @@ class DiseaseDetectionModel:
         disease, _ = self.predict(image_bytes)
         return disease is not None and disease.startswith('Corn___')
     
+    def estimate_severity(self, image) -> Tuple[float, str]:
+        """
+        Estimate disease severity (affected leaf area percentage) from image.
+        Uses color-based segmentation to detect diseased regions.
+        
+        Args:
+            image: Input image (numpy array in BGR format from cv2)
+        
+        Returns:
+            Tuple of (affected_percentage, severity_level)
+            - affected_percentage: 0-100 (percentage of leaf affected)
+            - severity_level: 'low', 'moderate', or 'high'
+        """
+        try:
+            np_module = _ensure_numpy()
+            import cv2
+            
+            # Convert BGR to HSV for better color segmentation
+            hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+            
+            # Define green leaf mask (healthy tissue)
+            # Green hue range: 35-85 in HSV
+            lower_green = np_module.array([35, 40, 40])
+            upper_green = np_module.array([85, 255, 255])
+            green_mask = cv2.inRange(hsv, lower_green, upper_green)
+            
+            # Define disease color ranges
+            # Yellow/tan (common in many diseases): 15-35 hue
+            lower_yellow = np_module.array([15, 40, 40])
+            upper_yellow = np_module.array([35, 255, 255])
+            yellow_mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+            
+            # Brown/rust (rust diseases): 5-20 hue
+            lower_brown = np_module.array([5, 40, 20])
+            upper_brown = np_module.array([20, 255, 200])
+            brown_mask = cv2.inRange(hsv, lower_brown, upper_brown)
+            
+            # Gray/dead tissue (severe infections): low saturation
+            gray_mask = cv2.inRange(hsv, np_module.array([0, 0, 40]), np_module.array([180, 50, 200]))
+            
+            # Combine all disease masks
+            disease_mask = cv2.bitwise_or(yellow_mask, brown_mask)
+            disease_mask = cv2.bitwise_or(disease_mask, gray_mask)
+            
+            # Calculate total leaf area (green + diseased regions)
+            total_leaf_pixels = np_module.count_nonzero(green_mask) + np_module.count_nonzero(disease_mask)
+            
+            # Avoid division by zero
+            if total_leaf_pixels == 0:
+                return 0.0, 'low'
+            
+            # Calculate affected percentage
+            diseased_pixels = np_module.count_nonzero(disease_mask)
+            affected_percentage = (diseased_pixels / total_leaf_pixels) * 100
+            
+            # Map to severity level based on disease_info.json thresholds
+            if affected_percentage < 15:
+                severity_level = 'low'
+            elif affected_percentage < 50:
+                severity_level = 'moderate'
+            else:
+                severity_level = 'high'
+            
+            print(f"[SEVERITY] Estimated affected area: {affected_percentage:.1f}% → {severity_level}")
+            
+            return float(affected_percentage), severity_level
+            
+        except Exception as e:
+            print(f"[SEVERITY] Error estimating severity: {e}")
+            # Default to moderate if calculation fails
+            return 25.0, 'moderate'
+    
     def get_disease_info(self, disease_class: str) -> Dict:
         """
         Get detailed disease information.
@@ -297,7 +380,7 @@ class DiseaseDetectionModel:
             disease_class: Disease class name (e.g., "Corn___Healthy")
         
         Returns:
-            Dictionary with disease details or empty dict
+            Dictionary with disease details in format compatible with API
         """
         # Extract the disease key from class name (e.g., "Corn___Healthy" -> "healthy")
         if "___" in disease_class:
@@ -305,7 +388,47 @@ class DiseaseDetectionModel:
         else:
             disease_key = disease_class.lower()
         
-        return self.disease_info.get(disease_key, {})
+        # Get disease data from new structure
+        disease_data = self.disease_info.get(disease_key, {})
+        
+        if not disease_data:
+            return {}
+        
+        # Convert new structure to format expected by main.py
+        converted = {
+            "name": disease_data.get("display_name", disease_class.replace("___", " ")),
+            "description": disease_data.get("symptoms_summary", ""),
+            "symptoms": [disease_data.get("symptoms_summary", "")] if disease_data.get("symptoms_summary") else [],
+            "scientific_name": disease_data.get("pathogen", ""),
+            "management": [],
+            "prevention": disease_data.get("cultural_control", []),
+            # Add new fields for richer information
+            "fungicide": disease_data.get("fungicide", {}),
+            "severity_modifiers": disease_data.get("severity_modifiers", {}),
+            "timing_window": disease_data.get("timing_window", ""),
+            "ui_notes": disease_data.get("ui_notes", "")
+        }
+        
+        # Build management recommendations based on fungicide info
+        fungicide_info = disease_data.get("fungicide", {})
+        if fungicide_info.get("active_ingredients_recommended"):
+            ingredients = ", ".join(fungicide_info["active_ingredients_recommended"])
+            converted["management"].append(f"Apply fungicide containing: {ingredients}")
+            if fungicide_info.get("note"):
+                converted["management"].append(fungicide_info["note"])
+        
+        # Add severity-based recommendations
+        severity_mods = disease_data.get("severity_modifiers", {})
+        if severity_mods:
+            for severity_level, info in severity_mods.items():
+                if info.get("spray_recommended"):
+                    converted["management"].append(f"{severity_level.title()} severity ({info['range']}): {info['message']}")
+        
+        # Add timing window if available
+        if disease_data.get("timing_window"):
+            converted["management"].append(f"Timing: {disease_data['timing_window']}")
+        
+        return converted
     
     def batch_predict(self, images) -> Tuple[list, list]:
         """

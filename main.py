@@ -244,10 +244,36 @@ async def predict_disease(
         treatment_title = treatment_info.get("title", disease.replace("___", " "))
         treatment_text = treatment_info.get("treatment", "Consult an agricultural extension officer for guidance.")
         
-        # Get detailed disease information
+        # NEW: Estimate disease severity (affected percentage)
+        affected_percentage = 0.0
+        severity_level = 'low'
+        
+        if disease != "Corn___Healthy" and disease != "Corn___Not_Maize":
+            # Only calculate severity for actual diseases
+            affected_percentage, severity_level = model.estimate_severity(img)
+        
+        # Get detailed disease information with severity-specific recommendations
         disease_info = model.get_disease_info(disease)
+        
+        # Extract severity-specific message if available
+        severity_modifiers = disease_info.get("severity_modifiers", {})
+        severity_info = severity_modifiers.get(severity_level, {})
+        
+        # Build comprehensive recommendations
         recommendations = disease_info.get("management", [])
         prevention = disease_info.get("prevention", [])
+        
+        # Add severity-specific message at the top
+        if severity_info.get("message"):
+            recommendations.insert(0, severity_info["message"])
+        
+        # Determine if spray is recommended based on severity
+        spray_recommended = severity_info.get("spray_recommended", True)
+        
+        # Check if we should show "Call AEO" button based on escalation rules
+        show_call_aeo = False
+        if severity_level == 'high' or confidence < 0.70:
+            show_call_aeo = True
         
         # Save to Database
         status_text = "High Risk" if "Healthy" not in disease else "Healthy"
@@ -284,8 +310,17 @@ async def predict_disease(
                 "name": disease_info.get("name", treatment_title),
                 "description": disease_info.get("description", ""),
                 "symptoms": disease_info.get("symptoms", []),
-                "scientific_name": disease_info.get("scientific_name", "")
+                "scientific_name": disease_info.get("scientific_name", ""),
+                "timing_window": disease_info.get("timing_window", "")
             },
+            "severity": {
+                "affected_percentage": float(round(affected_percentage, 1)),
+                "level": severity_level,
+                "message": severity_info.get("message", ""),
+                "spray_recommended": spray_recommended,
+                "range": severity_info.get("range", "")
+            },
+            "show_call_aeo": show_call_aeo,
             "location": location
         }
         

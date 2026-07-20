@@ -708,33 +708,38 @@
         .treatment-list {
             list-style: none;
             padding: 0;
-            margin: 0 0 1rem 0;
+            margin: 0 0 1.25rem 0;
         }
 
         .treatment-item {
             display: flex;
             align-items: flex-start;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-            background: #f8f9fa;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: #495057;
+            gap: 1rem;
+            padding: 1rem 0;
+            margin-bottom: 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        .treatment-item:last-child {
+            border-bottom: none;
         }
 
         .treatment-icon {
             flex-shrink: 0;
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             background: var(--primary-green);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2);
         }
 
         .result-actions {
@@ -1840,7 +1845,7 @@
                 </ul>
 
                 <div class="result-actions">
-                    <button class="btn-result-secondary" onclick="showCallAEO()">
+                    <button class="btn-result-secondary" id="call-aeo-btn" onclick="showCallAEO()" style="display: none;">
                         <i class="bi bi-telephone-fill"></i> Call AEO
                     </button>
                     <button class="btn-result-primary" onclick="resetScan()">
@@ -2253,7 +2258,28 @@
                 // Show Results (only for successful scans)
                 document.getElementById('result-disease').innerText = data.disease;
                 document.getElementById('result-confidence').innerText = Math.round(confidence * 100) + '%';
-                document.getElementById('result-affected').innerText = affectedArea;
+                
+                // Display severity information
+                const severity = data.severity || {};
+                const affectedPct = severity.affected_percentage || 0;
+                const severityLevel = severity.level || 'low';
+                const severityMessage = severity.message || '';
+                
+                // Format affected percentage display
+                document.getElementById('result-affected').innerText = `${Math.round(affectedPct)}% Affected (${severityLevel})`;
+                
+                // Add severity message to recommendations if available
+                if (severityMessage && !data.recommendations.includes(severityMessage)) {
+                    data.recommendations.unshift(severityMessage);
+                }
+                
+                // Show/hide "Call AEO" button based on escalation rules
+                const callAeoBtn = document.getElementById('call-aeo-btn');
+                if (data.show_call_aeo || severityLevel === 'high' || confidence < 0.70) {
+                    callAeoBtn.style.display = 'flex';
+                } else {
+                    callAeoBtn.style.display = 'none';
+                }
                 
                 // Set thumbnail image
                 document.getElementById('result-thumbnail').src = document.getElementById('preview-img').src;
@@ -2265,31 +2291,13 @@
                 const treatmentText = data.treatment || '';
                 const treatmentList = document.getElementById('result-treatment-list');
                 
-                // Split treatment by common delimiters and create list items with icons
+                // Split treatment by common delimiters and create list items with numbers
                 const treatments = treatmentText.split(/[.;]\s+/).filter(t => t.trim().length > 0);
                 
-                // Icon mapping for different treatment actions
-                const getIcon = (text) => {
-                    const lower = text.toLowerCase();
-                    if (lower.includes('remove') || lower.includes('cut') || lower.includes('prune')) {
-                        return 'bi-scissors';
-                    } else if (lower.includes('spray') || lower.includes('apply') || lower.includes('fungicide')) {
-                        return 'bi-droplet-fill';
-                    } else if (lower.includes('rotate') || lower.includes('crop')) {
-                        return 'bi-arrow-repeat';
-                    } else if (lower.includes('burn') || lower.includes('destroy') || lower.includes('debris')) {
-                        return 'bi-fire';
-                    } else if (lower.includes('water') || lower.includes('irrigat')) {
-                        return 'bi-moisture';
-                    } else {
-                        return 'bi-check-circle-fill';
-                    }
-                };
-                
-                treatmentList.innerHTML = treatments.map(treatment => `
+                treatmentList.innerHTML = treatments.map((treatment, index) => `
                     <li class="treatment-item">
                         <div class="treatment-icon">
-                            <i class="${getIcon(treatment)}"></i>
+                            ${index + 1}
                         </div>
                         <span>${treatment.trim()}</span>
                     </li>
