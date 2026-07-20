@@ -47,7 +47,7 @@
         }
 
         .login-container {
-            max-width: 420px;
+            max-width: 400px;
             width: 100%;
             animation: fadeInUp 0.6s ease-out;
         }
@@ -73,62 +73,63 @@
 
         .login-header {
             background: var(--primary-green);
-            padding: 2.5rem 2rem;
+            padding: 1.75rem 1.5rem;
             text-align: center;
             position: relative;
         }
 
         .logo-shield {
-            width: 80px;
-            height: 80px;
+            width: 65px;
+            height: 65px;
             background: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1rem;
+            margin: 0 auto 0.75rem;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
 
         .logo-shield i {
-            font-size: 2.5rem;
+            font-size: 2rem;
             color: var(--primary-green);
         }
 
         .login-header h1 {
             color: white;
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             font-weight: 700;
-            margin: 0 0 0.5rem;
+            margin: 0 0 0.4rem;
         }
 
         .login-subtitle {
             color: rgba(255, 255, 255, 0.9);
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             margin: 0;
+            line-height: 1.4;
         }
 
         .login-body {
-            padding: 2rem;
+            padding: 1.5rem;
         }
 
         .section-title {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--dark-blue);
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             text-align: center;
         }
 
         .form-group {
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
         }
 
         .form-label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: #555;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -136,14 +137,14 @@
 
         .form-label i {
             color: var(--primary-green);
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .form-control {
             border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 0.875rem 1rem;
-            font-size: 0.95rem;
+            border-radius: 10px;
+            padding: 0.75rem 0.875rem;
+            font-size: 0.9rem;
             transition: all 0.3s;
         }
 
@@ -180,10 +181,10 @@
             width: 100%;
             background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
             border: none;
-            border-radius: 12px;
-            padding: 1rem;
+            border-radius: 10px;
+            padding: 0.875rem;
             color: white;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
             display: flex;
             align-items: center;
@@ -191,7 +192,7 @@
             gap: 0.5rem;
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
-            margin-top: 1.5rem;
+            margin-top: 1.25rem;
         }
 
         .btn-login:hover {
@@ -448,15 +449,6 @@
                         <i class="bi bi-box-arrow-in-right"></i>
                         <span id="btnText">Sign In</span>
                     </button>
-
-                    <!-- Biometric Login Option -->
-                    <div class="biometric-option">
-                        <p>Or sign in with biometrics</p>
-                        <button type="button" class="btn btn-biometric" onclick="biometricLogin()">
-                            <i class="bi bi-fingerprint"></i>
-                            Use Fingerprint
-                        </button>
-                    </div>
                 </form>
             </div>
 
@@ -498,42 +490,6 @@
             btn.disabled = true;
             btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in...';
         });
-
-        // Biometric login (Web Authentication API)
-        async function biometricLogin() {
-            try {
-                // Check if WebAuthn is supported
-                if (!window.PublicKeyCredential) {
-                    alert('Biometric authentication is not supported on this device.');
-                    return;
-                }
-
-                // Check if biometric credential exists in localStorage
-                const credentialId = localStorage.getItem('agroguard_aeo_credential_id');
-
-                if (!credentialId) {
-                    alert('No biometric credential found. Please set up fingerprint after logging in with password.');
-                    return;
-                }
-
-                alert('Biometric authentication coming soon! Please use password login for now.');
-
-                // TODO: Implement WebAuthn authentication
-                // const credential = await navigator.credentials.get({
-                //     publicKey: {
-                //         challenge: new Uint8Array([/* challenge from server */]),
-                //         allowCredentials: [{
-                //             id: base64ToArrayBuffer(credentialId),
-                //             type: 'public-key'
-                //         }]
-                //     }
-                // });
-
-            } catch (error) {
-                console.error('Biometric authentication error:', error);
-                alert('Biometric authentication failed. Please use password login.');
-            }
-        }
 
         // Auto-focus first empty field
         window.addEventListener('load', function () {

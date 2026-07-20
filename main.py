@@ -11,6 +11,7 @@ import uvicorn
 import httpx
 from pathlib import Path
 from typing import Optional, Dict, Any
+from datetime import datetime
 
 # Load environment
 from dotenv import load_dotenv
@@ -326,6 +327,7 @@ WEATHER_FALLBACK = {
     "temp": 32,
     "humidity": 85,
     "condition": "Partly Cloudy",
+    "cloud": 60,
     "risk": "Medium",
     "city": "Kumasi",
     "source": "fallback"
@@ -384,12 +386,14 @@ async def get_weather(lat: Optional[float] = None, lon: Optional[float] = None):
         humidity = raw["main"]["humidity"]
         condition = raw["weather"][0]["description"].title()
         city_name = raw["name"]
+        cloud = raw.get("clouds", {}).get("all", 0)  # Cloud coverage percentage
         risk = _calculate_risk(humidity)
 
         result = {
             "temp": temp,
             "humidity": humidity,
             "condition": condition,
+            "cloud": cloud,
             "risk": risk,
             "city": city_name,
             "source": "live"
@@ -510,15 +514,24 @@ async def login(
         }
     )
     
-    # Check if profile is complete (email and district must be filled)
-    # Note: phone is set during account creation by superadmin, but email and district are completed by AEO
-    profile_complete = (
-        aeo['email'] is not None and aeo['email'].strip() and
-        aeo['district'] is not None and aeo['district'].strip()
+    # Check if profile is complete
+    # Profile is complete if profile_completed flag is set to 1
+    # sqlite3.Row can be accessed like a dict using keys() or direct indexing
+    try:
+        profile_complete = aeo['profile_completed'] == 1 if aeo['profile_completed'] is not None else False
+    except (KeyError, TypeError):
+        profile_complete = False
+    
+    # Update last_login timestamp
+    conn = database.get_db_connection()
+    conn.execute(
+        "UPDATE aeo SET last_login = datetime('now') WHERE id = ?",
+        (aeo['id'],)
     )
+    conn.commit()
+    conn.close()
     
     print(f"[LOGIN] AEO {aeo['staff_id']} - Profile complete: {profile_complete}")
-    print(f"[LOGIN] Email: {aeo['email']}, District: {aeo['district']}")
     
     # Set cookie
     response = RedirectResponse(
@@ -548,7 +561,7 @@ async def complete_profile_page(request: Request, current_user: dict = Depends(a
 
 @app.post("/api/aeo/complete-profile")
 async def complete_profile(request: Request, current_user: dict = Depends(auth.get_current_user)):
-    """Save AEO profile information"""
+    """Save AEO profile information and mark profile as completed"""
     try:
         data = await request.json()
         
@@ -560,7 +573,7 @@ async def complete_profile(request: Request, current_user: dict = Depends(auth.g
         
         cur.execute("""
             UPDATE aeo
-            SET name = ?, email = ?, phone = ?, district = ?
+            SET name = ?, email = ?, phone = ?, district = ?, profile_completed = 1
             WHERE id = ?
         """, (
             data.get('name'),
@@ -573,11 +586,173 @@ async def complete_profile(request: Request, current_user: dict = Depends(auth.g
         conn.commit()
         conn.close()
         
+        print(f"[complete-profile] AEO {aeo_id} profile completed successfully")
+        
         return JSONResponse({"success": True, "message": "Profile updated successfully"})
         
     except Exception as e:
         print(f"[complete-profile] Error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to update profile: {str(e)}")
+
+
+@app.post("/api/aeo/biometric/register")
+async def register_biometric(request: Request, current_user: dict = Depends(auth.get_current_user)):
+    """Register biometric (fingerprint) for AEO"""
+    try:
+        data = await request.json()
+        aeo_id = current_user["user_id"]
+        
+        # Store biometric credentials
+        # In a real implementation, this would verify and store the WebAuthn credential
+        biometric_id = data.get('biometric_id')
+        public_key = data.get('public_key')
+        
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        
+        cur.execute("""
+            UPDATE aeo
+            SET biometric_id = ?, biometric_public_key = ?
+            WHERE id = ?
+        """, (biometric_id, public_key, aeo_id))
+        
+        conn.commit()
+        conn.close()
+        
+        print(f"[biometric] AEO {aeo_id} biometric registered successfully")
+        
+        return JSONResponse({"success": True, "message": "Biometric registered successfully"})
+        
+    except Exception as e:
+        print(f"[biometric] Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to register biometric: {str(e)}")
+
+
+@app.post("/api/aeo/upload-picture")
+async def upload_profile_picture(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(auth.get_current_user)
+):
+    """Upload AEO profile picture"""
+    try:
+        aeo_id = current_user["user_id"]
+        
+        # Validate file type
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        
+        # Validate file size (max 5MB)
+        contents = await file.read()
+        if len(contents) > 5 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="Image size must be less than 5MB")
+        
+        # Create uploads directory if it doesn't exist
+        import os
+        upload_dir = "static/uploads/profiles"
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Generate unique filename
+        import uuid
+        file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+        filename = f"aeo_{aeo_id}_{uuid.uuid4().hex[:8]}.{file_extension}"
+        filepath = os.path.join(upload_dir, filename)
+        
+        # Save file
+        with open(filepath, "wb") as f:
+            f.write(contents)
+        
+        # Update database with profile picture path
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        
+        # Delete old profile picture if exists
+        old_picture = cur.execute(
+            "SELECT profile_picture FROM aeo WHERE id = ?", (aeo_id,)
+        ).fetchone()
+        
+        if old_picture and old_picture['profile_picture']:
+            old_path = old_picture['profile_picture']
+            if os.path.exists(old_path):
+                try:
+                    os.remove(old_path)
+                except:
+                    pass
+        
+        # Update with new picture path
+        cur.execute(
+            "UPDATE aeo SET profile_picture = ? WHERE id = ?",
+            (filepath, aeo_id)
+        )
+        
+        conn.commit()
+        conn.close()
+        
+        print(f"[upload-picture] AEO {aeo_id} profile picture uploaded: {filename}")
+        
+        return JSONResponse({
+            "success": True,
+            "message": "Profile picture uploaded successfully",
+            "picture_url": f"/{filepath}"
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[upload-picture] Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload picture: {str(e)}")
+
+
+@app.post("/api/aeo/biometric/login")
+async def biometric_login(request: Request):
+    """Login with biometric (fingerprint)"""
+    try:
+        data = await request.json()
+        biometric_id = data.get('biometric_id')
+        
+        if not biometric_id:
+            raise HTTPException(status_code=400, detail="Biometric ID required")
+        
+        # Find AEO by biometric ID
+        conn = database.get_db_connection()
+        aeo = conn.execute(
+            "SELECT * FROM aeo WHERE biometric_id = ? AND is_active = 1",
+            (biometric_id,)
+        ).fetchone()
+        conn.close()
+        
+        if not aeo:
+            raise HTTPException(status_code=401, detail="Biometric authentication failed")
+        
+        # Generate JWT token
+        access_token = auth.create_access_token(
+            data={
+                "sub": str(aeo['id']),
+                "type": "aeo",
+                "staff_id": aeo['staff_id'],
+                "name": aeo['name']
+            }
+        )
+        
+        # Update last_login
+        conn = database.get_db_connection()
+        conn.execute(
+            "UPDATE aeo SET last_login = datetime('now') WHERE id = ?",
+            (aeo['id'],)
+        )
+        conn.commit()
+        conn.close()
+        
+        return JSONResponse({
+            "success": True,
+            "access_token": access_token,
+            "token_type": "bearer"
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[biometric-login] Error: {e}")
+        raise HTTPException(status_code=500, detail="Biometric login failed")
 
 
 @app.get("/signup", response_class=HTMLResponse)
@@ -984,7 +1159,27 @@ async def logout():
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request, current_user: dict = Depends(auth.get_current_user)):
-    return templates.TemplateResponse("dashboard.html", {"request": request, "user": current_user["user_id"]})
+    # Get AEO info including profile picture
+    conn = database.get_db_connection()
+    cur = conn.cursor()
+    aeo = cur.execute(
+        "SELECT name, district, profile_picture FROM aeo WHERE id = ?",
+        (current_user["user_id"],)
+    ).fetchone()
+    conn.close()
+    
+    aeo_info = {
+        "name": aeo['name'] if aeo else current_user["user_id"],
+        "district": aeo['district'] if aeo and aeo['district'] else "N/A",
+        "profile_picture": aeo['profile_picture'] if aeo and aeo['profile_picture'] else None
+    }
+    
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request,
+        "user": aeo_info["name"],
+        "district": aeo_info["district"],
+        "profile_picture": aeo_info["profile_picture"]
+    })
 
 
 @app.get("/api/dashboard/stats")
@@ -1131,51 +1326,95 @@ async def add_farmer_manually(request: Request, current_user: dict = Depends(aut
 async def send_alert_to_farmers(request: Request, current_user: dict = Depends(auth.get_current_user)):
     """
     AEO sends broadcast alert/notification to farmers.
-    Can target all farmers, specific district, or specific crop type.
+    Supports: all farmers, region, district, crop type, or specific phone numbers.
     """
     try:
         data = await request.json()
         
-        # Validate required fields
-        alert_type = data.get('alert_type', '').strip()
-        target = data.get('target', '').strip()
-        message = data.get('message', '').strip()
+        # Validate required fields - handle None values properly
+        alert_type = (data.get('alert_type') or '').strip()
+        target_type = (data.get('target_type') or '').strip()
+        priority = (data.get('priority') or '').strip()
+        title = (data.get('title') or '').strip()
+        message = (data.get('message') or '').strip()
         
-        if not alert_type or not target or not message:
+        if not alert_type or not target_type or not priority or not title or not message:
             raise HTTPException(
                 status_code=400,
-                detail="Alert type, target audience, and message are required"
+                detail="Alert type, target type, priority, title, and message are required"
             )
         
-        # Optional fields
-        district = data.get('district', '').strip() or None
-        
-        # Validate district for district-specific alerts
-        if target == 'district' and not district:
-            raise HTTPException(
-                status_code=400,
-                detail="District must be specified for district-specific alerts"
-            )
+        # Optional targeting fields - handle None values
+        region = (data.get('region') or '').strip() or None
+        district = (data.get('district') or '').strip() or None
+        crop = (data.get('crop') or '').strip() or None
+        phone_numbers = (data.get('phone_numbers') or '').strip() or None
         
         # Build query to find target farmers
         conn = database.get_db_connection()
         cur = conn.cursor()
         
-        if target == 'all':
-            # All farmers
-            query = "SELECT id, name, phone FROM farmers WHERE phone IS NOT NULL"
+        if target_type == 'all':
+            # All farmers with phone numbers
+            query = "SELECT device_id, name, phone FROM farmers WHERE phone IS NOT NULL AND phone != ''"
             params = ()
-        elif target == 'district':
-            # Specific district
-            query = "SELECT id, name, phone FROM farmers WHERE district = ? AND phone IS NOT NULL"
+            target_description = "All Farmers (Broadcast)"
+            
+        elif target_type == 'region':
+            # Farmers in specific region (and optionally specific district)
+            if not region:
+                raise HTTPException(status_code=400, detail="Region must be specified")
+            
+            if district:
+                # Specific district within region
+                query = "SELECT device_id, name, phone FROM farmers WHERE district = ? AND phone IS NOT NULL AND phone != ''"
+                params = (district,)
+                target_description = f"{district}, {region}"
+            else:
+                # All districts in region (would need region-district mapping)
+                # For now, treat as district search
+                query = "SELECT device_id, name, phone FROM farmers WHERE phone IS NOT NULL AND phone != ''"
+                params = ()
+                target_description = f"{region} Region"
+                
+        elif target_type == 'district':
+            # Farmers in specific district
+            if not district:
+                raise HTTPException(status_code=400, detail="District must be specified")
+            
+            query = "SELECT device_id, name, phone FROM farmers WHERE district = ? AND phone IS NOT NULL AND phone != ''"
             params = (district,)
-        elif target == 'crop':
-            # Specific crop type (crops field contains the crop name)
-            query = "SELECT id, name, phone FROM farmers WHERE crops LIKE ? AND phone IS NOT NULL"
-            params = (f"%{district}%",)  # district field is reused for crop name in UI
+            target_description = f"{district} District"
+            
+        elif target_type == 'crop':
+            # Farmers growing specific crop
+            if not crop:
+                raise HTTPException(status_code=400, detail="Crop type must be specified")
+            
+            query = "SELECT device_id, name, phone FROM farmers WHERE crops LIKE ? AND phone IS NOT NULL AND phone != ''"
+            params = (f"%{crop}%",)
+            target_description = f"Farmers growing {crop}"
+            
+        elif target_type == 'phone':
+            # Specific phone number(s)
+            if not phone_numbers:
+                raise HTTPException(status_code=400, detail="Phone numbers must be provided")
+            
+            # Parse comma-separated phone numbers
+            phones = [p.strip() for p in phone_numbers.split(',') if p.strip()]
+            if not phones:
+                raise HTTPException(status_code=400, detail="No valid phone numbers provided")
+            
+            # Build query with phone numbers
+            placeholders = ','.join(['?' for _ in phones])
+            query = f"SELECT device_id, name, phone FROM farmers WHERE phone IN ({placeholders})"
+            params = tuple(phones)
+            target_description = f"{len(phones)} specific farmer(s)"
+            
         else:
-            raise HTTPException(status_code=400, detail="Invalid target audience")
+            raise HTTPException(status_code=400, detail="Invalid target type")
         
+        # Execute query
         farmers = cur.execute(query, params).fetchall()
         recipient_count = len(farmers)
         
@@ -1183,14 +1422,26 @@ async def send_alert_to_farmers(request: Request, current_user: dict = Depends(a
             conn.close()
             raise HTTPException(
                 status_code=400,
-                detail="No farmers found matching the target criteria"
+                detail=f"No farmers found for target: {target_description}"
             )
         
-        # Store alert in database (for tracking and history)
+        # Store alert in database
         cur.execute("""
-            INSERT INTO alerts (alert_type, target_audience, district, message, sent_by, recipient_count, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
-        """, (alert_type, target, district, message, current_user['user_id'], recipient_count))
+            INSERT INTO alerts (
+                alert_type, title, message, priority,
+                target_audience, target_type, target_phone, district,
+                sent_by, recipient_count, created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        """, (
+            alert_type, title, message, priority,
+            target_description,  # target_audience (for backward compatibility)
+            target_description,  # target_type (new field)
+            phone_numbers if target_type == 'phone' else None,
+            district,
+            current_user['user_id'],
+            recipient_count
+        ))
         
         alert_id = cur.lastrowid
         conn.commit()
@@ -1202,13 +1453,77 @@ async def send_alert_to_farmers(request: Request, current_user: dict = Depends(a
             entity="alert",
             entity_id=alert_id,
             performed_by=current_user['user_id'],
-            details=f"Sent {alert_type} alert to {recipient_count} farmers"
+            details=f"Sent {priority} priority {alert_type} alert to {recipient_count} farmers: {target_description}"
         )
         
-        # TODO: In production, integrate with SMS gateway (e.g., Twilio, Africa's Talking)
-        # For now, we just store the alert in the database
+        # TODO: In production, integrate with SMS gateway (Twilio, Africa's Talking, etc.)
+        # For now, alerts are stored in database and accessible via farmer app
         
-        recipients_text = f"{recipient_count} farmer{'s' if recipient_count != 1 else ''}"
+        return JSONResponse({
+            "success": True,
+            "message": f"Alert sent successfully to {target_description}",
+            "recipient_count": recipient_count,
+            "alert_id": alert_id
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[send-alert] Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to send alert: {str(e)}")
+
+
+@app.get("/api/alert/estimate-recipients")
+async def estimate_alert_recipients(
+    target_type: str,
+    region: str = "",
+    district: str = "",
+    crop: str = "",
+    current_user: dict = Depends(auth.get_current_user)
+):
+    """Estimate number of recipients for an alert based on targeting"""
+    try:
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        
+        if target_type == 'all':
+            count = cur.execute(
+                "SELECT COUNT(*) as cnt FROM farmers WHERE phone IS NOT NULL AND phone != ''"
+            ).fetchone()['cnt']
+            
+        elif target_type == 'region' or target_type == 'district':
+            if district:
+                count = cur.execute(
+                    "SELECT COUNT(*) as cnt FROM farmers WHERE district = ? AND phone IS NOT NULL AND phone != ''",
+                    (district,)
+                ).fetchone()['cnt']
+            else:
+                count = cur.execute(
+                    "SELECT COUNT(*) as cnt FROM farmers WHERE phone IS NOT NULL AND phone != ''"
+                ).fetchone()['cnt']
+                
+        elif target_type == 'crop':
+            if crop:
+                count = cur.execute(
+                    "SELECT COUNT(*) as cnt FROM farmers WHERE crops LIKE ? AND phone IS NOT NULL AND phone != ''",
+                    (f"%{crop}%",)
+                ).fetchone()['cnt']
+            else:
+                count = 0
+                
+        elif target_type == 'phone':
+            count = 0  # Will depend on how many phone numbers are entered
+            
+        else:
+            count = 0
+        
+        conn.close()
+        
+        return JSONResponse({"count": count})
+        
+    except Exception as e:
+        print(f"[estimate-recipients] Error: {e}")
+        return JSONResponse({"count": 0})
         if target == 'district':
             recipients_text += f" in {district}"
         
@@ -1287,6 +1602,407 @@ async def create_support_ticket(request: Request, current_user: dict = Depends(a
     except Exception as e:
         print(f"[support-ticket] Error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to create ticket: {str(e)}")
+
+
+# ============================================================================
+# FARMER NOTIFICATIONS & ALERTS API
+# ============================================================================
+
+@app.get("/api/farmer/notifications")
+async def get_farmer_notifications(request: Request):
+    """
+    Get general notifications for farmer (app upgrades, weather notices, tips).
+    """
+    try:
+        device_id = request.headers.get('device-id', '')
+        
+        # For now, return mock notifications
+        # In production, these would come from a notifications table
+        notifications = [
+            {
+                "id": "notif_1",
+                "type": "info",
+                "title": "Welcome to AgroGuard!",
+                "message": "Get instant maize disease detection and connect with agricultural extension officers for expert support.",
+                "timestamp": "2024-01-15T08:00:00",
+                "read": True
+            },
+            {
+                "id": "notif_2",
+                "type": "warning",
+                "title": "Weather Alert",
+                "message": "Heavy rains expected in your area over the next 3 days. High humidity may increase disease risk. Monitor your crops closely.",
+                "timestamp": "2024-01-16T06:30:00",
+                "read": False
+            },
+            {
+                "id": "notif_3",
+                "type": "success",
+                "title": "Farming Tip",
+                "message": "Did you know? Proper spacing between maize plants (75cm apart) improves air circulation and reduces disease spread.",
+                "timestamp": "2024-01-17T07:00:00",
+                "read": False
+            }
+        ]
+        
+        return {"notifications": notifications}
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to load notifications: {e}")
+        return {"notifications": []}
+
+
+@app.get("/api/farmer/alerts")
+async def get_farmer_alerts(request: Request):
+    """
+    Get alerts sent by AEO dashboard to this farmer.
+    Connects to the AEO alert system.
+    """
+    try:
+        device_id = request.headers.get('device-id', '')
+        phone = request.headers.get('phone', '')
+        
+        if not phone:
+            return {"alerts": []}
+        
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        
+        # Get farmer information to match alerts
+        farmer = cur.execute("""
+            SELECT district, crops FROM farmers 
+            WHERE phone = ? OR device_id = ?
+            LIMIT 1
+        """, (phone, device_id)).fetchone()
+        
+        if not farmer:
+            conn.close()
+            return {"alerts": []}
+        
+        farmer_district = farmer['district'] if farmer else None
+        farmer_crops = farmer['crops'] if farmer else ''
+        
+        # Fetch alerts from the alerts table (sent by AEOs)
+        # Match based on: all farmers, phone, district, or crop
+        alerts_data = cur.execute("""
+            SELECT id, title, message, priority, sent_by, created_at, target_type, district
+            FROM alerts
+            WHERE 
+                target_type LIKE '%All Farmers%'
+                OR target_type LIKE '%Broadcast%'
+                OR target_phone LIKE '%' || ? || '%'
+                OR (district = ? AND district IS NOT NULL)
+                OR (target_type LIKE '%' || ? || '%')
+            ORDER BY created_at DESC
+            LIMIT 20
+        """, (phone, farmer_district, farmer_district)).fetchall()
+        
+        conn.close()
+        
+        alerts = []
+        for row in alerts_data:
+            # Get AEO name
+            conn2 = database.get_db_connection()
+            aeo = conn2.execute(
+                "SELECT name FROM aeo WHERE id = ?", (row['sent_by'],)
+            ).fetchone()
+            conn2.close()
+            
+            alerts.append({
+                "id": str(row['id']),
+                "title": row['title'],
+                "message": row['message'],
+                "priority": row['priority'] or 'medium',
+                "from": aeo['name'] if aeo else 'Extension Officer',
+                "timestamp": row['created_at'],
+                "read": False  # Can implement read tracking later
+            })
+        
+        return {"alerts": alerts}
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to load alerts: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"alerts": []}
+
+
+@app.post("/api/farmer/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, request: Request):
+    """
+    Mark a notification as read.
+    """
+    # In production, update read status in database
+    return {"success": True}
+
+
+@app.post("/api/farmer/alerts/{alert_id}/read")
+async def mark_alert_read(alert_id: str, request: Request):
+    """
+    Mark an alert as read.
+    """
+    try:
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        
+        # Update alert read status (if we add read tracking)
+        # For now, just return success
+        
+        conn.close()
+        return {"success": True}
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to mark alert as read: {e}")
+        return {"success": False}
+
+
+# ============================================================================
+# EXPORT DATA ENDPOINTS
+# ============================================================================
+
+@app.get("/api/export/farmers")
+async def export_farmers(format: str = "csv", current_user: dict = Depends(auth.get_current_user)):
+    """Export farmers data to CSV or Excel"""
+    try:
+        import io
+        import csv
+        
+        conn = database.get_db_connection()
+        farmers = conn.execute("""
+            SELECT device_id, name, phone, ghana_card, district, crops, 
+                   registration_method, first_seen, last_seen
+            FROM farmers
+            ORDER BY last_seen DESC
+        """).fetchall()
+        conn.close()
+        
+        if format.lower() == "csv":
+            # Create CSV
+            output = io.StringIO()
+            writer = csv.writer(output)
+            
+            # Write header
+            writer.writerow(['Device ID', 'Name', 'Phone', 'Ghana Card', 'District', 
+                           'Crops', 'Registration Method', 'First Seen', 'Last Seen'])
+            
+            # Write data
+            for farmer in farmers:
+                writer.writerow([
+                    farmer['device_id'],
+                    farmer['name'] or 'N/A',
+                    farmer['phone'] or 'N/A',
+                    farmer['ghana_card'] or 'N/A',
+                    farmer['district'] or 'N/A',
+                    farmer['crops'] or 'N/A',
+                    farmer['registration_method'] or 'app',
+                    farmer['first_seen'],
+                    farmer['last_seen']
+                ])
+            
+            # Return CSV
+            output.seek(0)
+            return Response(
+                content=output.getvalue(),
+                media_type="text/csv",
+                headers={"Content-Disposition": f"attachment; filename=farmers_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
+            )
+        
+        elif format.lower() == "excel":
+            # Create Excel using openpyxl
+            try:
+                from openpyxl import Workbook
+                from openpyxl.styles import Font, PatternFill, Alignment
+                
+                wb = Workbook()
+                ws = wb.active
+                ws.title = "Farmers"
+                
+                # Header styling
+                header_fill = PatternFill(start_color="2ecc71", end_color="2ecc71", fill_type="solid")
+                header_font = Font(bold=True, color="FFFFFF")
+                
+                # Write header
+                headers = ['Device ID', 'Name', 'Phone', 'Ghana Card', 'District', 
+                          'Crops', 'Registration Method', 'First Seen', 'Last Seen']
+                ws.append(headers)
+                
+                # Style header
+                for cell in ws[1]:
+                    cell.fill = header_fill
+                    cell.font = header_font
+                    cell.alignment = Alignment(horizontal='center')
+                
+                # Write data
+                for farmer in farmers:
+                    ws.append([
+                        farmer['device_id'],
+                        farmer['name'] or 'N/A',
+                        farmer['phone'] or 'N/A',
+                        farmer['ghana_card'] or 'N/A',
+                        farmer['district'] or 'N/A',
+                        farmer['crops'] or 'N/A',
+                        farmer['registration_method'] or 'app',
+                        farmer['first_seen'],
+                        farmer['last_seen']
+                    ])
+                
+                # Adjust column widths
+                for column in ws.columns:
+                    max_length = 0
+                    column = [cell for cell in column]
+                    for cell in column:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(cell.value)
+                        except:
+                            pass
+                    adjusted_width = (max_length + 2)
+                    ws.column_dimensions[column[0].column_letter].width = adjusted_width
+                
+                # Save to bytes
+                output = io.BytesIO()
+                wb.save(output)
+                output.seek(0)
+                
+                return Response(
+                    content=output.getvalue(),
+                    media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    headers={"Content-Disposition": f"attachment; filename=farmers_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
+                )
+                
+            except ImportError:
+                raise HTTPException(status_code=500, detail="Excel export requires openpyxl library. Install with: pip install openpyxl")
+        
+        else:
+            raise HTTPException(status_code=400, detail="Format must be 'csv' or 'excel'")
+            
+    except Exception as e:
+        print(f"[export-farmers] Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+
+@app.get("/api/export/scans")
+async def export_scans(format: str = "csv", current_user: dict = Depends(auth.get_current_user)):
+    """Export scans data to CSV or Excel"""
+    try:
+        import io
+        import csv
+        
+        conn = database.get_db_connection()
+        scans = conn.execute("""
+            SELECT s.id, s.farmer_device_id, f.name as farmer_name, f.phone,
+                   s.crop, s.disease, s.confidence, s.location, s.status, s.timestamp
+            FROM scans s
+            LEFT JOIN farmers f ON s.farmer_device_id = f.device_id
+            ORDER BY s.timestamp DESC
+        """).fetchall()
+        conn.close()
+        
+        if format.lower() == "csv":
+            # Create CSV
+            output = io.StringIO()
+            writer = csv.writer(output)
+            
+            # Write header
+            writer.writerow(['Scan ID', 'Device ID', 'Farmer Name', 'Phone', 'Crop', 
+                           'Disease', 'Confidence', 'Location', 'Status', 'Timestamp'])
+            
+            # Write data
+            for scan in scans:
+                writer.writerow([
+                    scan['id'],
+                    scan['farmer_device_id'],
+                    scan['farmer_name'] or 'N/A',
+                    scan['phone'] or 'N/A',
+                    scan['crop'] or 'N/A',
+                    scan['disease'],
+                    f"{scan['confidence']:.2%}" if scan['confidence'] else 'N/A',
+                    scan['location'] or 'N/A',
+                    scan['status'],
+                    scan['timestamp']
+                ])
+            
+            # Return CSV
+            output.seek(0)
+            return Response(
+                content=output.getvalue(),
+                media_type="text/csv",
+                headers={"Content-Disposition": f"attachment; filename=scans_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
+            )
+        
+        elif format.lower() == "excel":
+            # Create Excel
+            try:
+                from openpyxl import Workbook
+                from openpyxl.styles import Font, PatternFill, Alignment
+                
+                wb = Workbook()
+                ws = wb.active
+                ws.title = "Disease Scans"
+                
+                # Header styling
+                header_fill = PatternFill(start_color="2ecc71", end_color="2ecc71", fill_type="solid")
+                header_font = Font(bold=True, color="FFFFFF")
+                
+                # Write header
+                headers = ['Scan ID', 'Device ID', 'Farmer Name', 'Phone', 'Crop', 
+                          'Disease', 'Confidence', 'Location', 'Status', 'Timestamp']
+                ws.append(headers)
+                
+                # Style header
+                for cell in ws[1]:
+                    cell.fill = header_fill
+                    cell.font = header_font
+                    cell.alignment = Alignment(horizontal='center')
+                
+                # Write data
+                for scan in scans:
+                    ws.append([
+                        scan['id'],
+                        scan['farmer_device_id'],
+                        scan['farmer_name'] or 'N/A',
+                        scan['phone'] or 'N/A',
+                        scan['crop'] or 'N/A',
+                        scan['disease'],
+                        f"{scan['confidence']:.2%}" if scan['confidence'] else 'N/A',
+                        scan['location'] or 'N/A',
+                        scan['status'],
+                        scan['timestamp']
+                    ])
+                
+                # Adjust column widths
+                for column in ws.columns:
+                    max_length = 0
+                    column = [cell for cell in column]
+                    for cell in column:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(cell.value)
+                        except:
+                            pass
+                    adjusted_width = (max_length + 2)
+                    ws.column_dimensions[column[0].column_letter].width = adjusted_width
+                
+                # Save to bytes
+                output = io.BytesIO()
+                wb.save(output)
+                output.seek(0)
+                
+                return Response(
+                    content=output.getvalue(),
+                    media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    headers={"Content-Disposition": f"attachment; filename=scans_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
+                )
+                
+            except ImportError:
+                raise HTTPException(status_code=500, detail="Excel export requires openpyxl library. Install with: pip install openpyxl")
+        
+        else:
+            raise HTTPException(status_code=400, detail="Format must be 'csv' or 'excel'")
+            
+    except Exception as e:
+        print(f"[export-scans] Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
 
 
 if __name__ == "__main__":

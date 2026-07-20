@@ -64,7 +64,7 @@
             top: 0;
             z-index: 100;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
@@ -90,6 +90,66 @@
             font-weight: 800;
             color: var(--primary-green);
             line-height: 1;
+        }
+
+        /* Header Icons */
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-icon-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--light-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .header-icon-btn:active {
+            transform: scale(0.95);
+            background: #e9ecef;
+        }
+
+        .header-icon-btn i {
+            font-size: 1.2rem;
+            color: var(--dark-blue);
+        }
+
+        .badge-dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .badge-count {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            min-width: 18px;
+            height: 18px;
+            background: #e74c3c;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: white;
+            padding: 0 4px;
+            border: 2px solid white;
         }
 
         .lang-switch {
@@ -132,21 +192,349 @@
             padding: 1.5rem;
             margin-bottom: 1.5rem;
             box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        .weather-mini-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+
+        .weather-mini-header i {
+            font-size: 1rem;
+        }
+
+        .weather-mini-main {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 1rem;
         }
 
         .weather-info h3 {
             margin: 0;
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 700;
+            line-height: 1;
         }
 
         .weather-info p {
-            margin: 0;
+            margin: 0.25rem 0 0 0;
             opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .weather-icon-large {
+            font-size: 3.5rem;
+            opacity: 0.9;
+        }
+
+        .weather-mini-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .weather-detail-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .weather-detail-item i {
+            font-size: 1.2rem;
+            margin-bottom: 0.25rem;
+            opacity: 0.9;
+        }
+
+        .weather-detail-value {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.1rem;
+        }
+
+        .weather-detail-label {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .risk-badge.high {
+            background: rgba(231, 76, 60, 0.9);
+        }
+
+        .risk-badge.medium {
+            background: rgba(243, 156, 18, 0.9);
+        }
+
+        .risk-badge.low {
+            background: rgba(46, 204, 113, 0.9);
+        }
+
+        /* Notification & Alert Panels */
+        .notification-panel {
+            position: fixed;
+            top: 70px;
+            right: -100%;
+            width: 90%;
+            max-width: 400px;
+            height: calc(100vh - 70px);
+            background: white;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+            z-index: 1500;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notification-panel.show {
+            right: 0;
+        }
+
+        .panel-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            background: var(--light-bg);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .panel-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark-blue);
+        }
+
+        .panel-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .panel-close:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .panel-close i {
+            font-size: 1.2rem;
+            color: var(--dark-blue);
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .notification-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .notification-item.unread {
+            background: #f0f9ff;
+            border-color: #bfdbfe;
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .notification-icon.info {
+            background: #dbeafe;
+            color: #3b82f6;
+        }
+
+        .notification-icon.warning {
+            background: #fef3c7;
+            color: #f59e0b;
+        }
+
+        .notification-icon.success {
+            background: #d1fae5;
+            color: #10b981;
+        }
+
+        .notification-icon.alert {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .notification-body {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: var(--dark-blue);
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .notification-text {
+            font-size: 0.85rem;
+            color: #6c757d;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .notification-time {
+            font-size: 0.75rem;
+            color: #adb5bd;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #adb5bd;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            margin: 0;
             font-size: 0.9rem;
+        }
+
+        /* Alert Panel - Similar but for alerts from AEO */
+        .alert-item {
+            background: white;
+            border-left: 4px solid #ef4444;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .alert-item.priority-high {
+            border-left-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .alert-item.priority-medium {
+            border-left-color: #f59e0b;
+            background: #fffbeb;
+        }
+
+        .alert-item.priority-low {
+            border-left-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-title {
+            font-weight: 700;
+            color: var(--dark-blue);
+            font-size: 1rem;
+        }
+
+        .alert-badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .alert-badge.urgent {
+            background: #dc2626;
+            color: white;
+        }
+
+        .alert-badge.important {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .alert-badge.info {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .alert-message {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #495057;
+            margin-bottom: 0.75rem;
+        }
+
+        .alert-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .alert-from {
+            font-weight: 600;
         }
 
         .section-title {
@@ -679,13 +1067,51 @@
         }
 
         @media (max-width: 480px) {
+            .app-header {
+                padding: 0.75rem 1rem;
+            }
+
+            .brand-logo {
+                font-size: 1.1rem;
+            }
+
+            .brand-logo img {
+                height: 30px;
+            }
+
+            .header-icon-btn {
+                width: 36px;
+                height: 36px;
+            }
+
+            .header-icon-btn i {
+                font-size: 1.1rem;
+            }
+
             .card-weather-mini {
                 padding: 1rem;
                 border-radius: 14px;
             }
 
             .weather-info h3 {
-                font-size: 1.6rem;
+                font-size: 2rem;
+            }
+
+            .weather-mini-details {
+                gap: 0.5rem;
+            }
+
+            .weather-detail-value {
+                font-size: 0.9rem;
+            }
+
+            .weather-detail-label {
+                font-size: 0.65rem;
+            }
+
+            .notification-panel {
+                width: 100%;
+                max-width: 100%;
             }
 
             .scan-result-card {
@@ -1259,6 +1685,16 @@
             <img src="/static/images/agroguard_logo.png" alt="AgroGuard" style="height: 35px; width: auto;">
             <span>AgroGuard</span>
         </div>
+        <div class="header-icons">
+            <button class="header-icon-btn" onclick="openNotifications()" aria-label="Notifications">
+                <i class="bi bi-bell-fill"></i>
+                <span id="notification-badge" class="badge-count" style="display: none;">0</span>
+            </button>
+            <button class="header-icon-btn" onclick="openAlerts()" aria-label="Alerts">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span id="alert-badge" class="badge-dot" style="display: none;"></span>
+            </button>
+        </div>
     </header>
 
     <!-- VIEW: HOME -->
@@ -1270,13 +1706,36 @@
 
         <!-- Weather Mini Card -->
         <div class="card-weather-mini" onclick="switchView('weather')">
-            <div id="weather-mini-content">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <i class="bi bi-geo-alt-fill"></i> <span id="location-text">Loading...</span>
+            <div id="weather-mini-content" style="display: none;">
+                <div class="weather-mini-header">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <span id="location-text">Loading location...</span>
                 </div>
-                <div class="weather-info">
-                    <h3 id="home-temp">--°</h3>
-                    <p id="home-condition">Fetching weather...</p>
+                <div class="weather-mini-main">
+                    <div class="weather-info">
+                        <h3 id="home-temp">--°</h3>
+                        <p id="home-condition">Fetching weather...</p>
+                    </div>
+                    <i id="home-weather-icon" class="bi bi-cloud-sun-fill weather-icon-large"></i>
+                </div>
+                <div class="weather-mini-details">
+                    <div class="weather-detail-item">
+                        <i class="bi bi-cloud-fill"></i>
+                        <div class="weather-detail-value" id="home-cloud">--%</div>
+                        <div class="weather-detail-label">Cloud</div>
+                    </div>
+                    <div class="weather-detail-item">
+                        <i class="bi bi-droplet-fill"></i>
+                        <div class="weather-detail-value" id="home-humidity">--%</div>
+                        <div class="weather-detail-label">Humidity</div>
+                    </div>
+                    <div class="weather-detail-item">
+                        <i class="bi bi-shield-fill-exclamation"></i>
+                        <div class="weather-detail-value">
+                            <span id="home-risk" class="risk-badge">--</span>
+                        </div>
+                        <div class="weather-detail-label">Risk</div>
+                    </div>
                 </div>
             </div>
             <!-- Skeleton for weather -->
@@ -1285,7 +1744,6 @@
                 <div class="skeleton skeleton-text lg" style="width:90px; height:24px;"></div>
                 <div class="skeleton skeleton-text" style="width:120px;"></div>
             </div>
-            <i id="home-weather-icon" class="bi bi-cloud-sun-fill" style="font-size: 3rem; opacity: 0.8;"></i>
         </div>
 
         <!-- Recent Activity -->
@@ -1336,7 +1794,7 @@
                     <i class="bi bi-camera-fill"></i>
                 </div>
             </div>
-            <p class="text-muted" id="tap-instruction">Tap to take a photo</p>
+            <p class="text-muted" id="tap-instruction">Take a clear photo of your maize leaf</p>
 
             <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none"
                 onchange="handleFileSelect()">
@@ -1502,6 +1960,41 @@
         <h3 class="fw-bold mb-3" id="sheet-title">Title</h3>
         <div id="sheet-content"></div>
     </div>
+
+    <!-- Notification Panel -->
+    <div id="notification-panel" class="notification-panel">
+        <div class="panel-header">
+            <h3><i class="bi bi-bell-fill me-2"></i>Notifications</h3>
+            <button class="panel-close" onclick="closeNotifications()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="panel-content" id="notification-list">
+            <!-- Notifications will be loaded here -->
+            <div class="empty-state">
+                <i class="bi bi-bell-slash"></i>
+                <p>No notifications yet</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Panel -->
+    <div id="alert-panel" class="notification-panel">
+        <div class="panel-header">
+            <h3><i class="bi bi-exclamation-triangle-fill me-2"></i>Alerts</h3>
+            <button class="panel-close" onclick="closeAlerts()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="panel-content" id="alert-list">
+            <!-- Alerts from AEO will be loaded here -->
+            <div class="empty-state">
+                <i class="bi bi-shield-check"></i>
+                <p>No alerts from extension officers</p>
+            </div>
+        </div>
+    </div>
+
     <dialog id="errorModal" class="error-modal">
         <div class="error-modal-content">
             <div class="error-icon">
@@ -1523,17 +2016,26 @@
             const splash = document.getElementById('splash-screen');
             const welcomeOverlay = document.getElementById('welcome-overlay');
 
+            if (!splash) {
+                console.warn('[Splash] Splash screen element not found');
+                return;
+            }
+
             // Hide welcome overlay during splash
             if (welcomeOverlay) welcomeOverlay.style.opacity = '0';
 
+            console.log('[Splash] Starting 3-second timer...');
+
             // Dismiss splash after 3 seconds
             setTimeout(function() {
+                console.log('[Splash] Timer complete, dismissing splash...');
                 if (splash) {
                     splash.classList.add('splash-exit');
                     // Remove from DOM after fade-out animation completes
                     setTimeout(function() {
                         splash.style.display = 'none';
                         splash.remove();
+                        console.log('[Splash] Splash screen removed from DOM');
 
                         // Now show welcome overlay (for first-time users) or hide it
                         if (welcomeOverlay) {
@@ -1545,10 +2047,12 @@
                                 const firstName = (parsed.name || 'Farmer').split(' ')[0];
                                 const greetEl = document.getElementById('greeting');
                                 if (greetEl) greetEl.innerText = 'Hello, ' + firstName;
+                                console.log('[Splash] Returning user, showing app');
                             } else {
                                 // First time — fade in welcome overlay
                                 welcomeOverlay.style.transition = 'opacity 0.4s ease';
                                 welcomeOverlay.style.opacity = '1';
+                                console.log('[Splash] First-time user, showing welcome overlay');
                             }
                         }
                     }, 600); // matches CSS transition duration
@@ -1613,6 +2117,16 @@
             checkFirstTimeLaunch();
             loadWeather();
             renderHistoryHome();
+            
+            // Check for new notifications/alerts
+            loadNotifications();
+            loadAlerts();
+            
+            // Check every 5 minutes for new notifications/alerts
+            setInterval(() => {
+                loadNotifications();
+                loadAlerts();
+            }, 300000); // 5 minutes
         });
 
         // Navigation Logic
@@ -1881,10 +2395,21 @@
 
                 document.getElementById('home-temp').innerText = data.temp + '°C';
                 document.getElementById('home-condition').innerText = data.condition || 'Good';
-                document.getElementById('location-text').innerText = (data.city || 'Kumasi') + ', GH';
-                document.getElementById('home-weather-icon').className = `bi ${iconClass}`;
-                document.getElementById('home-weather-icon').style.fontSize = '3rem';
-                document.getElementById('home-weather-icon').style.opacity = '0.9';
+                document.getElementById('location-text').innerText = (data.city || 'Kumasi') + ', Ghana';
+                document.getElementById('home-weather-icon').className = `bi ${iconClass} weather-icon-large`;
+                
+                // Update new weather details
+                document.getElementById('home-cloud').innerText = (data.cloud || 0) + '%';
+                document.getElementById('home-humidity').innerText = (data.humidity || 0) + '%';
+                
+                // Update risk badge with proper styling
+                const riskEl = document.getElementById('home-risk');
+                const risk = data.risk || 'Low';
+                riskEl.innerText = risk;
+                riskEl.className = 'risk-badge';
+                if (risk === 'High') riskEl.classList.add('high');
+                else if (risk === 'Medium') riskEl.classList.add('medium');
+                else riskEl.classList.add('low');
 
                 // Weather Detail View — hide skeleton, show content
                 const detailSkeleton = document.getElementById('weather-detail-skeleton');
@@ -1899,11 +2424,11 @@
                 document.getElementById('weather-city-label').innerText = (data.city || 'Kumasi') + ', Ghana';
                 document.getElementById('weather-main-icon').className = `bi ${iconClass} text-warning display-1 mb-3`;
 
-                // Colour-code the risk badge
-                const riskEl = document.getElementById('weather-risk');
-                if (data.risk === 'High') riskEl.style.color = '#e74c3c';
-                else if (data.risk === 'Medium') riskEl.style.color = '#f39c12';
-                else riskEl.style.color = '#2ecc71';
+                // Colour-code the risk badge in weather detail view
+                const weatherRiskEl = document.getElementById('weather-risk');
+                if (data.risk === 'High') weatherRiskEl.style.color = '#e74c3c';
+                else if (data.risk === 'Medium') weatherRiskEl.style.color = '#f39c12';
+                else weatherRiskEl.style.color = '#2ecc71';
 
                 // Update risk explanation dynamically based on actual conditions
                 const riskExplanation = document.getElementById('weather-risk-explanation');
@@ -2170,13 +2695,38 @@
             alert('🛒 Treatment Products\n\nView recommended products and suppliers in your area.\n\nThis feature is coming soon!');
         }
 
+        // ============================================================
+        // PWA SERVICE WORKER REGISTRATION
+        // ============================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/static/sw.js')
-                    .then(reg => console.log('SW registered'))
-                    .catch(err => console.log('SW failed', err));
+                    .then(reg => {
+                        console.log('✅ [PWA] Service Worker registered successfully!', reg.scope);
+                    })
+                    .catch(err => {
+                        console.error('❌ [PWA] Service Worker registration failed:', err);
+                    });
             });
+        } else {
+            console.warn('[PWA] Service Workers not supported in this browser');
         }
+
+        // ============================================================
+        // PWA INSTALL PROMPT
+        // ============================================================
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('[PWA] Install prompt available');
+            e.preventDefault();
+            deferredPrompt = e;
+            // You can show an install button here if needed
+            // For now, we'll just log that it's available
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ [PWA] App installed successfully!');
+            deferredPrompt = null;
+        });
 
         // ============================================================
         // FARMER FIRST-LAUNCH PROFILE FLOW
@@ -2264,6 +2814,211 @@
 
             // --- Personalize greeting ---
             updateGreeting(name);
+        }
+
+        // ============================================================
+        // NOTIFICATIONS & ALERTS SYSTEM
+        // ============================================================
+
+        // Open/Close Notification Panel
+        function openNotifications() {
+            closeAlerts(); // Close alerts if open
+            const panel = document.getElementById('notification-panel');
+            panel.classList.add('show');
+            document.getElementById('overlay').classList.add('show');
+            loadNotifications();
+        }
+
+        function closeNotifications() {
+            const panel = document.getElementById('notification-panel');
+            panel.classList.remove('show');
+            document.getElementById('overlay').classList.remove('show');
+        }
+
+        // Open/Close Alert Panel
+        function openAlerts() {
+            closeNotifications(); // Close notifications if open
+            const panel = document.getElementById('alert-panel');
+            panel.classList.add('show');
+            document.getElementById('overlay').classList.add('show');
+            loadAlerts();
+        }
+
+        function closeAlerts() {
+            const panel = document.getElementById('alert-panel');
+            panel.classList.remove('show');
+            document.getElementById('overlay').classList.remove('show');
+        }
+
+        // Close panels when clicking overlay
+        document.getElementById('overlay').addEventListener('click', function() {
+            closeNotifications();
+            closeAlerts();
+            closeBottomSheet();
+        });
+
+        // Load Notifications (General notices: app upgrades, weather alerts, tips)
+        async function loadNotifications() {
+            try {
+                const res = await fetch('/api/farmer/notifications', {
+                    headers: { 'device-id': farmerId }
+                });
+                const data = await res.json();
+                
+                const container = document.getElementById('notification-list');
+                const badge = document.getElementById('notification-badge');
+                
+                if (data.notifications && data.notifications.length > 0) {
+                    // Update badge count
+                    const unreadCount = data.notifications.filter(n => !n.read).length;
+                    if (unreadCount > 0) {
+                        badge.innerText = unreadCount;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                    
+                    // Render notifications
+                    container.innerHTML = data.notifications.map(notif => `
+                        <div class="notification-item ${notif.read ? '' : 'unread'}" onclick="markNotificationRead('${notif.id}')">
+                            <div class="notification-header">
+                                <div class="notification-icon ${notif.type}">
+                                    <i class="bi ${getNotificationIcon(notif.type)}"></i>
+                                </div>
+                                <div class="notification-body">
+                                    <div class="notification-title">${notif.title}</div>
+                                    <div class="notification-text">${notif.message}</div>
+                                    <div class="notification-time">${formatTime(notif.timestamp)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    badge.style.display = 'none';
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="bi bi-bell-slash"></i>
+                            <p>No notifications yet</p>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                console.error('Failed to load notifications:', e);
+            }
+        }
+
+        // Load Alerts (from AEO dashboard - connected to AEO alert system)
+        async function loadAlerts() {
+            try {
+                const profile = getFarmerProfile();
+                if (!profile || !profile.phone) {
+                    document.getElementById('alert-list').innerHTML = `
+                        <div class="empty-state">
+                            <i class="bi bi-shield-check"></i>
+                            <p>Complete your profile to receive alerts</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const res = await fetch('/api/farmer/alerts', {
+                    headers: { 
+                        'device-id': farmerId,
+                        'phone': profile.phone
+                    }
+                });
+                const data = await res.json();
+                
+                const container = document.getElementById('alert-list');
+                const badge = document.getElementById('alert-badge');
+                
+                if (data.alerts && data.alerts.length > 0) {
+                    // Show badge if there are unread alerts
+                    const hasUnread = data.alerts.some(a => !a.read);
+                    badge.style.display = hasUnread ? 'block' : 'none';
+                    
+                    // Render alerts
+                    container.innerHTML = data.alerts.map(alert => `
+                        <div class="alert-item priority-${alert.priority || 'medium'}" onclick="markAlertRead('${alert.id}')">
+                            <div class="alert-header">
+                                <div class="alert-title">${alert.title}</div>
+                                <span class="alert-badge ${alert.priority === 'high' ? 'urgent' : alert.priority === 'medium' ? 'important' : 'info'}">
+                                    ${alert.priority === 'high' ? 'URGENT' : alert.priority === 'medium' ? 'IMPORTANT' : 'INFO'}
+                                </span>
+                            </div>
+                            <div class="alert-message">${alert.message}</div>
+                            <div class="alert-footer">
+                                <span class="alert-from">From: ${alert.from || 'Extension Officer'}</span>
+                                <span>${formatTime(alert.timestamp)}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    badge.style.display = 'none';
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="bi bi-shield-check"></i>
+                            <p>No alerts from extension officers</p>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                console.error('Failed to load alerts:', e);
+            }
+        }
+
+        // Helper function to get notification icon
+        function getNotificationIcon(type) {
+            const icons = {
+                'info': 'bi-info-circle-fill',
+                'warning': 'bi-exclamation-triangle-fill',
+                'success': 'bi-check-circle-fill',
+                'alert': 'bi-bell-fill'
+            };
+            return icons[type] || 'bi-info-circle-fill';
+        }
+
+        // Format timestamp
+        function formatTime(timestamp) {
+            if (!timestamp) return 'Just now';
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes} min ago`;
+            if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
+            return date.toLocaleDateString();
+        }
+
+        // Mark notification as read
+        async function markNotificationRead(id) {
+            try {
+                await fetch(`/api/farmer/notifications/${id}/read`, {
+                    method: 'POST',
+                    headers: { 'device-id': farmerId }
+                });
+                loadNotifications(); // Refresh
+            } catch (e) {
+                console.error('Failed to mark notification as read:', e);
+            }
+        }
+
+        // Mark alert as read
+        async function markAlertRead(id) {
+            try {
+                await fetch(`/api/farmer/alerts/${id}/read`, {
+                    method: 'POST',
+                    headers: { 'device-id': farmerId }
+                });
+                loadAlerts(); // Refresh
+            } catch (e) {
+                console.error('Failed to mark alert as read:', e);
+            }
         }
 
     </script>

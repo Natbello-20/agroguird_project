@@ -315,7 +315,7 @@
                 </div>
                 <h1>Complete Profile</h1>
                 <p class="profile-subtitle">
-                    Help us personalize your experience and<br>secure your account with biometric access
+                    Please complete your profile information<br>to continue to the dashboard
                 </p>
             </div>
 
@@ -324,12 +324,29 @@
                 <!-- Progress Steps -->
                 <div class="progress-steps">
                     <div class="progress-step active" id="step1"></div>
-                    <div class="progress-step" id="step2"></div>
                 </div>
 
-                <!-- Step 1: Profile Information -->
+                <!-- Profile Information -->
                 <div id="profileStep" style="display: block;">
                     <form id="profileForm">
+                        <!-- Profile Picture Upload -->
+                        <div class="form-group">
+                            <label class="form-label" style="text-align: center; display: block;">
+                                <i class="bi bi-camera"></i>
+                                Profile Picture <small class="text-muted">(Optional)</small>
+                            </label>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                                <div id="profile-picture-preview" style="width: 120px; height: 120px; border-radius: 50%; border: 3px dashed #e0e0e0; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #f8f9fa; cursor: pointer;" onclick="document.getElementById('profilePictureInput').click()">
+                                    <i class="bi bi-person-circle" style="font-size: 4rem; color: #ccc;"></i>
+                                </div>
+                                <input type="file" id="profilePictureInput" accept="image/*" style="display: none;" onchange="previewProfilePicture(event)">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('profilePictureInput').click()" style="border-radius: 20px; padding: 0.5rem 1.5rem; font-size: 0.85rem;">
+                                    <i class="bi bi-upload"></i> Choose Photo
+                                </button>
+                                <small class="text-muted">Max 5MB, JPG/PNG</small>
+                            </div>
+                        </div>
+
                         <!-- Full Name -->
                         <div class="form-group">
                             <label class="form-label">
@@ -388,41 +405,73 @@
 
                         <button type="button" class="btn btn-save" onclick="saveProfile()">
                             <i class="bi bi-check-circle"></i>
-                            <span id="saveBtnText">Save Profile</span>
+                            <span id="saveBtnText">Complete Profile & Continue</span>
                         </button>
                     </form>
-                </div>
-
-                <!-- Step 2: Biometric Setup -->
-                <div id="biometricStep" style="display: none;">
-                    <div id="successMessage" class="success-message" style="display: none;">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span>Profile saved successfully!</span>
-                    </div>
-
-                    <div class="biometric-card">
-                        <h3>
-                            <i class="bi bi-fingerprint"></i>
-                            Set Up Biometric Login
-                        </h3>
-                        <p>
-                            Secure your account with fingerprint authentication.<br>
-                            You can use your fingerprint to log in next time.
-                        </p>
-                        <button type="button" class="btn btn-biometric" onclick="setupBiometric()">
-                            <i class="bi bi-fingerprint"></i>
-                            <span id="biometricBtnText">Enable Fingerprint</span>
-                        </button>
-                        <button type="button" class="btn btn-skip" onclick="skipBiometric()">
-                            Skip for now
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        let profilePictureFile = null;
+
+        // Preview profile picture
+        function previewProfilePicture(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file (JPG, PNG, etc.)');
+                    return;
+                }
+                
+                // Validate file size (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Image size must be less than 5MB');
+                    return;
+                }
+                
+                profilePictureFile = file;
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('profile-picture-preview');
+                    preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Upload profile picture
+        async function uploadProfilePicture() {
+            if (!profilePictureFile) {
+                return null; // No picture selected, skip upload
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', profilePictureFile);
+                
+                const response = await fetch('/api/aeo/upload-picture', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.detail || 'Failed to upload picture');
+                }
+                
+                return result.picture_url;
+            } catch (error) {
+                console.error('Picture upload error:', error);
+                throw error;
+            }
+        }
+
         // Save profile information
         async function saveProfile() {
             console.log('[saveProfile] Function called');
@@ -459,6 +508,19 @@
             btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
 
             try {
+                console.log('[saveProfile] Uploading profile picture if selected...');
+                
+                // Upload profile picture first if selected
+                if (profilePictureFile) {
+                    try {
+                        await uploadProfilePicture();
+                        console.log('[saveProfile] Profile picture uploaded successfully');
+                    } catch (error) {
+                        console.error('[saveProfile] Picture upload failed:', error);
+                        alert('Warning: Failed to upload profile picture, but we\'ll continue saving your profile.');
+                    }
+                }
+                
                 console.log('[saveProfile] Sending request to /api/aeo/complete-profile');
                 
                 // Send to backend
@@ -481,68 +543,18 @@
 
                 console.log('[saveProfile] Profile saved successfully!');
 
-                // Show success and move to biometric step
-                document.getElementById('step1').classList.remove('active');
-                document.getElementById('step2').classList.add('active');
-                document.getElementById('profileStep').style.display = 'none';
-                document.getElementById('biometricStep').style.display = 'block';
-                document.getElementById('successMessage').style.display = 'flex';
+                // Show success message and redirect to dashboard
+                alert('✅ Profile completed successfully!\n\nRedirecting to dashboard...');
+                
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1000);
 
             } catch (error) {
                 console.error('[saveProfile] Error:', error);
                 alert('Failed to save profile: ' + error.message + '\n\nPlease check the console for more details.');
                 btn.disabled = false;
-                btnText.innerHTML = 'Save Profile';
-            }
-        }
-
-        // Setup biometric authentication
-        async function setupBiometric() {
-            const btn = event.target.closest('.btn-biometric');
-            const btnText = document.getElementById('biometricBtnText');
-
-            // Check if WebAuthn is supported
-            if (!window.PublicKeyCredential) {
-                alert('Biometric authentication is not supported on this device.\n\nYou can continue to the dashboard and use password login.');
-                return;
-            }
-
-            btn.disabled = true;
-            btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Setting up...';
-
-            try {
-                // TODO: Implement WebAuthn registration
-                // This is a placeholder - actual implementation requires server-side challenge generation
-
-                // Simulate API call
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                // For now, just store a flag and redirect
-                localStorage.setItem('agroguard_biometric_enabled', 'true');
-
-                // Update icon
-                const icon = document.getElementById('profileIcon');
-                icon.classList.add('fingerprint-added');
-                icon.innerHTML = '<i class="bi bi-fingerprint"></i>';
-
-                // Show success
-                alert('Biometric authentication enabled successfully!\n\nYou can now use your fingerprint to log in.');
-
-                // Redirect to dashboard
-                window.location.href = '/dashboard';
-
-            } catch (error) {
-                console.error('Biometric setup error:', error);
-                alert('Failed to set up biometric authentication. You can try again later from settings.');
-                btn.disabled = false;
-                btnText.innerHTML = 'Enable Fingerprint';
-            }
-        }
-
-        // Skip biometric setup
-        function skipBiometric() {
-            if (confirm('Are you sure you want to skip biometric setup?\n\nYou can enable it later from your profile settings.')) {
-                window.location.href = '/dashboard';
+                btnText.innerHTML = 'Complete Profile & Continue';
             }
         }
 

@@ -863,10 +863,16 @@
 
         <!-- User Profile Section -->
         <div class="user-profile-section">
+            {% if profile_picture %}
+            <div class="user-avatar" id="userAvatar" style="background-image: url('{{ profile_picture }}'); background-size: cover; background-position: center; font-size: 0;">
+                {{ user[0] if user else 'A' }}
+            </div>
+            {% else %}
             <div class="user-avatar" id="userAvatar">{{ user[0] if user else 'A' }}</div>
+            {% endif %}
             <div class="user-info">
                 <h6 id="userName">{{ user }}</h6>
-                <small id="userDistrict">Kumasi Metropolitan</small>
+                <small id="userDistrict">{{ district }}</small>
                 <div class="status-badge">
                     <span class="status-dot"></span>
                     Online
@@ -1336,40 +1342,119 @@
                 <div id="sendAlertAlert"></div>
                 <form id="sendAlertForm">
                     <div class="form-group-modal">
-                        <label><i class="bi bi-tag"></i>Alert Type *</label>
+                        <label><i class="bi bi-tag"></i> Alert Type *</label>
                         <select name="alert_type" required>
                             <option value="">Select Type</option>
-                            <option value="critical">🚨 Critical Alert (Disease Outbreak)</option>
-                            <option value="weather">🌦️ Weather Warning</option>
-                            <option value="market">💰 Market Information</option>
-                            <option value="training">📚 Training/Event</option>
-                            <option value="info">ℹ️ General Information</option>
+                            <option value="critical">🚨 Critical - Disease Outbreak</option>
+                            <option value="urgent">⚠️ Urgent - Weather Warning</option>
+                            <option value="important">💰 Important - Market Information</option>
+                            <option value="info">ℹ️ Info - Training/General</option>
                         </select>
                     </div>
+                    
                     <div class="form-group-modal">
-                        <label><i class="bi bi-people"></i>Target Audience *</label>
-                        <select name="target" required>
+                        <label><i class="bi bi-people"></i> Target Audience *</label>
+                        <select name="target_type" required id="targetTypeSelect" onchange="handleTargetChange()">
                             <option value="">Select Audience</option>
-                            <option value="all">All Farmers (Broadcast)</option>
-                            <option value="district">Specific District</option>
-                            <option value="crop">Specific Crop Type</option>
+                            <option value="all">📢 All Farmers (Broadcast)</option>
+                            <option value="region">🗺️ Specific Region</option>
+                            <option value="district">📍 Specific District</option>
+                            <option value="crop">🌾 Farmers Growing Specific Crop</option>
+                            <option value="phone">📱 Specific Phone Number(s)</option>
                         </select>
                     </div>
+                    
+                    <!-- Region Selection -->
+                    <div class="form-group-modal" id="regionSelect" style="display:none;">
+                        <label><i class="bi bi-globe"></i> Select Region</label>
+                        <select name="region" id="regionInput" onchange="loadDistrictsByRegion()">
+                            <option value="">Select Region</option>
+                            <option value="Ashanti">Ashanti Region</option>
+                            <option value="Greater Accra">Greater Accra Region</option>
+                            <option value="Central">Central Region</option>
+                            <option value="Northern">Northern Region</option>
+                            <option value="Eastern">Eastern Region</option>
+                            <option value="Western">Western Region</option>
+                            <option value="Volta">Volta Region</option>
+                            <option value="Upper East">Upper East Region</option>
+                            <option value="Upper West">Upper West Region</option>
+                            <option value="Brong Ahafo">Brong Ahafo Region</option>
+                        </select>
+                    </div>
+                    
+                    <!-- District Selection -->
                     <div class="form-group-modal" id="districtSelect" style="display:none;">
-                        <label><i class="bi bi-geo"></i>Select District</label>
-                        <select name="district">
+                        <label><i class="bi bi-geo-alt"></i> Select District</label>
+                        <select name="district" id="districtInput">
                             <option value="">Select District</option>
                             <option value="Kumasi Metropolitan">Kumasi Metropolitan</option>
                             <option value="Asokore Mampong">Asokore Mampong</option>
                             <option value="Oforikrom">Oforikrom</option>
                             <option value="Old Tafo">Old Tafo</option>
                             <option value="Suame">Suame</option>
+                            <option value="Ejisu">Ejisu</option>
+                            <option value="Bosomtwe">Bosomtwe</option>
+                            <option value="Kwabre East">Kwabre East</option>
+                            <option value="Afigya Kwabre">Afigya Kwabre</option>
+                        </select>
+                        <small class="text-muted">Leave empty to send to all districts in region</small>
+                    </div>
+                    
+                    <!-- Crop Selection -->
+                    <div class="form-group-modal" id="cropSelect" style="display:none;">
+                        <label><i class="bi bi-basket"></i> Select Crop</label>
+                        <select name="crop" id="cropInput">
+                            <option value="">Select Crop Type</option>
+                            <option value="Maize">🌽 Maize</option>
+                            <option value="Rice">🍚 Rice</option>
+                            <option value="Cassava">🥔 Cassava</option>
+                            <option value="Yam">🍠 Yam</option>
+                            <option value="Cocoa">🍫 Cocoa</option>
+                            <option value="Tomato">🍅 Tomato</option>
+                            <option value="Pepper">🌶️ Pepper</option>
                         </select>
                     </div>
+                    
+                    <!-- Phone Number(s) Input -->
+                    <div class="form-group-modal" id="phoneSelect" style="display:none;">
+                        <label><i class="bi bi-telephone"></i> Phone Number(s)</label>
+                        <textarea name="phone_numbers" id="phoneInput" placeholder="Enter phone numbers separated by commas&#10;e.g., 0241234567, 0551234567, 0201234567" rows="3"></textarea>
+                        <small class="text-muted">Separate multiple numbers with commas</small>
+                    </div>
+                    
+                    <!-- Priority Level -->
                     <div class="form-group-modal">
-                        <label><i class="bi bi-chat-text"></i>Message *</label>
-                        <textarea name="message" required placeholder="Type your message here (SMS-friendly, max 160 characters)" maxlength="160"></textarea>
-                        <small class="text-muted"><span id="charCount">0</span>/160 characters</small>
+                        <label><i class="bi bi-flag"></i> Priority Level *</label>
+                        <select name="priority" required>
+                            <option value="">Select Priority</option>
+                            <option value="high">🔴 High - Immediate Action Required</option>
+                            <option value="medium">🟡 Medium - Important Information</option>
+                            <option value="low">🟢 Low - General Notice</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Alert Title -->
+                    <div class="form-group-modal">
+                        <label><i class="bi bi-card-heading"></i> Alert Title *</label>
+                        <input type="text" name="title" required placeholder="Brief title for the alert" maxlength="100">
+                        <small class="text-muted"><span id="titleCount">0</span>/100 characters</small>
+                    </div>
+                    
+                    <!-- Message -->
+                    <div class="form-group-modal">
+                        <label><i class="bi bi-chat-text"></i> Message *</label>
+                        <textarea name="message" required placeholder="Type your alert message here. Keep it clear and actionable." maxlength="500" rows="4" id="alertMessageInput"></textarea>
+                        <small class="text-muted"><span id="charCount">0</span>/500 characters</small>
+                    </div>
+                    
+                    <!-- Estimated Recipients -->
+                    <div class="form-group-modal">
+                        <div style="background: #f8f9fa; border-radius: 8px; padding: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="bi bi-info-circle text-primary"></i>
+                            <span style="font-size: 0.9rem;">
+                                Estimated recipients: <strong id="estimatedRecipients">-</strong>
+                            </span>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -1689,23 +1774,107 @@
 
         // Export Report Function
         function exportReport() {
-            const reportData = {
-                exported_at: new Date().toISOString(),
-                total_scans: document.getElementById('stats-scans').innerText,
-                critical_alerts: document.getElementById('stats-critical').innerText,
-                active_farmers: document.getElementById('stats-farmers').innerText,
-                districts: document.getElementById('stats-districts').innerText
+            // Show modal with export options
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;';
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 16px; padding: 2rem; max-width: 400px; width: 90%;">
+                    <h3 style="margin: 0 0 1rem; color: #1e3a5f; font-size: 1.25rem;">
+                        <i class="bi bi-download me-2"></i>Export Data
+                    </h3>
+                    <p style="color: #6c757d; margin-bottom: 1.5rem; font-size: 0.9rem;">
+                        Choose what data to export and in which format
+                    </p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Farmers Export -->
+                        <div style="border: 2px solid #e9ecef; border-radius: 12px; padding: 1rem;">
+                            <h4 style="margin: 0 0 0.75rem; font-size: 1rem; color: #1e3a5f;">
+                                <i class="bi bi-people-fill me-2"></i>Farmers Data
+                            </h4>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button onclick="exportData('farmers', 'csv')" style="flex: 1; background: #2ecc71; color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                    <i class="bi bi-file-earmark-text"></i> CSV
+                                </button>
+                                <button onclick="exportData('farmers', 'excel')" style="flex: 1; background: #27ae60; color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                    <i class="bi bi-file-earmark-spreadsheet"></i> Excel
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Scans Export -->
+                        <div style="border: 2px solid #e9ecef; border-radius: 12px; padding: 1rem;">
+                            <h4 style="margin: 0 0 0.75rem; font-size: 1rem; color: #1e3a5f;">
+                                <i class="bi bi-camera-fill me-2"></i>Disease Scans
+                            </h4>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button onclick="exportData('scans', 'csv')" style="flex: 1; background: #2ecc71; color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                    <i class="bi bi-file-earmark-text"></i> CSV
+                                </button>
+                                <button onclick="exportData('scans', 'excel')" style="flex: 1; background: #27ae60; color: white; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                    <i class="bi bi-file-earmark-spreadsheet"></i> Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="this.closest('div[style*=fixed]').remove()" style="width: 100%; background: transparent; border: 2px solid #e9ecef; color: #6c757d; padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 1rem;">
+                        Cancel
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
             };
-            
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `agroguard_report_${new Date().toISOString().split('T')[0]}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-            
-            alert('Report exported successfully!');
+        }
+
+        // Export data function
+        async function exportData(type, format) {
+            try {
+                // Close modal
+                document.querySelector('div[style*="position: fixed"]')?.remove();
+                
+                // Show loading
+                const toast = document.createElement('div');
+                toast.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #2ecc71; color: white; padding: 1rem 1.5rem; border-radius: 12px; z-index: 10000; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+                toast.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Exporting ${type}...`;
+                document.body.appendChild(toast);
+                
+                // Call export API
+                const response = await fetch(`/api/export/${type}?format=${format}`);
+                
+                if (!response.ok) {
+                    throw new Error('Export failed');
+                }
+                
+                // Get filename from headers
+                const disposition = response.headers.get('Content-Disposition');
+                const filename = disposition ? disposition.split('filename=')[1] : `${type}_export.${format === 'excel' ? 'xlsx' : 'csv'}`;
+                
+                // Download file
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                
+                // Show success
+                toast.style.background = '#27ae60';
+                toast.innerHTML = `<i class="bi bi-check-circle-fill"></i> Export completed!`;
+                setTimeout(() => toast.remove(), 3000);
+                
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('Failed to export data. Please try again.');
+                document.querySelector('div[style*="Exporting"]')?.remove();
+            }
         }
 
         // Show trend indicators after data loads
@@ -1928,6 +2097,89 @@
             }
         }
 
+        // ========== ALERT TARGET HANDLING ==========
+        function handleTargetChange() {
+            const targetType = document.getElementById('targetTypeSelect').value;
+            
+            // Hide all conditional fields
+            document.getElementById('regionSelect').style.display = 'none';
+            document.getElementById('districtSelect').style.display = 'none';
+            document.getElementById('cropSelect').style.display = 'none';
+            document.getElementById('phoneSelect').style.display = 'none';
+            
+            // Show relevant field based on selection
+            if (targetType === 'region') {
+                document.getElementById('regionSelect').style.display = 'block';
+                document.getElementById('districtSelect').style.display = 'block'; // Optional district within region
+            } else if (targetType === 'district') {
+                document.getElementById('districtSelect').style.display = 'block';
+            } else if (targetType === 'crop') {
+                document.getElementById('cropSelect').style.display = 'block';
+            } else if (targetType === 'phone') {
+                document.getElementById('phoneSelect').style.display = 'block';
+            }
+            
+            // Update estimated recipients
+            updateEstimatedRecipients();
+        }
+        
+        function loadDistrictsByRegion() {
+            // In a real implementation, this would load districts based on selected region
+            // For now, we show the existing district dropdown
+            updateEstimatedRecipients();
+        }
+        
+        async function updateEstimatedRecipients() {
+            const targetType = document.getElementById('targetTypeSelect').value;
+            const recipientsSpan = document.getElementById('estimatedRecipients');
+            
+            if (!targetType) {
+                recipientsSpan.textContent = '-';
+                return;
+            }
+            
+            try {
+                // Get estimated count from backend
+                const params = new URLSearchParams({
+                    target_type: targetType,
+                    region: document.getElementById('regionInput')?.value || '',
+                    district: document.getElementById('districtInput')?.value || '',
+                    crop: document.getElementById('cropInput')?.value || ''
+                });
+                
+                const response = await fetch(`/api/alert/estimate-recipients?${params}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    recipientsSpan.textContent = data.count + ' farmer' + (data.count !== 1 ? 's' : '');
+                } else {
+                    recipientsSpan.textContent = 'Unknown';
+                }
+            } catch (error) {
+                console.error('Failed to estimate recipients:', error);
+                recipientsSpan.textContent = 'Unknown';
+            }
+        }
+        
+        // Character counters
+        document.addEventListener('DOMContentLoaded', () => {
+            // Title counter
+            const titleInput = document.querySelector('input[name="title"]');
+            if (titleInput) {
+                titleInput.addEventListener('input', (e) => {
+                    document.getElementById('titleCount').textContent = e.target.value.length;
+                });
+            }
+            
+            // Message counter
+            const messageInput = document.getElementById('alertMessageInput');
+            if (messageInput) {
+                messageInput.addEventListener('input', (e) => {
+                    document.getElementById('charCount').textContent = e.target.value.length;
+                });
+            }
+        });
+
         // ========== SEND ALERT FUNCTION ==========
         async function submitSendAlert() {
             const form = document.getElementById('sendAlertForm');
@@ -1944,17 +2196,52 @@
             const formData = new FormData(form);
             const data = {
                 alert_type: formData.get('alert_type'),
-                target: formData.get('target'),
+                target_type: formData.get('target_type'),
+                region: formData.get('region') || null,
                 district: formData.get('district') || null,
+                crop: formData.get('crop') || null,
+                phone_numbers: formData.get('phone_numbers') || null,
+                priority: formData.get('priority'),
+                title: formData.get('title'),
                 message: formData.get('message')
             };
 
-            // Validate district for district-specific alerts
-            if (data.target === 'district' && !data.district) {
+            // Validate specific targets
+            if (data.target_type === 'region' && !data.region) {
                 alertDiv.innerHTML = `
                     <div class="alert-message alert-error">
                         <i class="bi bi-x-circle-fill"></i>
-                        <div>Please select a district for district-specific alerts.</div>
+                        <div>Please select a region</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (data.target_type === 'district' && !data.district) {
+                alertDiv.innerHTML = `
+                    <div class="alert-message alert-error">
+                        <i class="bi bi-x-circle-fill"></i>
+                        <div>Please select a district</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (data.target_type === 'crop' && !data.crop) {
+                alertDiv.innerHTML = `
+                    <div class="alert-message alert-error">
+                        <i class="bi bi-x-circle-fill"></i>
+                        <div>Please select a crop type</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (data.target_type === 'phone' && !data.phone_numbers) {
+                alertDiv.innerHTML = `
+                    <div class="alert-message alert-error">
+                        <i class="bi bi-x-circle-fill"></i>
+                        <div>Please enter at least one phone number</div>
                     </div>
                 `;
                 return;
@@ -1981,24 +2268,28 @@
                         <div class="alert-message alert-success">
                             <i class="bi bi-check-circle-fill"></i>
                             <div>
-                                <strong>Alert Sent!</strong> Your message has been sent to ${result.recipients || 'farmers'}.
+                                <strong>Alert Sent Successfully!</strong><br>
+                                Sent to ${result.recipient_count || 0} farmer(s)
                             </div>
                         </div>
                     `;
                     form.reset();
                     document.getElementById('charCount').textContent = '0';
-                    document.getElementById('districtSelect').style.display = 'none';
+                    document.getElementById('titleCount').textContent = '0';
+                    document.getElementById('estimatedRecipients').textContent = '-';
+                    handleTargetChange(); // Reset conditional fields
                     
                     setTimeout(() => {
                         closeModal('sendAlertModal');
-                    }, 2000);
+                        alertDiv.innerHTML = '';
+                    }, 3000);
                 } else {
                     // Error
                     alertDiv.innerHTML = `
                         <div class="alert-message alert-error">
                             <i class="bi bi-x-circle-fill"></i>
                             <div>
-                                <strong>Error:</strong> ${result.error || 'Failed to send alert'}
+                                <strong>Error:</strong> ${result.detail || result.error || 'Failed to send alert'}
                             </div>
                         </div>
                     `;

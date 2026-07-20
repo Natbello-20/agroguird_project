@@ -89,6 +89,19 @@ def init_db():
             c.execute(f"ALTER TABLE aeo ADD COLUMN {col} TEXT")
         except Exception:
             pass  # Column already exists
+    
+    # --- Safe migration: add biometric and profile tracking columns ---
+    for col, col_type in [
+        ("biometric_id", "TEXT"),
+        ("biometric_public_key", "TEXT"), 
+        ("profile_completed", "INTEGER DEFAULT 0"),
+        ("last_login", "TIMESTAMP"),
+        ("profile_picture", "TEXT")
+    ]:
+        try:
+            c.execute(f"ALTER TABLE aeo ADD COLUMN {col} {col_type}")
+        except Exception:
+            pass  # Column already exists
 
     # 5. Super Admin Table
     c.execute('''
@@ -132,15 +145,31 @@ def init_db():
         CREATE TABLE IF NOT EXISTS alerts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             alert_type TEXT NOT NULL,
-            target_audience TEXT NOT NULL,
-            district TEXT,
+            title TEXT,
             message TEXT NOT NULL,
+            priority TEXT,
+            target_type TEXT,
+            target_audience TEXT NOT NULL,
+            target_phone TEXT,
+            district TEXT,
             sent_by INTEGER NOT NULL,
             recipient_count INTEGER DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (sent_by) REFERENCES aeo(id)
         )
     ''')
+    
+    # --- Safe migration: add new columns to alerts table ---
+    for col, col_type in [
+        ("title", "TEXT"),
+        ("priority", "TEXT"),
+        ("target_type", "TEXT"),
+        ("target_phone", "TEXT")
+    ]:
+        try:
+            c.execute(f"ALTER TABLE alerts ADD COLUMN {col} {col_type}")
+        except Exception:
+            pass  # Column already exists
     
     # 8. Support Tickets Table
     c.execute('''
