@@ -91,6 +91,16 @@ async def farmer_app(request: Request):
     """Farmer mobile app"""
     return templates.TemplateResponse("index.html", {"request": request})
 
+@app.get("/about", response_class=HTMLResponse)
+async def about_page(request: Request):
+    """About AgroGuard page"""
+    return templates.TemplateResponse("about.html", {"request": request})
+
+@app.get("/privacy", response_class=HTMLResponse)
+async def privacy_page(request: Request):
+    """Privacy Policy page"""
+    return templates.TemplateResponse("privacy_policy.html", {"request": request})
+
 @app.post("/predict")
 async def predict_disease(
     file: UploadFile = File(...),

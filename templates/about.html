@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>About AgroGuard | AI-Powered Crop Protection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-green: #2ecc71;
+            --dark-green: #1a8f4a;
+            --dark-blue: #1e3a5f;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e3f2ed 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        
+        .about-container {
+            max-width: 720px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        .about-header {
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            padding: 2.5rem 2rem;
+            text-align: center;
+            color: white;
+        }
+        
+        .about-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .about-header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .about-content {
+            padding: 2rem;
+        }
+        
+        .about-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .about-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark-blue);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-title i {
+            color: var(--primary-green);
+            font-size: 1.5rem;
+        }
+        
+        .section-text {
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #495057;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+        
+        .feature-list li {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        
+        .feature-list i {
+            color: var(--primary-green);
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .feature-list strong {
+            color: var(--dark-blue);
+        }
+        
+        .user-role-card {
+            background: linear-gradient(135deg, #e8f8f0, #d4f1e3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .user-role-card h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark-green);
+            margin-bottom: 0.75rem;
+        }
+        
+        .user-role-card p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #495057;
+            margin: 0;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--primary-green);
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-top: 2rem;
+        }
+        
+        .back-button:hover {
+            background: var(--dark-green);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+            
+            .about-header {
+                padding: 2rem 1.5rem;
+            }
+            
+            .about-header h1 {
+                font-size: 1.75rem;
+            }
+            
+            .about-content {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="about-container">
+        <!-- Header -->
+        <div class="about-header">
+            <h1><i class="bi bi-shield-check"></i> About AgroGuard</h1>
+            <p>AI-Powered Crop Protection for Ghana</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="about-content">
+            <!-- What is AgroGuard -->
+            <div class="about-section">
+                <h3 class="section-title">
+                    <i class="bi bi-info-circle-fill"></i>
+                    What is AgroGuard?
+                </h3>
+                <p class="section-text">
+                    AgroGuard is Ghana's first AI-powered mobile application designed to help farmers identify, 
+                    prevent, and treat maize crop diseases quickly and accurately. Using advanced artificial intelligence 
+                    and computer vision technology, we provide instant disease detection, severity assessment, and 
+                    personalized treatment recommendations right from your smartphone.
+                </p>
+                <p class="section-text">
+                    Our mission is to empower Ghanaian farmers with modern technology to protect their crops, 
+                    increase yields, and improve their livelihoods through data-driven agricultural practices.
+                </p>
+            </div>
+            
+            <!-- Key Features -->
+            <div class="about-section">
+                <h3 class="section-title">
+                    <i class="bi bi-star-fill"></i>
+                    Key Features
+                </h3>
+                <ul class="feature-list">
+                    <li>
+                        <i class="bi bi-camera-fill"></i>
+                        <span><strong>Instant Disease Detection:</strong> Take a photo of your maize leaf and get results in seconds using AI technology</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-graph-up"></i>
+                        <span><strong>Severity Assessment:</strong> Know exactly how much of your crop is affected (low, moderate, or high severity)</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-prescription2"></i>
+                        <span><strong>Smart Recommendations:</strong> Get severity-specific treatment advice that saves you money and improves outcomes</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-cloud-sun"></i>
+                        <span><strong>Weather Updates:</strong> Real-time weather information and disease risk alerts based on humidity and conditions</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-bell-fill"></i>
+                        <span><strong>Extension Officer Alerts:</strong> Receive important notifications and agricultural advice from local AEOs</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-translate"></i>
+                        <span><strong>Local Language Support:</strong> Available in English, Twi, and other Ghanaian languages</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-wifi-off"></i>
+                        <span><strong>Offline Capable:</strong> Works even with limited internet connectivity through Progressive Web App technology</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Who Can Use -->
+            <div class="about-section">
+                <h3 class="section-title">
+                    <i class="bi bi-people-fill"></i>
+                    Who Can Use AgroGuard?
+                </h3>
+                
+                <div class="user-role-card">
+                    <h4><i class="bi bi-person-fill me-2"></i>Farmers</h4>
+                    <p>
+                        Scan your maize leaves for diseases, get instant diagnosis with confidence scores, 
+                        receive treatment recommendations based on disease severity, check weather forecasts, 
+                        view disease risk levels, and receive alerts from extension officers in your district.
+                    </p>
+                </div>
+                
+                <div class="user-role-card" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb);">
+                    <h4><i class="bi bi-shield-check me-2"></i>Agricultural Extension Officers (AEOs)</h4>
+                    <p>
+                        Monitor disease trends across your district, send targeted alerts to farmers (by region, district, 
+                        crop, or specific phone numbers), export farmer and scan data for reports, manage farmer profiles, 
+                        track scan history and patterns, and provide expert guidance when farmers need additional support.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- How It Works -->
+            <div class="about-section">
+                <h3 class="section-title">
+                    <i class="bi bi-gear-fill"></i>
+                    How It Works
+                </h3>
+                <ol class="feature-list" style="list-style: none; counter-reset: step-counter;">
+                    <li style="counter-increment: step-counter; position: relative; padding-left: 3rem;">
+                        <span style="position: absolute; left: 0.75rem; top: 0.75rem; width: 32px; height: 32px; background: var(--primary-green); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;">1</span>
+                        <span><strong>Take a Photo:</strong> Use your phone camera to capture a clear image of the affected maize leaf</span>
+                    </li>
+                    <li style="counter-increment: step-counter; position: relative; padding-left: 3rem;">
+                        <span style="position: absolute; left: 0.75rem; top: 0.75rem; width: 32px; height: 32px; background: var(--primary-green); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;">2</span>
+                        <span><strong>AI Analysis:</strong> Our AI model analyzes the image, detects the disease, and calculates severity</span>
+                    </li>
+                    <li style="counter-increment: step-counter; position: relative; padding-left: 3rem;">
+                        <span style="position: absolute; left: 0.75rem; top: 0.75rem; width: 32px; height: 32px; background: var(--primary-green); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;">3</span>
+                        <span><strong>Get Results:</strong> Receive disease name, confidence score, affected percentage, and severity level</span>
+                    </li>
+                    <li style="counter-increment: step-counter; position: relative; padding-left: 3rem;">
+                        <span style="position: absolute; left: 0.75rem; top: 0.75rem; width: 32px; height: 32px; background: var(--primary-green); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;">4</span>
+                        <span><strong>Follow Recommendations:</strong> Get severity-specific treatment advice (spray now, monitor, or prevent spread)</span>
+                    </li>
+                    <li style="counter-increment: step-counter; position: relative; padding-left: 3rem;">
+                        <span style="position: absolute; left: 0.75rem; top: 0.75rem; width: 32px; height: 32px; background: var(--primary-green); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;">5</span>
+                        <span><strong>Call AEO (if needed):</strong> For high severity or uncertain results, contact your local extension officer</span>
+                    </li>
+                </ol>
+            </div>
+            
+            <!-- Technology -->
+            <div class="about-section">
+                <h3 class="section-title">
+                    <i class="bi bi-cpu-fill"></i>
+                    Our Technology
+                </h3>
+                <p class="section-text">
+                    AgroGuard uses state-of-the-art TensorFlow Lite machine learning models trained specifically 
+                    on Ghanaian maize diseases including Northern Leaf Blight, Gray Leaf Spot, and Common Rust. 
+                    Our severity detection algorithm uses advanced computer vision to calculate the exact percentage 
+                    of leaf area affected, ensuring you get honest, cost-effective treatment recommendations.
+                </p>
+                <p class="section-text">
+                    The app is built as a Progressive Web App (PWA), allowing it to work offline and be installed 
+                    on your phone like a native app without needing to download from an app store.
+                </p>
+            </div>
+            
+            <!-- Contact & Support -->
+            <div class="about-section">
+                <h3 class="section-title">
+                    <i class="bi bi-envelope-fill"></i>
+                    Contact & Support
+                </h3>
+                <p class="section-text">
+                    <strong>Version:</strong> 1.0.0<br>
+                    <strong>Region:</strong> Ghana<br>
+                    <strong>Support:</strong> Contact your local Agricultural Extension Officer for technical assistance
+                </p>
+                <p class="section-text">
+                    <em>© 2026 AgroGuard Ghana. Empowering rural agriculture through AI.</em>
+                </p>
+            </div>
+            
+            <!-- Back Button -->
+            <div class="text-center">
+                <a href="/" class="back-button">
+                    <i class="bi bi-arrow-left"></i>
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
