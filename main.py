@@ -11,7 +11,7 @@ import uvicorn
 import httpx
 from pathlib import Path
 from typing import Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Load environment
 from dotenv import load_dotenv
@@ -1661,7 +1661,10 @@ async def get_farmer_notifications(request: Request):
     try:
         device_id = request.headers.get('device-id', '')
         
-        # For now, return mock notifications
+        # Generate timestamps dynamically based on current date
+        now = datetime.now()
+        
+        # For now, return mock notifications with current dates
         # In production, these would come from a notifications table
         notifications = [
             {
@@ -1669,7 +1672,7 @@ async def get_farmer_notifications(request: Request):
                 "type": "info",
                 "title": "Welcome to AgroGuard!",
                 "message": "Get instant maize disease detection and connect with agricultural extension officers for expert support.",
-                "timestamp": "2024-01-15T08:00:00",
+                "timestamp": (now - timedelta(days=2)).isoformat(),  # 2 days ago
                 "read": True
             },
             {
@@ -1677,7 +1680,7 @@ async def get_farmer_notifications(request: Request):
                 "type": "warning",
                 "title": "Weather Alert",
                 "message": "Heavy rains expected in your area over the next 3 days. High humidity may increase disease risk. Monitor your crops closely.",
-                "timestamp": "2024-01-16T06:30:00",
+                "timestamp": (now - timedelta(hours=6)).isoformat(),  # 6 hours ago
                 "read": False
             },
             {
@@ -1685,7 +1688,7 @@ async def get_farmer_notifications(request: Request):
                 "type": "success",
                 "title": "Farming Tip",
                 "message": "Did you know? Proper spacing between maize plants (75cm apart) improves air circulation and reduces disease spread.",
-                "timestamp": "2024-01-17T07:00:00",
+                "timestamp": (now - timedelta(minutes=30)).isoformat(),  # 30 minutes ago
                 "read": False
             }
         ]

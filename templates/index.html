@@ -2372,13 +2372,15 @@
                             return;
                         }
                         navigator.geolocation.getCurrentPosition(resolve, reject, {
-                            timeout: 5000,
-                            maximumAge: 300000  // Cache position for 5 minutes
+                            enableHighAccuracy: true,  // Request high accuracy GPS
+                            timeout: 15000,            // Increased timeout to 15 seconds for better accuracy
+                            maximumAge: 60000          // Reduced cache to 1 minute for fresher location
                         });
                     });
                     const lat = pos.coords.latitude.toFixed(4);
                     const lon = pos.coords.longitude.toFixed(4);
                     weatherUrl = `/weather?lat=${lat}&lon=${lon}`;
+                    console.log(`✓ Using GPS location: ${lat}, ${lon} (accuracy: ${pos.coords.accuracy}m)`);
                 } catch (geoErr) {
                     console.log('Geolocation unavailable, using default city:', geoErr.message);
                 }
@@ -2580,11 +2582,21 @@
                     'Weather-Smart Farming'
                 ];
                 
+                // Get current day name
+                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const dayAbbr = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const currentDayName = dayNames[today.getDay()];
+                const currentDayAbbr = dayAbbr[today.getDay()];
+                const currentDayNum = today.getDate();
+                
                 content.innerHTML = `
                     <div class="alert alert-success d-flex align-items-center gap-2 mb-3" style="border-radius: 12px;">
-                        <i class="bi bi-calendar-day-fill"></i>
+                        <div style="min-width: 48px; height: 48px; background: white; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="font-size: 0.7rem; font-weight: 600; color: #e74c3c; text-transform: uppercase; line-height: 1;">${currentDayAbbr}</div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: #2c3e50; line-height: 1; margin-top: 2px;">${currentDayNum}</div>
+                        </div>
                         <div>
-                            <strong>Today's Topic: ${categoryNames[categoryIndex]}</strong>
+                            <strong>${currentDayName}'s Topic: ${categoryNames[categoryIndex]}</strong>
                             <small class="d-block" style="opacity: 0.8;">Fresh tips every day to help your farm thrive</small>
                         </div>
                     </div>
@@ -2623,20 +2635,6 @@
                                 <option value="tw" ${currentLang === 'tw' ? 'selected' : ''}>🇬🇭 Twi</option>
                                 <option value="ff" ${currentLang === 'ff' ? 'selected' : ''}>🇬🇭 Fante</option>
                             </select>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center" style="cursor: pointer;" onclick="alert('Notifications settings coming soon!')">
-                            <div>
-                                <i class="bi bi-bell-fill text-primary me-2"></i>
-                                <span>Notifications</span>
-                            </div>
-                            <i class="bi bi-chevron-right text-muted"></i>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center" style="cursor: pointer;" onclick="alert('Privacy policy coming soon!')">
-                            <div>
-                                <i class="bi bi-shield-lock-fill text-primary me-2"></i>
-                                <span>Privacy Policy</span>
-                            </div>
-                            <i class="bi bi-chevron-right text-muted"></i>
                         </div>
                         <div class="list-group-item d-flex justify-content-between align-items-center" style="cursor: pointer;" onclick="alert('Help center coming soon!')">
                             <div>
@@ -2993,18 +2991,54 @@
         // Format timestamp
         function formatTime(timestamp) {
             if (!timestamp) return 'Just now';
+            
+            // Parse timestamp - handle both ISO string and timestamp number
             const date = new Date(timestamp);
+            
+            // Check if date is valid
+            if (isNaN(date.getTime())) {
+                console.warn('Invalid timestamp:', timestamp);
+                return 'Recently';
+            }
+            
             const now = new Date();
             const diff = now - date;
             const minutes = Math.floor(diff / 60000);
             const hours = Math.floor(diff / 3600000);
             const days = Math.floor(diff / 86400000);
             
+            // Handle future timestamps (clock sync issues)
+            if (diff < 0) {
+                console.warn('Future timestamp detected:', timestamp);
+                return 'Just now';
+            }
+            
             if (minutes < 1) return 'Just now';
             if (minutes < 60) return `${minutes} min ago`;
             if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-            if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
-            return date.toLocaleDateString();
+            if (days === 1) return 'Yesterday';
+            if (days < 7) return `${days} days ago`;
+            
+            // For older notifications, show date relative to current month/year
+            const currentYear = now.getFullYear();
+            const dateYear = date.getFullYear();
+            
+            // If same year, don't show year
+            if (currentYear === dateYear) {
+                const options = { 
+                    month: 'short', 
+                    day: 'numeric'
+                };
+                return date.toLocaleDateString('en-US', options);
+            } else {
+                // Different year, show year too
+                const options = { 
+                    year: 'numeric',
+                    month: 'short', 
+                    day: 'numeric'
+                };
+                return date.toLocaleDateString('en-US', options);
+            }
         }
 
         // Mark notification as read
