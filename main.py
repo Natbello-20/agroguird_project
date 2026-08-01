@@ -597,6 +597,10 @@ async def complete_profile_page(request: Request, current_user: dict = Depends(a
     aeo = cur.execute("SELECT * FROM aeo WHERE id = ?", (aeo_id,)).fetchone()
     conn.close()
     
+    # If profile is already complete, redirect to dashboard
+    if aeo and aeo['profile_completed'] == 1:
+        return RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    
     # Pass AEO data to template
     return templates.TemplateResponse("complete_profile.html", {
         "request": request,

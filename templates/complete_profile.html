@@ -390,16 +390,62 @@
                             </label>
                             <select name="district" class="form-control" required id="districtInput">
                                 <option value="">Select District</option>
-                                <option value="Kumasi Metropolitan" {% if aeo and aeo.district == 'Kumasi Metropolitan' %}selected{% endif %}>Kumasi Metropolitan</option>
-                                <option value="Asokore Mampong" {% if aeo and aeo.district == 'Asokore Mampong' %}selected{% endif %}>Asokore Mampong</option>
-                                <option value="Oforikrom" {% if aeo and aeo.district == 'Oforikrom' %}selected{% endif %}>Oforikrom</option>
-                                <option value="Old Tafo" {% if aeo and aeo.district == 'Old Tafo' %}selected{% endif %}>Old Tafo</option>
-                                <option value="Suame" {% if aeo and aeo.district == 'Suame' %}selected{% endif %}>Suame</option>
-                                <option value="Ejisu" {% if aeo and aeo.district == 'Ejisu' %}selected{% endif %}>Ejisu</option>
-                                <option value="Bosomtwe" {% if aeo and aeo.district == 'Bosomtwe' %}selected{% endif %}>Bosomtwe</option>
-                                <option value="Kwabre East" {% if aeo and aeo.district == 'Kwabre East' %}selected{% endif %}>Kwabre East</option>
-                                <option value="Afigya Kwabre" {% if aeo and aeo.district == 'Afigya Kwabre' %}selected{% endif %}>Afigya Kwabre</option>
-                                <option value="Other" {% if aeo and aeo.district == 'Other' %}selected{% endif %}>Other</option>
+                                <optgroup label="Ashanti Region">
+                                    <option value="Kumasi Metropolitan" {% if aeo and aeo.district == 'Kumasi Metropolitan' %}selected{% endif %}>Kumasi Metropolitan</option>
+                                    <option value="Asokore Mampong" {% if aeo and aeo.district == 'Asokore Mampong' %}selected{% endif %}>Asokore Mampong</option>
+                                    <option value="Oforikrom" {% if aeo and aeo.district == 'Oforikrom' %}selected{% endif %}>Oforikrom</option>
+                                    <option value="Old Tafo" {% if aeo and aeo.district == 'Old Tafo' %}selected{% endif %}>Old Tafo</option>
+                                    <option value="Suame" {% if aeo and aeo.district == 'Suame' %}selected{% endif %}>Suame</option>
+                                    <option value="Ejisu" {% if aeo and aeo.district == 'Ejisu' %}selected{% endif %}>Ejisu</option>
+                                    <option value="Bosomtwe" {% if aeo and aeo.district == 'Bosomtwe' %}selected{% endif %}>Bosomtwe</option>
+                                    <option value="Kwabre East" {% if aeo and aeo.district == 'Kwabre East' %}selected{% endif %}>Kwabre East</option>
+                                    <option value="Afigya Kwabre" {% if aeo and aeo.district == 'Afigya Kwabre' %}selected{% endif %}>Afigya Kwabre</option>
+                                    <option value="Atwima Nwabiagya" {% if aeo and aeo.district == 'Atwima Nwabiagya' %}selected{% endif %}>Atwima Nwabiagya</option>
+                                </optgroup>
+                                <optgroup label="Greater Accra Region">
+                                    <option value="Accra Metropolitan" {% if aeo and aeo.district == 'Accra Metropolitan' %}selected{% endif %}>Accra Metropolitan</option>
+                                    <option value="Tema Metropolitan" {% if aeo and aeo.district == 'Tema Metropolitan' %}selected{% endif %}>Tema Metropolitan</option>
+                                    <option value="Ga East" {% if aeo and aeo.district == 'Ga East' %}selected{% endif %}>Ga East</option>
+                                    <option value="Ga West" {% if aeo and aeo.district == 'Ga West' %}selected{% endif %}>Ga West</option>
+                                    <option value="La Nkwantanang-Madina" {% if aeo and aeo.district == 'La Nkwantanang-Madina' %}selected{% endif %}>La Nkwantanang-Madina</option>
+                                </optgroup>
+                                <optgroup label="Central Region">
+                                    <option value="Cape Coast Metropolitan" {% if aeo and aeo.district == 'Cape Coast Metropolitan' %}selected{% endif %}>Cape Coast Metropolitan</option>
+                                    <option value="Komenda Edina Eguafo Abirem" {% if aeo and aeo.district == 'Komenda Edina Eguafo Abirem' %}selected{% endif %}>Komenda Edina Eguafo Abirem</option>
+                                    <option value="Mfantseman" {% if aeo and aeo.district == 'Mfantseman' %}selected{% endif %}>Mfantseman</option>
+                                </optgroup>
+                                <optgroup label="Western Region">
+                                    <option value="Sekondi-Takoradi Metropolitan" {% if aeo and aeo.district == 'Sekondi-Takoradi Metropolitan' %}selected{% endif %}>Sekondi-Takoradi Metropolitan</option>
+                                    <option value="Shama" {% if aeo and aeo.district == 'Shama' %}selected{% endif %}>Shama</option>
+                                    <option value="Ahanta West" {% if aeo and aeo.district == 'Ahanta West' %}selected{% endif %}>Ahanta West</option>
+                                    <option value="Tarkwa-Nsuaem" {% if aeo and aeo.district == 'Tarkwa-Nsuaem' %}selected{% endif %}>Tarkwa-Nsuaem</option>
+                                </optgroup>
+                                <optgroup label="Northern Region">
+                                    <option value="Tamale Metropolitan" {% if aeo and aeo.district == 'Tamale Metropolitan' %}selected{% endif %}>Tamale Metropolitan</option>
+                                    <option value="Sagnarigu" {% if aeo and aeo.district == 'Sagnarigu' %}selected{% endif %}>Sagnarigu</option>
+                                    <option value="Tolon" {% if aeo and aeo.district == 'Tolon' %}selected{% endif %}>Tolon</option>
+                                    <option value="Savelugu" {% if aeo and aeo.district == 'Savelugu' %}selected{% endif %}>Savelugu</option>
+                                </optgroup>
+                                <optgroup label="Eastern Region">
+                                    <option value="New-Juaben South" {% if aeo and aeo.district == 'New-Juaben South' %}selected{% endif %}>New-Juaben South</option>
+                                    <option value="Nsawam Adoagyiri" {% if aeo and aeo.district == 'Nsawam Adoagyiri' %}selected{% endif %}>Nsawam Adoagyiri</option>
+                                    <option value="Suhum" {% if aeo and aeo.district == 'Suhum' %}selected{% endif %}>Suhum</option>
+                                </optgroup>
+                                <optgroup label="Volta Region">
+                                    <option value="Ho Municipal" {% if aeo and aeo.district == 'Ho Municipal' %}selected{% endif %}>Ho Municipal</option>
+                                    <option value="Hohoe Municipal" {% if aeo and aeo.district == 'Hohoe Municipal' %}selected{% endif %}>Hohoe Municipal</option>
+                                    <option value="Keta Municipal" {% if aeo and aeo.district == 'Keta Municipal' %}selected{% endif %}>Keta Municipal</option>
+                                </optgroup>
+                                <optgroup label="Upper East Region">
+                                    <option value="Bolgatanga Municipal" {% if aeo and aeo.district == 'Bolgatanga Municipal' %}selected{% endif %}>Bolgatanga Municipal</option>
+                                    <option value="Bawku Municipal" {% if aeo and aeo.district == 'Bawku Municipal' %}selected{% endif %}>Bawku Municipal</option>
+                                </optgroup>
+                                <optgroup label="Upper West Region">
+                                    <option value="Wa Municipal" {% if aeo and aeo.district == 'Wa Municipal' %}selected{% endif %}>Wa Municipal</option>
+                                </optgroup>
+                                <optgroup label="Other Regions">
+                                    <option value="Other" {% if aeo and aeo.district == 'Other' %}selected{% endif %}>Other District</option>
+                                </optgroup>
                             </select>
                         </div>
 

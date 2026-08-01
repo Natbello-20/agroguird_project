@@ -1379,6 +1379,13 @@
                             <option value="Upper East">Upper East Region</option>
                             <option value="Upper West">Upper West Region</option>
                             <option value="Brong Ahafo">Brong Ahafo Region</option>
+                            <option value="Western North">Western North Region</option>
+                            <option value="Savannah">Savannah Region</option>
+                            <option value="Bono East">Bono East Region</option>
+                            <option value="Ahafo">Ahafo Region</option>
+                            <option value="Bono">Bono Region</option>
+                            <option value="Oti">Oti Region</option>
+                            <option value="North East">North East Region</option>
                         </select>
                     </div>
                     
@@ -2123,9 +2130,107 @@
             updateEstimatedRecipients();
         }
         
+        // Ghana Regions and Districts mapping
+        const ghanaDistricts = {
+            "Ashanti": [
+                "Kumasi Metropolitan", "Asokore Mampong", "Oforikrom", "Old Tafo", "Suame",
+                "Ejisu", "Bosomtwe", "Kwabre East", "Afigya Kwabre", "Atwima Nwabiagya",
+                "Afigya Sekyere", "Asante Akim Central", "Asante Akim North", "Asante Akim South"
+            ],
+            "Greater Accra": [
+                "Accra Metropolitan", "Tema Metropolitan", "Ga East", "Ga West", "Ga South",
+                "Ga Central", "Ledzokuku", "Krowor", "Adentan", "Ashaiman", "La Nkwantanang-Madina",
+                "Weija-Gbawe", "Ablekuma North", "Ablekuma Central", "Ablekuma West", "Ayawaso East",
+                "Ayawaso North", "Ayawaso West", "Ayawaso Central", "Okaikwei North"
+            ],
+            "Central": [
+                "Cape Coast Metropolitan", "Komenda Edina Eguafo Abirem", "Abura Asebu Kwamankese",
+                "Mfantseman", "Ajumako Enyan Esiam", "Gomoa East", "Gomoa West", "Gomoa Central",
+                "Effutu", "Awutu Senya East", "Awutu Senya West", "Agona East", "Agona West",
+                "Asikuma Odoben Brakwa", "Assin North", "Assin South", "Twifo Atti Morkwa"
+            ],
+            "Northern": [
+                "Tamale Metropolitan", "Sagnarigu", "Kumbungu", "Tolon", "Savelugu", "Nanton",
+                "Karaga", "Gushegu", "Saboba", "Zabzugu", "Tatale-Sanguli", "Yendi", "Mion"
+            ],
+            "Eastern": [
+                "New-Juaben South", "New-Juaben North", "Nsawam Adoagyiri", "Suhum", "Akuapim South",
+                "Akuapim North", "Yilo Krobo", "Lower Manya Krobo", "Upper Manya Krobo",
+                "Asuogyaman", "West Akim", "East Akim", "Birim North", "Birim South", "Birim Central",
+                "Kwaebibirem", "Atiwa East", "Atiwa West", "Fanteakwa North", "Fanteakwa South"
+            ],
+            "Western": [
+                "Sekondi-Takoradi Metropolitan", "Shama", "Ahanta West", "Nzema East", "Ellembelle",
+                "Jomoro", "Tarkwa-Nsuaem", "Prestea Huni-Valley", "Wassa East", "Wassa Amenfi West",
+                "Wassa Amenfi Central", "Wassa Amenfi East", "Mpohor"
+            ],
+            "Volta": [
+                "Ho Municipal", "Hohoe Municipal", "Keta Municipal", "Kpando", "Adaklu", "Agotime Ziope",
+                "Central Tongu", "North Tongu", "South Tongu", "Afadjato South", "Ho West", "South Dayi",
+                "North Dayi", "Ketu North", "Ketu South", "Akatsi North", "Akatsi South"
+            ],
+            "Upper East": [
+                "Bolgatanga Municipal", "Bawku Municipal", "Bawku West", "Binduri", "Bongo", "Builsa North",
+                "Builsa South", "Garu", "Kassena Nankana Municipal", "Kassena Nankana West", "Nabdam",
+                "Pusiga", "Talensi", "Tempane"
+            ],
+            "Upper West": [
+                "Wa Municipal", "Wa East", "Wa West", "Sissala East", "Sissala West", "Jirapa",
+                "Lambussie Karni", "Lawra", "Nandom", "Daffiama Bussie Issa", "Nadowli-Kaleo"
+            ],
+            "Brong Ahafo": [
+                "Sunyani Municipal", "Berekum Municipal", "Dormaa Central", "Dormaa East", "Dormaa West",
+                "Tano North", "Tano South", "Asunafo North", "Asunafo South", "Asutifi North",
+                "Asutifi South", "Banda", "Jaman North", "Jaman South", "Wenchi", "Techiman Municipal",
+                "Techiman North", "Nkoranza North", "Nkoranza South", "Kintampo North", "Kintampo South"
+            ],
+            "Western North": [
+                "Sefwi Wiawso", "Sefwi Akontombra", "Bodi", "Juaboso", "Bia East", "Bia West",
+                "Bibiani Anhwiaso Bekwai", "Suaman"
+            ],
+            "Savannah": [
+                "Bole", "Sawla-Tuna-Kalba", "Damongo", "Daboya-Mankarigu", "North Gonja", "Central Gonja",
+                "East Gonja", "West Gonja"
+            ],
+            "Bono East": [
+                "Techiman Municipal", "Techiman North", "Nkoranza North", "Nkoranza South", "Kintampo North",
+                "Kintampo South", "Atebubu Amantin", "Sene East", "Sene West", "Pru East", "Pru West"
+            ],
+            "Ahafo": [
+                "Goaso", "Asutifi North", "Asutifi South", "Asunafo North", "Asunafo South", "Tano North"
+            ],
+            "Bono": [
+                "Sunyani Municipal", "Sunyani West", "Berekum Municipal", "Berekum East", "Dormaa Central",
+                "Dormaa East", "Dormaa West", "Tain", "Wenchi", "Banda", "Jaman North", "Jaman South"
+            ],
+            "Oti": [
+                "Jasikan", "Kadjebi", "Krachi East", "Krachi West", "Krachi Nchumuru", "Nkwanta North",
+                "Nkwanta South", "Biakoye"
+            ],
+            "North East": [
+                "Nalerigu", "Bunkpurugu", "Yunyoo", "Mamprugu Moagduri", "East Mamprusi", "West Mamprusi"
+            ]
+        };
+        
         function loadDistrictsByRegion() {
-            // In a real implementation, this would load districts based on selected region
-            // For now, we show the existing district dropdown
+            const regionSelect = document.getElementById('regionInput');
+            const districtSelect = document.getElementById('districtInput');
+            const selectedRegion = regionSelect.value;
+            
+            // Clear existing districts
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+            
+            // If region is selected, load its districts
+            if (selectedRegion && ghanaDistricts[selectedRegion]) {
+                const districts = ghanaDistricts[selectedRegion];
+                districts.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district;
+                    option.textContent = district;
+                    districtSelect.appendChild(option);
+                });
+            }
+            
             updateEstimatedRecipients();
         }
         
