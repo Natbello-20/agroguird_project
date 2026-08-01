@@ -460,7 +460,7 @@
 
         <!-- Back to Home -->
         <div class="back-link">
-            <a href="/">
+            <a href="/" onclick="clearRoleChoice()">
                 <i class="bi bi-arrow-left"></i>
                 Back to Home
             </a>
@@ -468,6 +468,12 @@
     </div>
 
     <script>
+        // Clear saved role choice when going back to role selection
+        function clearRoleChoice() {
+            localStorage.removeItem('agroguard_user_role');
+            console.log('Role choice cleared - returning to role selection');
+        }
+        
         // Toggle password visibility
         function togglePassword() {
             const input = document.getElementById('passwordInput');
