@@ -23,6 +23,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
 
 # Local imports
 import database
@@ -35,6 +36,16 @@ import schemas
 # ============================================================================
 
 app = FastAPI(title="AgroGuard", version="1.0.0")
+
+# Session Middleware (must be added before other middleware)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production-12345678"),
+    session_cookie="agroguard_session",
+    max_age=86400 * 7,  # 7 days
+    same_site="lax",
+    https_only=False  # Set to True in production with HTTPS
+)
 
 # CORS
 app.add_middleware(
@@ -577,6 +588,11 @@ async def login(
     conn.close()
     
     print(f"[LOGIN] AEO {aeo['staff_id']} - Profile complete: {profile_complete}")
+    
+    # Store AEO ID in session for profile updates
+    request.session["aeo_id"] = aeo['id']
+    request.session["aeo_name"] = aeo['name']
+    request.session["aeo_staff_id"] = aeo['staff_id']
     
     # Set cookie
     response = RedirectResponse(
@@ -1212,22 +1228,33 @@ async def dashboard(request: Request, current_user: dict = Depends(auth.get_curr
     conn = database.get_db_connection()
     cur = conn.cursor()
     aeo = cur.execute(
-        "SELECT name, district, profile_picture FROM aeo WHERE id = ?",
+        "SELECT name, district, profile_picture, phone, email, region FROM aeo WHERE id = ?",
         (current_user["user_id"],)
     ).fetchone()
     conn.close()
     
+    # Store in session for profile updates
+    request.session["aeo_id"] = current_user["user_id"]
+    if aeo:
+        request.session["aeo_name"] = aeo['name']
+    
     aeo_info = {
         "name": aeo['name'] if aeo else current_user["user_id"],
         "district": aeo['district'] if aeo and aeo['district'] else "N/A",
-        "profile_picture": aeo['profile_picture'] if aeo and aeo['profile_picture'] else None
+        "profile_picture": aeo['profile_picture'] if aeo and aeo['profile_picture'] else None,
+        "phone": aeo['phone'] if aeo and aeo['phone'] else "",
+        "email": aeo['email'] if aeo and aeo['email'] else "",
+        "region": aeo['region'] if aeo and aeo['region'] else ""
     }
     
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "user": aeo_info["name"],
         "district": aeo_info["district"],
-        "profile_picture": aeo_info["profile_picture"]
+        "profile_picture": aeo_info["profile_picture"],
+        "phone": aeo_info["phone"],
+        "email": aeo_info["email"],
+        "region": aeo_info["region"]
     })
 
 
@@ -2055,6 +2082,350 @@ async def export_scans(format: str = "csv", current_user: dict = Depends(auth.ge
     except Exception as e:
         print(f"[export-scans] Error: {e}")
         raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+
+# ============================================================================
+# FARMER API ENDPOINTS - Call AEO & Support
+# ============================================================================
+
+@app.get("/api/farmer/get-all-aeos")
+async def get_all_available_aeos(request: Request):
+    """
+    Get all active AEOs in the system for farmer to contact.
+    Returns list of all available Extension Officers with their contact info.
+    """
+    try:
+        # Query all active AEOs
+        conn = database.get_db_connection()
+        c = conn.cursor()
+        
+        aeos = c.execute('''
+            SELECT id, name, phone, district, region, email, profile_picture
+            FROM aeo
+            WHERE is_active = 1
+            ORDER BY name ASC
+        ''').fetchall()
+        
+        conn.close()
+        
+        if aeos:
+            return {
+                "success": True,
+                "count": len(aeos),
+                "aeos": [
+                    {
+                        "id": aeo['id'],
+                        "name": aeo['name'],
+                        "phone": aeo['phone'],
+                        "district": aeo['district'] if aeo['district'] else "N/A",
+                        "region": aeo['region'] if aeo['region'] else "N/A",
+                        "email": aeo['email'] if aeo['email'] else None,
+                        "profile_picture": aeo['profile_picture'] if aeo['profile_picture'] else None
+                    }
+                    for aeo in aeos
+                ]
+            }
+        else:
+            return {
+                "success": True,
+                "count": 0,
+                "aeos": [],
+                "message": "No Extension Officers currently registered in the system"
+            }
+            
+    except Exception as e:
+        print(f"[API] Error fetching all AEOs: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch AEO list: {str(e)}")
+
+
+@app.get("/api/farmer/get-district-from-gps")
+async def get_district_from_gps(
+    lat: float = Query(..., description="Latitude"),
+    lon: float = Query(..., description="Longitude")
+):
+    """
+    Convert GPS coordinates to Ghana district using reverse geocoding.
+    Uses OpenWeatherMap's geocoding API or fallback to simple district mapping.
+    """
+    try:
+        # Simple Ghana district boundaries (approximate center points)
+        # In production, use a proper geocoding API or shapefile lookup
+        ghana_districts = {
+            "Greater Accra": {
+                "Accra Metro": (5.6037, -0.1870),
+                "Tema": (5.6698, -0.0166),
+                "Ga East": (5.7333, -0.2167),
+                "Ga West": (5.6500, -0.3500),
+            },
+            "Ashanti": {
+                "Kumasi": (6.6885, -1.6244),
+                "Obuasi": (6.2027, -1.6708),
+                "Ejisu": (6.6500, -1.4833),
+            },
+            "Western": {
+                "Sekondi-Takoradi": (4.9344, -1.7817),
+                "Tarkwa-Nsuaem": (5.2994, -1.9981),
+            },
+            "Eastern": {
+                "Koforidua": (6.0939, -0.2592),
+                "New Juaben": (6.0833, -0.2667),
+            },
+            "Central": {
+                "Cape Coast": (5.1053, -1.2466),
+                "Komenda-Edina-Eguafo-Abirem": (5.0833, -1.4167),
+            },
+            "Northern": {
+                "Tamale": (9.4034, -0.8424),
+                "Yendi": (9.4439, -0.0103),
+            },
+            "Upper East": {
+                "Bolgatanga": (10.7856, -0.8514),
+                "Bawku": (11.0619, -0.2419),
+            },
+            "Upper West": {
+                "Wa": (10.0608, -2.5097),
+            },
+        }
+        
+        # Find nearest district by calculating distance
+        min_distance = float('inf')
+        nearest_district = None
+        
+        for region, districts in ghana_districts.items():
+            for district, (d_lat, d_lon) in districts.items():
+                # Simple Euclidean distance (good enough for district-level matching)
+                distance = ((lat - d_lat) ** 2 + (lon - d_lon) ** 2) ** 0.5
+                if distance < min_distance:
+                    min_distance = distance
+                    nearest_district = district
+        
+        if nearest_district:
+            return {
+                "success": True,
+                "district": nearest_district,
+                "lat": lat,
+                "lon": lon,
+                "method": "proximity_matching"
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Could not determine district from coordinates")
+            
+    except Exception as e:
+        print(f"[API] Error determining district from GPS: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to determine district: {str(e)}")
+
+
+@app.get("/api/farmer/get-aeo")
+async def get_assigned_aeo(
+    request: Request,
+    district: str = Query(..., description="Farmer's district")
+):
+    """
+    Get AEO assigned to a farmer's district.
+    Returns AEO contact information if found.
+    """
+    try:
+        device_id = request.headers.get("device-id", "")
+        
+        if not district:
+            raise HTTPException(status_code=400, detail="District is required")
+        
+        # Query AEO table for active AEO in the district
+        conn = database.get_db_connection()
+        c = conn.cursor()
+        
+        aeo = c.execute('''
+            SELECT id, name, phone, district, region, email, profile_picture
+            FROM aeo
+            WHERE district = ? AND is_active = 1
+            LIMIT 1
+        ''', (district,)).fetchone()
+        
+        conn.close()
+        
+        if aeo:
+            return {
+                "found": True,
+                "id": aeo['id'],
+                "name": aeo['name'],
+                "phone": aeo['phone'],
+                "district": aeo['district'],
+                "region": aeo['region'] if aeo['region'] else "N/A",
+                "email": aeo['email'] if aeo['email'] else None,
+                "profile_picture": aeo['profile_picture'] if aeo['profile_picture'] else None
+            }
+        else:
+            return {
+                "found": False,
+                "message": "No Extension Officer assigned to this district yet"
+            }
+            
+    except Exception as e:
+        print(f"[API] Error fetching AEO: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch AEO information: {str(e)}")
+
+
+@app.post("/api/farmer/support-request")
+async def submit_support_request(
+    request: Request,
+    category: str = Form(...),
+    subject: str = Form(...),
+    message: str = Form(...),
+    name: str = Form(None),
+    phone: str = Form(None)
+):
+    """
+    Submit a support request from a farmer.
+    Saves to farmer_support_requests table for superadmin review.
+    """
+    try:
+        device_id = request.headers.get("device-id", "")
+        
+        if not device_id:
+            raise HTTPException(status_code=400, detail="Device ID is required")
+        
+        if not category or not subject or not message:
+            raise HTTPException(status_code=400, detail="Category, subject, and message are required")
+        
+        # Save to database
+        conn = database.get_db_connection()
+        c = conn.cursor()
+        
+        c.execute('''
+            INSERT INTO farmer_support_requests 
+            (farmer_id, category, subject, message, name, phone, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, 'pending', CURRENT_TIMESTAMP)
+        ''', (device_id, category, subject, message, name, phone))
+        
+        request_id = c.lastrowid
+        conn.commit()
+        conn.close()
+        
+        return {
+            "success": True,
+            "request_id": request_id,
+            "message": "Support request submitted successfully"
+        }
+        
+    except Exception as e:
+        print(f"[API] Error submitting support request: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to submit support request: {str(e)}")
+
+
+@app.get("/api/superadmin/support-requests")
+async def get_support_requests(
+    request: Request,
+    status_filter: str = Query(None, description="Filter by status: pending, resolved, all")
+):
+    """
+    Get all farmer support requests for superadmin dashboard.
+    """
+    try:
+        # TODO: Add authentication check for superadmin
+        
+        conn = database.get_db_connection()
+        c = conn.cursor()
+        
+        if status_filter and status_filter != "all":
+            requests = c.execute('''
+                SELECT fsr.*, f.name as farmer_name, f.phone as farmer_phone
+                FROM farmer_support_requests fsr
+                LEFT JOIN farmers f ON fsr.farmer_id = f.device_id
+                WHERE fsr.status = ?
+                ORDER BY fsr.created_at DESC
+            ''', (status_filter,)).fetchall()
+        else:
+            requests = c.execute('''
+                SELECT fsr.*, f.name as farmer_name, f.phone as farmer_phone
+                FROM farmer_support_requests fsr
+                LEFT JOIN farmers f ON fsr.farmer_id = f.device_id
+                ORDER BY fsr.created_at DESC
+            ''').fetchall()
+        
+        conn.close()
+        
+        return {
+            "success": True,
+            "requests": [dict(row) for row in requests]
+        }
+        
+    except Exception as e:
+        print(f"[API] Error fetching support requests: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch support requests: {str(e)}")
+
+
+# ============================================================================
+# AEO API ENDPOINTS - Profile Management
+# ============================================================================
+
+@app.post("/api/aeo/update-profile")
+async def update_aeo_profile(
+    request: Request,
+    profile_picture: str = Form(None),
+    phone: str = Form(None),
+    district: str = Form(None),
+    region: str = Form(None),
+    email: str = Form(None)
+):
+    """
+    Update AEO profile information.
+    Requires AEO to be logged in (checks session).
+    """
+    try:
+        # Get AEO ID from session
+        aeo_id = request.session.get("aeo_id")
+        if not aeo_id:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        
+        # Validate at least one field is provided
+        if not any([profile_picture, phone, district, region, email]):
+            raise HTTPException(status_code=400, detail="At least one field must be provided")
+        
+        # Update database
+        conn = database.get_db_connection()
+        c = conn.cursor()
+        
+        update_fields = []
+        update_values = []
+        
+        if profile_picture:
+            update_fields.append("profile_picture = ?")
+            update_values.append(profile_picture)
+        
+        if phone:
+            update_fields.append("phone = ?")
+            update_values.append(phone)
+        
+        if district:
+            update_fields.append("district = ?")
+            update_values.append(district)
+        
+        if region:
+            update_fields.append("region = ?")
+            update_values.append(region)
+        
+        if email:
+            update_fields.append("email = ?")
+            update_values.append(email)
+        
+        update_values.append(aeo_id)
+        
+        query = f"UPDATE aeo SET {', '.join(update_fields)} WHERE id = ?"
+        c.execute(query, tuple(update_values))
+        
+        conn.commit()
+        conn.close()
+        
+        return {
+            "success": True,
+            "message": "Profile updated successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[API] Error updating AEO profile: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update profile: {str(e)}")
 
 
 if __name__ == "__main__":

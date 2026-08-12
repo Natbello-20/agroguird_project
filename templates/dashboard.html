@@ -378,7 +378,8 @@
             padding: 1rem;
         }
 
-        .modal-overlay.show {
+        .modal-overlay.show,
+        .modal-overlay.active {
             display: flex;
             animation: fadeIn 0.3s ease-out;
         }
@@ -857,18 +858,18 @@
     <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <i class="bi bi-flower1"></i> AgroGuard
+            <img src="/static/images/agroguard_logo.png" alt="AgroGuard" style="height: 40px; width: auto; margin-right: 8px;"> AgroGuard
             <small class="d-block text-white-50 fs-6 fw-normal mt-1">Officer Portal</small>
         </div>
 
         <!-- User Profile Section -->
         <div class="user-profile-section">
             {% if profile_picture %}
-            <div class="user-avatar" id="userAvatar" style="background-image: url('{{ profile_picture }}'); background-size: cover; background-position: center; font-size: 0;">
+            <div class="user-avatar" id="userAvatar" style="background-image: url('{{ profile_picture }}'); background-size: cover; background-position: center; font-size: 0;" onclick="openEditProfileModal()">
                 {{ user[0] if user else 'A' }}
             </div>
             {% else %}
-            <div class="user-avatar" id="userAvatar">{{ user[0] if user else 'A' }}</div>
+            <div class="user-avatar" id="userAvatar" onclick="openEditProfileModal()">{{ user[0] if user else 'A' }}</div>
             {% endif %}
             <div class="user-info">
                 <h6 id="userName">{{ user }}</h6>
@@ -877,6 +878,9 @@
                     <span class="status-dot"></span>
                     Online
                 </div>
+                <button class="btn btn-sm btn-outline-light mt-2 w-100" onclick="openEditProfileModal()" style="font-size: 0.85rem;">
+                    <i class="bi bi-pencil-square"></i> Edit Profile
+                </button>
             </div>
         </div>
 
@@ -1529,6 +1533,91 @@
         </div>
     </div>
 
+    <!-- Edit Profile Modal -->
+    <div class="modal-overlay" id="editProfileModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h4><i class="bi bi-person-circle"></i> Edit Profile</h4>
+                <button class="close-btn" onclick="closeEditProfileModal()">&times;</button>
+            </div>
+            <form id="editProfileForm" onsubmit="submitProfileEdit(event)">
+                <div class="row g-3 p-4">
+                    <!-- Profile Picture -->
+                    <div class="col-12 text-center">
+                        <div class="user-avatar" id="profilePreview" style="width: 120px; height: 120px; margin: 0 auto 1rem; font-size: 3rem; cursor: pointer;" onclick="document.getElementById('profilePictureInput').click()">
+                            {{ user[0] if user else 'A' }}
+                        </div>
+                        <input type="file" id="profilePictureInput" accept="image/*" style="display: none;" onchange="previewProfilePicture(event)">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('profilePictureInput').click()">
+                            <i class="bi bi-camera-fill"></i> Change Photo
+                        </button>
+                        <input type="hidden" name="profile_picture" id="profilePictureData">
+                    </div>
+
+                    <!-- Name (Read-only) -->
+                    <div class="col-12">
+                        <label class="form-label"><i class="bi bi-person-fill"></i> Full Name</label>
+                        <input type="text" class="form-control" value="{{ user }}" readonly>
+                        <small class="text-muted">Name cannot be changed. Contact admin if needed.</small>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="bi bi-telephone-fill"></i> Phone Number *</label>
+                        <input type="tel" name="phone" class="form-control" value="{{ phone }}" required pattern="[0-9]{10,15}" placeholder="0241234567">
+                    </div>
+
+                    <!-- Email -->
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="bi bi-envelope-fill"></i> Email (Optional)</label>
+                        <input type="email" name="email" class="form-control" value="{{ email }}" placeholder="your.email@example.com">
+                    </div>
+
+                    <!-- Region -->
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="bi bi-geo-fill"></i> Region *</label>
+                        <select name="region" id="editRegionSelect" class="form-select" required onchange="loadEditDistricts()">
+                            <option value="">Select Region</option>
+                            <option value="Greater Accra" {% if region == "Greater Accra" %}selected{% endif %}>Greater Accra</option>
+                            <option value="Ashanti" {% if region == "Ashanti" %}selected{% endif %}>Ashanti</option>
+                            <option value="Western" {% if region == "Western" %}selected{% endif %}>Western</option>
+                            <option value="Eastern" {% if region == "Eastern" %}selected{% endif %}>Eastern</option>
+                            <option value="Central" {% if region == "Central" %}selected{% endif %}>Central</option>
+                            <option value="Volta" {% if region == "Volta" %}selected{% endif %}>Volta</option>
+                            <option value="Northern" {% if region == "Northern" %}selected{% endif %}>Northern</option>
+                            <option value="Upper East" {% if region == "Upper East" %}selected{% endif %}>Upper East</option>
+                            <option value="Upper West" {% if region == "Upper West" %}selected{% endif %}>Upper West</option>
+                            <option value="Bono" {% if region == "Bono" %}selected{% endif %}>Bono</option>
+                            <option value="Bono East" {% if region == "Bono East" %}selected{% endif %}>Bono East</option>
+                            <option value="Ahafo" {% if region == "Ahafo" %}selected{% endif %}>Ahafo</option>
+                            <option value="Savannah" {% if region == "Savannah" %}selected{% endif %}>Savannah</option>
+                            <option value="North East" {% if region == "North East" %}selected{% endif %}>North East</option>
+                            <option value="Oti" {% if region == "Oti" %}selected{% endif %}>Oti</option>
+                            <option value="Western North" {% if region == "Western North" %}selected{% endif %}>Western North</option>
+                        </select>
+                    </div>
+
+                    <!-- District -->
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="bi bi-pin-map-fill"></i> District *</label>
+                        <select name="district" id="editDistrictSelect" class="form-select" required>
+                            <option value="">Select District</option>
+                            <option value="{{ district }}" selected>{{ district }}</option>
+                        </select>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="col-12">
+                        <div id="editProfileAlert" class="alert" style="display: none;"></div>
+                        <button type="submit" class="btn btn-primary w-100" id="editProfileSubmitBtn">
+                            <i class="bi bi-check-circle-fill"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
         <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
@@ -1753,6 +1842,137 @@
                 html.setAttribute('data-theme', 'dark');
                 localStorage.setItem('theme', 'dark');
                 toggle.classList.add('dark');
+            }
+        }
+
+        // ========== EDIT PROFILE FUNCTIONS ==========
+        
+        function openEditProfileModal() {
+            document.getElementById('editProfileModal').classList.add('active');
+            // Load current profile picture if exists
+            const currentAvatar = document.getElementById('userAvatar');
+            const preview = document.getElementById('profilePreview');
+            if (currentAvatar.style.backgroundImage) {
+                preview.style.backgroundImage = currentAvatar.style.backgroundImage;
+                preview.style.backgroundSize = 'cover';
+                preview.style.backgroundPosition = 'center';
+                preview.style.fontSize = '0';
+            }
+        }
+
+        function closeEditProfileModal() {
+            document.getElementById('editProfileModal').classList.remove('active');
+        }
+
+        function previewProfilePicture(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('profilePreview');
+                    preview.style.backgroundImage = `url('${e.target.result}')`;
+                    preview.style.backgroundSize = 'cover';
+                    preview.style.backgroundPosition = 'center';
+                    preview.style.fontSize = '0';
+                    document.getElementById('profilePictureData').value = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function loadEditDistricts() {
+            const region = document.getElementById('editRegionSelect').value;
+            const districtSelect = document.getElementById('editDistrictSelect');
+            
+            // Ghana districts by region (simplified list)
+            const districts = {
+                "Greater Accra": ["Accra Metro", "Tema", "Ga East", "Ga West", "Ga South", "Ga Central", "Adentan", "Ashaiman", "Ledzokuku", "Krowor", "La Nkwantanang-Madina", "Ayawaso"],
+                "Ashanti": ["Kumasi", "Obuasi", "Ejisu", "Bosomtwe", "Atwima Nwabiagya", "Atwima Kwanwoma", "Afigya Kwabre", "Asokore Mampong", "Manhyia", "Suame"],
+                "Western": ["Sekondi-Takoradi", "Tarkwa-Nsuaem", "Prestea-Huni Valley", "Wassa East", "Wassa Amenfi", "Ahanta West", "Nzema East", "Aowin"],
+                "Eastern": ["Koforidua", "New Juaben", "Akuapem North", "Akuapem South", "Suhum", "Akyemansa", "Kwaebibirem", "Birim Central", "Birim North", "Birim South"],
+                "Central": ["Cape Coast", "Komenda-Edina-Eguafo-Abirem", "Abura-Asebu-Kwamankese", "Mfantseman", "Awutu Senya", "Agona East", "Agona West", "Gomoa East", "Gomoa West"],
+                "Volta": ["Ho", "Hohoe", "Keta", "Ketu North", "Ketu South", "Afadzato South", "Akatsi North", "Akatsi South", "North Tongu", "South Tongu"],
+                "Northern": ["Tamale", "Sagnarigu", "Tolon", "Kumbungu", "Nanton", "Savelugu", "Yendi", "Zabzugu", "Tatale-Sanguli", "Mion"],
+                "Upper East": ["Bolgatanga", "Bawku", "Kassena Nankana", "Builsa North", "Builsa South", "Bongo", "Talensi", "Nabdam", "Garu", "Tempane"],
+                "Upper West": ["Wa", "Lawra", "Nandom", "Jirapa", "Sissala East", "Sissala West", "Lambussie-Karni", "Daffiama-Bussie-Issa", "Nadowli-Kaleo"],
+                "Bono": ["Sunyani", "Berekum", "Dormaa", "Tain", "Wenchi", "Techiman North", "Banda"],
+                "Bono East": ["Techiman", "Atebubu-Amantin", "Kintampo North", "Kintampo South", "Nkoranza North", "Nkoranza South", "Sene East", "Sene West", "Pru East", "Pru West"],
+                "Ahafo": ["Goaso", "Bechem", "Kukuom", "Asunafo North", "Asunafo South", "Asutifi North", "Asutifi South"],
+                "Savannah": ["Damongo", "Bole", "Sawla-Tuna-Kalba", "North Gonja", "Central Gonja", "East Gonja", "West Gonja"],
+                "North East": ["Nalerigu", "Bunkpurugu", "Chereponi", "Mamprugu Moagduri", "Yunyoo-Nasuan"],
+                "Oti": ["Dambai", "Krachi East", "Krachi West", "Nkwanta North", "Nkwanta South", "Kadjebi", "Biakoye", "Jasikan"],
+                "Western North": ["Sefwi Wiawso", "Aowin", "Suaman", "Bodi", "Juaboso", "Bia East", "Bia West"]
+            };
+            
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+            if (region && districts[region]) {
+                districts[region].forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district;
+                    option.textContent = district;
+                    districtSelect.appendChild(option);
+                });
+            }
+        }
+
+        async function submitProfileEdit(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const submitBtn = document.getElementById('editProfileSubmitBtn');
+            const alertDiv = document.getElementById('editProfileAlert');
+            const originalBtnText = submitBtn.innerHTML;
+            
+            // Show loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+            alertDiv.style.display = 'none';
+            
+            try {
+                const formData = new FormData(form);
+                
+                const response = await fetch('/api/aeo/update-profile', {
+                    method: 'POST',
+                    body: formData  // Send FormData directly
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alertDiv.className = 'alert alert-success';
+                    alertDiv.textContent = '✅ Profile updated successfully!';
+                    alertDiv.style.display = 'block';
+                    
+                    // Update UI
+                    const district = formData.get('district');
+                    const profilePicture = formData.get('profile_picture');
+                    
+                    if (district) {
+                        document.getElementById('userDistrict').textContent = district;
+                    }
+                    if (profilePicture) {
+                        const avatar = document.getElementById('userAvatar');
+                        avatar.style.backgroundImage = `url('${profilePicture}')`;
+                        avatar.style.backgroundSize = 'cover';
+                        avatar.style.backgroundPosition = 'center';
+                        avatar.style.fontSize = '0';
+                    }
+                    
+                    // Close modal after short delay
+                    setTimeout(() => {
+                        closeEditProfileModal();
+                        location.reload(); // Reload to show updated profile
+                    }, 1500);
+                } else {
+                    throw new Error(result.detail || 'Failed to update profile');
+                }
+            } catch (error) {
+                console.error('Profile update error:', error);
+                alertDiv.className = 'alert alert-danger';
+                alertDiv.textContent = '❌ ' + error.message;
+                alertDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
             }
         }
 

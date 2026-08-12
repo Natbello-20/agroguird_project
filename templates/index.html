@@ -1594,6 +1594,460 @@
             80% { width: 85%; }
             100% { width: 100%; }
         }
+
+        /* ========== CALL AEO MODAL ========== */
+        .aeo-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .aeo-modal-card {
+            background: white;
+            border-radius: 20px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+        
+        .aeo-modal-header {
+            background: linear-gradient(135deg, #2ecc71, #1a8f4a);
+            padding: 1.5rem;
+            border-radius: 20px 20px 0 0;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .aeo-modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .aeo-modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .aeo-modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .aeo-modal-body {
+            padding: 2rem;
+        }
+        
+        .aeo-info-card {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .aeo-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .aeo-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .aeo-avatar i {
+            font-size: 2.5rem;
+            color: white;
+        }
+        
+        .aeo-details {
+            flex: 1;
+        }
+        
+        .aeo-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e3a5f;
+            margin-bottom: 0.5rem;
+        }
+        
+        .aeo-district {
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .aeo-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .aeo-action-btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        
+        .aeo-action-btn.call {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        
+        .aeo-action-btn.whatsapp {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+        }
+        
+        .aeo-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .aeo-modal-info {
+            background: #f0f7ff;
+            padding: 1rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .aeo-modal-info i {
+            color: #2ecc71;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
+        /* ========== HELP & SUPPORT MODAL ========== */
+        .support-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(30, 58, 95, 0.95) 0%, rgba(46, 204, 113, 0.85) 100%);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+            padding: 1.5rem;
+            animation: fadeIn 0.4s ease;
+            overflow-y: auto;
+        }
+        
+        .support-modal-card {
+            background: white;
+            border-radius: 20px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            animation: slideUpScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            margin: auto;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .support-modal-close-top {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            color: #1e3a5f;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .support-modal-close-top:hover {
+            background: white;
+            transform: rotate(90deg) scale(1.1);
+        }
+        
+        .support-modal-header {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            padding: 2rem 1.5rem 1.75rem;
+            text-align: center;
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .support-header-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .support-header-icon i {
+            font-size: 2rem;
+            color: white;
+        }
+        
+        .support-modal-header h3 {
+            margin: 0 0 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+        
+        .support-header-subtitle {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+        
+        .support-modal-body {
+            padding: 1.75rem 1.5rem;
+        }
+        
+        .support-step-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e3a5f;
+            margin-bottom: 1.25rem;
+        }
+        
+        .support-step-number {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+        
+        .support-category-grid {
+            margin-bottom: 2.5rem;
+        }
+        
+        .support-select-modern {
+            width: 100%;
+            padding: 1.25rem 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .support-select-modern:focus {
+            outline: none;
+            border-color: #2ecc71;
+            box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.15);
+        }
+        
+        .support-form-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .support-input-wrapper {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .support-input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #2ecc71;
+            font-size: 1rem;
+        }
+        
+        .support-input-modern {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        
+        .support-input-modern:focus {
+            outline: none;
+            border-color: #2ecc71;
+            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
+        }
+        
+        .support-textarea-modern {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 140px;
+            transition: all 0.3s;
+        }
+        
+        .support-textarea-modern:focus {
+            outline: none;
+            border-color: #2ecc71;
+            box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.15);
+        }
+        
+        .support-char-counter-modern {
+            text-align: right;
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin-top: 0.5rem;
+        }
+        
+        .support-contact-modern {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+        }
+        
+        .support-contact-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.9rem;
+            color: #4b5563;
+            margin: 0 0 1.5rem 0;
+        }
+        
+        .support-contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .support-submit-modern {
+            width: 100%;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+            margin-bottom: 1.25rem;
+        }
+        
+        .support-submit-modern:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.5);
+        }
+        
+        .support-footer-modern {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            font-size: 0.9rem;
+            color: #6b7280;
+            text-align: center;
+            margin: 0;
+        }
+        
+        .support-footer-modern i {
+            color: #2ecc71;
+            font-size: 1.1rem;
+        }
+        
+        @keyframes slideUpScale {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .support-contact-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .aeo-actions {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 
@@ -2142,8 +2596,15 @@
         function switchView(viewName) {
             // Hide all views
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            // Show target
-            document.getElementById(`view-${viewName}`).classList.add('active');
+            
+            // Show target (with null check)
+            const targetView = document.getElementById(`view-${viewName}`);
+            if (targetView) {
+                targetView.classList.add('active');
+            } else {
+                console.error(`View not found: view-${viewName}`);
+                return;
+            }
 
             // Update Nav Icons
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -2615,7 +3076,7 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted small">Build</span>
-                            <span class="fw-semibold">2026.01</span>
+                            <span class="fw-semibold">2026</span>
                         </div>
                     </div>
                     <div class="list-group list-group-flush">
@@ -2631,13 +3092,6 @@
                                 <option value="tw" ${currentLang === 'tw' ? 'selected' : ''}>🇬🇭 Twi</option>
                                 <option value="ff" ${currentLang === 'ff' ? 'selected' : ''}>🇬🇭 Fante</option>
                             </select>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center" style="cursor: pointer;" onclick="alert('Help center coming soon!')">
-                            <div>
-                                <i class="bi bi-question-circle-fill text-primary me-2"></i>
-                                <span>Help & Support</span>
-                            </div>
-                            <i class="bi bi-chevron-right text-muted"></i>
                         </div>
                     </div>
                 `;
@@ -2689,11 +3143,6 @@
                 // Redirect to home page (role selection)
                 window.location.href = '/';
             }
-        }
-
-        // Show Call AEO dialog
-        function showCallAEO() {
-            alert('📞 Contact Extension Officer\n\nCall your local Agricultural Extension Officer for expert guidance.\n\nThis feature will connect you directly to AEOs in your area.');
         }
 
         // Show Treatment Products
@@ -2820,6 +3269,443 @@
 
             // --- Personalize greeting ---
             updateGreeting(name);
+        }
+
+        // ============================================================
+        // CALL AEO & HELP SUPPORT SYSTEM
+        // ============================================================
+
+        // Show Call AEO dialog with list of all available AEOs
+        async function showCallAEO() {
+            try {
+                // Show loading message
+                const loadingMsg = document.createElement('div');
+                loadingMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:2rem;border-radius:1rem;box-shadow:0 4px 20px rgba(0,0,0,0.2);z-index:9999;text-align:center;';
+                loadingMsg.innerHTML = '<div style="font-size:1.2rem;color:#2ecc71;margin-bottom:0.5rem;">📞 Loading Extension Officers...</div><div style="font-size:0.9rem;color:#666;">Please wait</div>';
+                document.body.appendChild(loadingMsg);
+                
+                // Fetch all available AEOs from backend
+                const response = await fetch('/api/farmer/get-all-aeos', {
+                    headers: { 'device-id': farmerId }
+                });
+                const data = await response.json();
+                
+                // Remove loading message
+                document.body.removeChild(loadingMsg);
+                
+                if (data.success && data.aeos && data.aeos.length > 0) {
+                    // Show AEO list modal
+                    showAEOListModal(data.aeos);
+                } else {
+                    // No AEOs found
+                    alert('📞 No Extension Officers Available\n\nNo Agricultural Extension Officers are currently registered in the system.\n\nPlease use the Help & Support option in your Profile section to contact us.');
+                }
+            } catch (error) {
+                // Remove loading message if it exists
+                const loadingMsg = document.querySelector('div[style*="Loading Extension Officers"]');
+                if (loadingMsg && loadingMsg.parentElement) {
+                    loadingMsg.parentElement.removeChild(loadingMsg);
+                }
+                
+                console.error('Failed to get AEO list:', error);
+                alert('❌ Unable to load Extension Officers\n\nPlease check your internet connection and try again.\n\nAlternatively, use Help & Support in your Profile section.');
+            }
+        }
+        
+        // Show AEO list modal with all available AEOs
+        function showAEOListModal(aeos) {
+            let aeoListHTML = '';
+            
+            aeos.forEach((aeo, index) => {
+                const region = aeo.region || 'N/A';
+                const district = aeo.district || 'N/A';
+                const location = district !== 'N/A' ? `${district}, ${region}` : region;
+                
+                aeoListHTML += `
+                    <div class="aeo-list-item" style="
+                        background: #f8f9fa;
+                        border-radius: 12px;
+                        padding: 1rem;
+                        margin-bottom: 0.75rem;
+                        border: 2px solid transparent;
+                        transition: all 0.2s;
+                    ">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div class="aeo-avatar" style="
+                                width: 50px;
+                                height: 50px;
+                                border-radius: 50%;
+                                background: linear-gradient(135deg, #2ecc71, #27ae60);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                font-weight: bold;
+                                font-size: 1.2rem;
+                                flex-shrink: 0;
+                            ">
+                                ${aeo.profile_picture 
+                                    ? `<img src="${aeo.profile_picture}" alt="${aeo.name}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` 
+                                    : aeo.name.charAt(0).toUpperCase()
+                                }
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 700; font-size: 1rem; color: #2c3e50; margin-bottom: 0.25rem;">
+                                    ${aeo.name}
+                                </div>
+                                <div style="font-size: 0.85rem; color: #7f8c8d; display: flex; align-items: center; gap: 0.3rem;">
+                                    <i class="bi bi-geo-alt-fill"></i> ${location}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <a href="tel:${aeo.phone}" class="aeo-action-btn-small" style="
+                                    background: #2ecc71;
+                                    color: white;
+                                    padding: 0.5rem 0.75rem;
+                                    border-radius: 8px;
+                                    text-decoration: none;
+                                    font-size: 0.85rem;
+                                    font-weight: 600;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 0.3rem;
+                                    transition: all 0.2s;
+                                    white-space: nowrap;
+                                " onmouseover="this.style.background='#27ae60'" onmouseout="this.style.background='#2ecc71'">
+                                    <i class="bi bi-telephone-fill"></i> Call
+                                </a>
+                                <a href="https://wa.me/${aeo.phone.replace(/[^0-9]/g, '')}" target="_blank" class="aeo-action-btn-small" style="
+                                    background: #25D366;
+                                    color: white;
+                                    padding: 0.5rem 0.75rem;
+                                    border-radius: 8px;
+                                    text-decoration: none;
+                                    font-size: 0.85rem;
+                                    font-weight: 600;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 0.3rem;
+                                    transition: all 0.2s;
+                                    white-space: nowrap;
+                                " onmouseover="this.style.background='#1DA851'" onmouseout="this.style.background='#25D366'">
+                                    <i class="bi bi-whatsapp"></i> WhatsApp
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            const modalHTML = `
+                <div class="aeo-modal-overlay" id="aeoListModalOverlay" onclick="closeAEOListModal()">
+                    <div class="aeo-modal-card" onclick="event.stopPropagation()" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+                        <div class="aeo-modal-header" style="background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; padding: 1.5rem; border-radius: 1rem 1rem 0 0; position: sticky; top: 0; z-index: 10;">
+                            <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="bi bi-people-fill"></i> Available Extension Officers
+                            </h3>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; opacity: 0.95;">
+                                ${aeos.length} officer${aeos.length !== 1 ? 's' : ''} available to assist you
+                            </p>
+                            <button class="aeo-modal-close" onclick="closeAEOListModal()" style="
+                                position: absolute;
+                                top: 1.5rem;
+                                right: 1.5rem;
+                                background: rgba(255,255,255,0.2);
+                                border: none;
+                                color: white;
+                                font-size: 1.5rem;
+                                width: 40px;
+                                height: 40px;
+                                border-radius: 50%;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                transition: all 0.2s;
+                            " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="aeo-modal-body" style="padding: 1.5rem;">
+                            ${aeoListHTML}
+                            
+                            <div class="aeo-modal-info" style="
+                                background: #e8f5e9;
+                                border-left: 4px solid #2ecc71;
+                                padding: 1rem;
+                                border-radius: 8px;
+                                margin-top: 1rem;
+                                display: flex;
+                                gap: 0.75rem;
+                                align-items: start;
+                            ">
+                                <i class="bi bi-info-circle" style="color: #2ecc71; font-size: 1.2rem; flex-shrink: 0;"></i>
+                                <span style="font-size: 0.9rem; color: #2c3e50; line-height: 1.5;">
+                                    These Extension Officers are available to provide expert guidance on crop management, disease control, and farming best practices.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Append modal to body
+            const modalDiv = document.createElement('div');
+            modalDiv.innerHTML = modalHTML;
+            document.body.appendChild(modalDiv.firstElementChild);
+        }
+        
+        // Close AEO List Modal
+        function closeAEOListModal() {
+            const modal = document.getElementById('aeoListModalOverlay');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Show AEO contact modal with call/WhatsApp options
+        function showAEOContactModal(aeoData) {
+            const modalHTML = `
+                <div class="aeo-modal-overlay" id="aeoModalOverlay" onclick="closeAEOModal()">
+                    <div class="aeo-modal-card" onclick="event.stopPropagation()">
+                        <div class="aeo-modal-header">
+                            <h3><i class="bi bi-person-badge"></i> Contact Extension Officer</h3>
+                            <button class="aeo-modal-close" onclick="closeAEOModal()">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="aeo-modal-body">
+                            <div class="aeo-info-card">
+                                <div class="aeo-avatar">
+                                    ${aeoData.profile_picture 
+                                        ? `<img src="${aeoData.profile_picture}" alt="${aeoData.name}">` 
+                                        : `<i class="bi bi-person-circle"></i>`
+                                    }
+                                </div>
+                                <div class="aeo-details">
+                                    <div class="aeo-name">${aeoData.name}</div>
+                                    <div class="aeo-district">
+                                        <i class="bi bi-geo-alt-fill"></i> ${aeoData.district}, ${aeoData.region}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="aeo-actions">
+                                <a href="tel:${aeoData.phone}" class="aeo-action-btn call">
+                                    <i class="bi bi-telephone-fill"></i>
+                                    <span>Call</span>
+                                </a>
+                                <a href="https://wa.me/${aeoData.phone.replace(/[^0-9]/g, '')}" target="_blank" class="aeo-action-btn whatsapp">
+                                    <i class="bi bi-whatsapp"></i>
+                                    <span>WhatsApp</span>
+                                </a>
+                            </div>
+                            
+                            <div class="aeo-modal-info">
+                                <i class="bi bi-info-circle"></i>
+                                <span>Your assigned extension officer is available to provide expert guidance on crop management and disease control.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Append modal to body
+            const modalDiv = document.createElement('div');
+            modalDiv.innerHTML = modalHTML;
+            document.body.appendChild(modalDiv.firstElementChild);
+        }
+        
+        // Close AEO Modal
+        function closeAEOModal() {
+            const modal = document.getElementById('aeoModalOverlay');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Open Support Form for farmers to submit help requests
+        function openSupportForm() {
+            // Close settings bottom sheet first
+            closeBottomSheet();
+            
+            // Get farmer profile for pre-filling
+            const profile = getFarmerProfile();
+            
+            const supportFormHTML = `
+                <div class="support-modal-overlay" id="supportModalOverlay" onclick="closeSupportForm()">
+                    <div class="support-modal-card" onclick="event.stopPropagation()">
+                        <button class="support-modal-close-top" onclick="closeSupportForm()">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                        
+                        <div class="support-modal-header">
+                            <div class="support-header-icon">
+                                <i class="bi bi-chat-heart-fill"></i>
+                            </div>
+                            <h3>How Can We Help You?</h3>
+                            <p class="support-header-subtitle">Our support team is ready to assist with any questions or issues</p>
+                        </div>
+                        
+                        <div class="support-modal-body">
+                            <form id="supportForm" onsubmit="submitSupportRequest(event)">
+                                <div class="support-category-grid">
+                                    <p class="support-step-label">
+                                        <span class="support-step-number">1</span>
+                                        Select Your Issue
+                                    </p>
+                                    <select name="category" required class="support-select-modern">
+                                        <option value="">Choose what you need help with...</option>
+                                        <option value="technical">🔧  Technical Problem (App not working)</option>
+                                        <option value="disease_detection">🌿  Disease Detection Issue</option>
+                                        <option value="account">👤  Account or Profile Help</option>
+                                        <option value="weather">☁️  Weather Information</option>
+                                        <option value="aeo_contact">📞  Cannot Reach Extension Officer</option>
+                                        <option value="feature_request">💡  Suggest New Feature</option>
+                                        <option value="feedback">⭐  Feedback or Suggestion</option>
+                                        <option value="general">💬  General Question</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="support-form-section">
+                                    <p class="support-step-label">
+                                        <span class="support-step-number">2</span>
+                                        Tell Us More
+                                    </p>
+                                    
+                                    <div class="support-input-wrapper">
+                                        <i class="bi bi-pencil-fill support-input-icon"></i>
+                                        <input type="text" name="subject" required placeholder="Quick summary (e.g., App freezes when taking photo)" class="support-input-modern" maxlength="100">
+                                    </div>
+                                    
+                                    <div class="support-textarea-wrapper">
+                                        <textarea name="message" required placeholder="Please describe your issue in detail..." class="support-textarea-modern" rows="4" maxlength="500"></textarea>
+                                        <div class="support-char-counter-modern">
+                                            <span id="supportCharCount">0</span>/500 characters
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="support-contact-modern">
+                                    <p class="support-step-label">
+                                        <span class="support-step-number">3</span>
+                                        Your Contact Details (Optional)
+                                    </p>
+                                    <p class="support-contact-hint">
+                                        <i class="bi bi-info-circle-fill"></i>
+                                        This helps us reach you faster if we need more information
+                                    </p>
+                                    
+                                    <div class="support-contact-grid">
+                                        <div class="support-input-wrapper">
+                                            <i class="bi bi-person-fill support-input-icon"></i>
+                                            <input type="text" name="name" placeholder="Your name" class="support-input-modern" value="${profile?.name || ''}">
+                                        </div>
+                                        <div class="support-input-wrapper">
+                                            <i class="bi bi-telephone-fill support-input-icon"></i>
+                                            <input type="tel" name="phone" placeholder="Phone number" class="support-input-modern" value="${profile?.phone || ''}">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="support-submit-modern" id="supportSubmitBtn">
+                                    <i class="bi bi-send-fill"></i> 
+                                    <span>Submit Support Request</span>
+                                </button>
+                                
+                                <p class="support-footer-modern">
+                                    <i class="bi bi-shield-check-fill"></i>
+                                    We typically respond within 24 hours
+                                </p>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Append modal to body
+            const modalDiv = document.createElement('div');
+            modalDiv.innerHTML = supportFormHTML;
+            document.body.appendChild(modalDiv.firstElementChild);
+            
+            // Add character counter
+            const messageInput = document.querySelector('#supportForm textarea[name="message"]');
+            const charCount = document.getElementById('supportCharCount');
+            messageInput.addEventListener('input', () => {
+                charCount.textContent = messageInput.value.length;
+            });
+        }
+        
+        // Close Support Form
+        function closeSupportForm() {
+            const modal = document.getElementById('supportModalOverlay');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Submit Support Request
+        async function submitSupportRequest(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const submitBtn = document.getElementById('supportSubmitBtn');
+            const originalHTML = submitBtn.innerHTML;
+            
+            // Get form data
+            const formData = new FormData(form);
+            
+            // Validate required fields
+            if (!formData.get('category') || !formData.get('subject') || !formData.get('message')) {
+                alert('❌ Please fill in all required fields');
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+            
+            try {
+                console.log('Submitting support request...', {
+                    category: formData.get('category'),
+                    subject: formData.get('subject'),
+                    farmerId: farmerId
+                });
+                
+                const response = await fetch('/api/farmer/support-request', {
+                    method: 'POST',
+                    headers: {
+                        'device-id': farmerId
+                    },
+                    body: formData  // Send FormData directly, not JSON
+                });
+                
+                console.log('Response status:', response.status);
+                const result = await response.json();
+                console.log('Response data:', result);
+                
+                if (response.ok) {
+                    // Success
+                    form.reset(); // Clear form
+                    closeSupportForm();
+                    alert('✅ Request Submitted Successfully!\n\nYour support request has been received. Our team will review it and get back to you soon.\n\nThank you for your patience!');
+                } else {
+                    throw new Error(result.detail || 'Failed to submit request');
+                }
+            } catch (error) {
+                console.error('Support request error:', error);
+                let errorMsg = 'Failed to submit request';
+                if (error.message.includes('fetch')) {
+                    errorMsg = 'Cannot connect to server. Please ensure:\n- The server is running\n- You have internet connection\n- Try refreshing the page';
+                } else {
+                    errorMsg = error.message;
+                }
+                alert('❌ Submission Failed\n\n' + errorMsg);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHTML;
+            }
         }
 
         // ============================================================

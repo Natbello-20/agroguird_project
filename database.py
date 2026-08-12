@@ -84,7 +84,7 @@ def init_db():
     ''')
     
     # --- Safe migration: add email and district columns if DB already existed ---
-    for col in ["email", "district"]:
+    for col in ["email", "district", "region"]:
         try:
             c.execute(f"ALTER TABLE aeo ADD COLUMN {col} TEXT")
         except Exception:
@@ -171,7 +171,7 @@ def init_db():
         except Exception:
             pass  # Column already exists
     
-    # 8. Support Tickets Table
+    # 8. Support Tickets Table (AEO support tickets)
     c.execute('''
         CREATE TABLE IF NOT EXISTS support_tickets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -186,6 +186,25 @@ def init_db():
             resolved_at DATETIME,
             resolved_by INTEGER,
             FOREIGN KEY (submitted_by) REFERENCES aeo(id)
+        )
+    ''')
+    
+    # 9. Farmer Support Requests Table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS farmer_support_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            farmer_id TEXT NOT NULL,
+            category TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            message TEXT NOT NULL,
+            name TEXT,
+            phone TEXT,
+            status TEXT DEFAULT 'pending',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            resolved_at DATETIME,
+            resolved_by INTEGER,
+            notes TEXT,
+            FOREIGN KEY (farmer_id) REFERENCES farmers(device_id)
         )
     ''')
     
