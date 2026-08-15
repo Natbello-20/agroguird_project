@@ -2048,10 +2048,122 @@
                 flex-direction: column;
             }
         }
+        
+        /* ========== OFFLINE INDICATOR & PWA INSTALL ========== */
+        .offline-badge {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #ff6b6b;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            animation: slideDownBadge 0.3s ease-out;
+        }
+
+        .offline-badge.online {
+            background: #2ecc71;
+        }
+
+        .offline-badge.show {
+            display: flex;
+        }
+
+        .pwa-install-prompt {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(46, 204, 113, 0.4);
+            z-index: 9998;
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            max-width: 90%;
+            animation: slideUpPrompt 0.4s ease-out;
+        }
+
+        .pwa-install-prompt.show {
+            display: flex;
+        }
+
+        .pwa-install-prompt button {
+            background: white;
+            color: #2ecc71;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .pwa-install-prompt button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .pwa-install-prompt .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        @keyframes slideDownBadge {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUpPrompt {
+            from {
+                transform: translateX(-50%) translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- ===== OFFLINE INDICATOR ===== -->
+    <div class="offline-badge" id="offlineBadge">
+        <i class="bi bi-wifi-off"></i>
+        <span>Offline Mode</span>
+    </div>
+
+    <!-- ===== PWA INSTALL PROMPT ===== -->
+    <div class="pwa-install-prompt" id="pwaInstallPrompt">
+        <i class="bi bi-download" style="font-size: 1.5rem;"></i>
+        <div style="flex: 1;">
+            <div style="font-weight: 700; margin-bottom: 0.25rem;">Install AgroGuard</div>
+            <div style="font-size: 0.85rem; opacity: 0.9;">Use offline & get faster access</div>
+        </div>
+        <button onclick="installPWA()">Install</button>
+        <button class="close-btn" onclick="dismissInstallPrompt()">✕</button>
+    </div>
 
     <!-- ===== SPLASH SCREEN ===== -->
     <div id="splash-screen">
@@ -2654,8 +2766,47 @@
             previewArea.appendChild(overlay);
 
             const formData = new FormData();
-            formData.append('file', document.getElementById('fileInput').files[0]);
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            formData.append('file', file);
 
+            // ===== CHECK IF OFFLINE =====
+            if (!navigator.onLine) {
+                try {
+                    // Read image as base64 for offline storage
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        const imageData = e.target.result;
+                        
+                        try {
+                            await saveOfflineScan(imageData, file);
+                            
+                            // Remove overlay
+                            overlay.remove();
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            
+                            // Show success message
+                            alert('📴 Offline Mode\n\nYour scan has been saved and will be uploaded automatically when you\'re back online.\n\nYou can continue scanning offline!');
+                            
+                            // Reset scan interface
+                            resetScan();
+                        } catch (error) {
+                            console.error('[Offline] Failed to save scan:', error);
+                            alert('❌ Failed to save scan offline. Please try again.');
+                            overlay.remove();
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                    return;  // Exit function - offline handling complete
+                } catch (error) {
+                    console.error('[Offline] Error handling offline scan:', error);
+                }
+            }
+
+            // ===== ONLINE - PROCEED WITH NORMAL SCAN =====
             try {
                 // Send Device ID + location in Headers
                 const headers = { 'device-id': farmerId };
@@ -3168,20 +3319,258 @@
         }
 
         // ============================================================
-        // PWA INSTALL PROMPT
+        // PWA INSTALL PROMPT & OFFLINE DETECTION
         // ============================================================
+        // deferredPrompt already declared above, just initialize it
+        deferredPrompt = null;
+        
+        // Capture install prompt event
         window.addEventListener('beforeinstallprompt', (e) => {
             console.log('[PWA] Install prompt available');
             e.preventDefault();
             deferredPrompt = e;
-            // You can show an install button here if needed
-            // For now, we'll just log that it's available
+            
+            // Show install prompt if not dismissed before
+            const dismissed = localStorage.getItem('pwa_install_dismissed');
+            if (!dismissed) {
+                setTimeout(() => {
+                    document.getElementById('pwaInstallPrompt').classList.add('show');
+                }, 3000); // Show after 3 seconds
+            }
         });
 
         window.addEventListener('appinstalled', () => {
             console.log('✅ [PWA] App installed successfully!');
             deferredPrompt = null;
+            document.getElementById('pwaInstallPrompt').classList.remove('show');
         });
+
+        // Install PWA function
+        async function installPWA() {
+            if (!deferredPrompt) {
+                alert('Installation not available. Try adding from browser menu.');
+                return;
+            }
+            
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`[PWA] User response: ${outcome}`);
+            
+            deferredPrompt = null;
+            document.getElementById('pwaInstallPrompt').classList.remove('show');
+        }
+
+        // Dismiss install prompt
+        function dismissInstallPrompt() {
+            document.getElementById('pwaInstallPrompt').classList.remove('show');
+            localStorage.setItem('pwa_install_dismissed', 'true');
+        }
+
+        // ============================================================
+        // OFFLINE/ONLINE DETECTION
+        // ============================================================
+        const offlineBadge = document.getElementById('offlineBadge');
+        
+        // Check initial state
+        if (!navigator.onLine) {
+            offlineBadge.classList.add('show');
+        }
+        
+        // Listen for online/offline events
+        window.addEventListener('online', () => {
+            console.log('✅ [Network] Back online');
+            offlineBadge.innerHTML = '<i class="bi bi-wifi"></i><span>Back Online</span>';
+            offlineBadge.classList.add('online');
+            offlineBadge.classList.add('show');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                offlineBadge.classList.remove('show');
+                setTimeout(() => {
+                    offlineBadge.classList.remove('online');
+                    offlineBadge.innerHTML = '<i class="bi bi-wifi-off"></i><span>Offline Mode</span>';
+                }, 300);
+            }, 3000);
+            
+            // Sync any pending offline data
+            syncOfflineScans();
+        });
+
+        window.addEventListener('offline', () => {
+            console.log('📴 [Network] Gone offline');
+            offlineBadge.classList.add('show');
+            offlineBadge.classList.remove('online');
+        });
+
+        // ============================================================
+        // INDEXEDDB OFFLINE QUEUE
+        // ============================================================
+        let db = null;
+        
+        // Initialize IndexedDB
+        function initOfflineDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('AgroGuardOffline', 1);
+                
+                request.onerror = () => {
+                    console.error('[IndexedDB] Error opening database');
+                    reject(request.error);
+                };
+                
+                request.onsuccess = () => {
+                    db = request.result;
+                    console.log('✅ [IndexedDB] Database opened successfully');
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    
+                    // Create object store for offline scans
+                    if (!db.objectStoreNames.contains('offlineScans')) {
+                        const objectStore = db.createObjectStore('offlineScans', { keyPath: 'id', autoIncrement: true });
+                        objectStore.createIndex('timestamp', 'timestamp', { unique: false });
+                        objectStore.createIndex('synced', 'synced', { unique: false });
+                        console.log('✅ [IndexedDB] Created offlineScans object store');
+                    }
+                };
+            });
+        }
+        
+        // Save scan to offline queue
+        async function saveOfflineScan(imageData, imageFile) {
+            try {
+                if (!db) await initOfflineDB();
+                
+                const transaction = db.transaction(['offlineScans'], 'readwrite');
+                const objectStore = transaction.objectStore('offlineScans');
+                
+                const scan = {
+                    imageData: imageData,  // Base64 image data
+                    imageName: imageFile.name,
+                    imageType: imageFile.type,
+                    timestamp: new Date().toISOString(),
+                    farmerId: farmerId,
+                    language: currentLang,
+                    synced: false
+                };
+                
+                const request = objectStore.add(scan);
+                
+                return new Promise((resolve, reject) => {
+                    request.onsuccess = () => {
+                        console.log('✅ [IndexedDB] Scan saved offline, ID:', request.result);
+                        resolve(request.result);
+                    };
+                    request.onerror = () => {
+                        console.error('[IndexedDB] Error saving scan');
+                        reject(request.error);
+                    };
+                });
+            } catch (error) {
+                console.error('[IndexedDB] Failed to save offline scan:', error);
+                throw error;
+            }
+        }
+        
+        // Get pending offline scans
+        async function getPendingScans() {
+            try {
+                if (!db) await initOfflineDB();
+                
+                const transaction = db.transaction(['offlineScans'], 'readonly');
+                const objectStore = transaction.objectStore('offlineScans');
+                const index = objectStore.index('synced');
+                const request = index.getAll(false);  // Get all unsynced scans
+                
+                return new Promise((resolve, reject) => {
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (error) {
+                console.error('[IndexedDB] Failed to get pending scans:', error);
+                return [];
+            }
+        }
+        
+        // Mark scan as synced
+        async function markScanSynced(scanId) {
+            try {
+                if (!db) await initOfflineDB();
+                
+                const transaction = db.transaction(['offlineScans'], 'readwrite');
+                const objectStore = transaction.objectStore('offlineScans');
+                const request = objectStore.get(scanId);
+                
+                request.onsuccess = () => {
+                    const scan = request.result;
+                    if (scan) {
+                        scan.synced = true;
+                        scan.syncedAt = new Date().toISOString();
+                        objectStore.put(scan);
+                        console.log('✅ [IndexedDB] Scan marked as synced:', scanId);
+                    }
+                };
+            } catch (error) {
+                console.error('[IndexedDB] Failed to mark scan as synced:', error);
+            }
+        }
+        
+        // Sync offline scans to server
+        async function syncOfflineScans() {
+            try {
+                const pendingScans = await getPendingScans();
+                
+                if (pendingScans.length === 0) {
+                    console.log('[Sync] No pending scans to sync');
+                    return;
+                }
+                
+                console.log(`[Sync] Syncing ${pendingScans.length} pending scan(s)...`);
+                
+                for (const scan of pendingScans) {
+                    try {
+                        // Convert base64 back to blob
+                        const response = await fetch(scan.imageData);
+                        const blob = await response.blob();
+                        const file = new File([blob], scan.imageName, { type: scan.imageType });
+                        
+                        // Create form data
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        
+                        // Send to server
+                        const headers = { 'device-id': scan.farmerId };
+                        const res = await fetch(`/predict?lang=${scan.language}`, {
+                            method: 'POST',
+                            headers: headers,
+                            body: formData
+                        });
+                        
+                        if (res.ok) {
+                            await markScanSynced(scan.id);
+                            console.log(`✅ [Sync] Scan ${scan.id} synced successfully`);
+                        } else {
+                            console.error(`❌ [Sync] Failed to sync scan ${scan.id}`);
+                        }
+                    } catch (error) {
+                        console.error(`❌ [Sync] Error syncing scan ${scan.id}:`, error);
+                    }
+                }
+                
+                // Show success notification
+                const syncedCount = pendingScans.length;
+                alert(`✅ Synced ${syncedCount} offline scan(s) successfully!`);
+                
+            } catch (error) {
+                console.error('[Sync] Failed to sync offline scans:', error);
+            }
+        }
+        
+        // Initialize IndexedDB on page load (non-blocking)
+        setTimeout(() => {
+            initOfflineDB().catch(err => console.error('[IndexedDB] Initialization failed:', err));
+        }, 1000); // Delay 1 second to not interfere with splash screen
 
         // ============================================================
         // FARMER FIRST-LAUNCH PROFILE FLOW

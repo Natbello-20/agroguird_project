@@ -1,10 +1,11 @@
-const CACHE_NAME = 'agroguard-v2';
+const CACHE_NAME = 'agroguard-v3';
 const ASSETS = [
     '/farmer',
     '/static/manifest.json',
     '/static/images/agroguard_logo.png',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
-    'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css'
+    'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css',
+    'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/fonts/bootstrap-icons.woff2'
 ];
 
 self.addEventListener('install', (event) => {
@@ -74,3 +75,86 @@ self.addEventListener('fetch', (event) => {
             })
     );
 });
+
+// Background Sync for offline scans
+self.addEventListener('sync', (event) => {
+    if (event.tag === 'sync-scans') {
+        console.log('[SW] Background sync triggered for offline scans');
+        event.waitUntil(syncOfflineScans());
+    }
+});
+
+// Sync offline scans function (called by background sync)
+async function syncOfflineScans() {
+    try {
+        // Open IndexedDB
+        const db = await openDatabase();
+        const transaction = db.transaction(['offlineScans'], 'readonly');
+        const objectStore = transaction.objectStore('offlineScans');
+        const index = objectStore.index('synced');
+        const request = index.getAll(false);
+
+        const pendingScans = await new Promise((resolve, reject) => {
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+
+        console.log(`[SW] Found ${pendingScans.length} pending scans`);
+
+        for (const scan of pendingScans) {
+            try {
+                // Convert base64 to blob
+                const response = await fetch(scan.imageData);
+                const blob = await response.blob();
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('file', blob);
+
+                // Send to server
+                const res = await fetch(`/predict?lang=${scan.language}`, {
+                    method: 'POST',
+                    headers: { 'device-id': scan.farmerId }
+                    body: formData
+                });
+
+                if (res.ok) {
+                    // Mark as synced
+                    await markScanSynced(db, scan.id);
+                    console.log(`[SW] Synced scan ${scan.id}`);
+                }
+            } catch (error) {
+                console.error(`[SW] Failed to sync scan ${scan.id}:`, error);
+            }
+        }
+    } catch (error) {
+        console.error('[SW] Background sync failed:', error);
+    }
+}
+
+function openDatabase() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('AgroGuardOffline', 1);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function markScanSynced(db, scanId) {
+    const transaction = db.transaction(['offlineScans'], 'readwrite');
+    const objectStore = transaction.objectStore('offlineScans');
+    const request = objectStore.get(scanId);
+    
+    return new Promise((resolve, reject) => {
+        request.onsuccess = () => {
+            const scan = request.result;
+            if (scan) {
+                scan.synced = true;
+                scan.syncedAt = new Date().toISOString();
+                objectStore.put(scan);
+                resolve();
+            }
+        };
+        request.onerror = () => reject(request.error);
+    });
+}
