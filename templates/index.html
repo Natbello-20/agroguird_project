@@ -4008,6 +4008,28 @@
                     const result = await res.json();
                     console.log('[Analyze] Analysis successful:', result);
                     
+                    // Check if it's a "not maize" error
+                    if (result.error && (result.error.includes('not maize') || result.error.includes('Not a maize') || result.error.includes('valid maize'))) {
+                        // Show "Not Maize" notification
+                        const notMaizeDiv = document.createElement('div');
+                        notMaizeDiv.innerHTML = `
+                            <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; display:flex; align-items:center; justify-content:center;">
+                                <div style="background:white; border-radius:16px; padding:24px; max-width:90%; width:340px; box-shadow:0 8px 32px rgba(0,0,0,0.2); text-align:center;">
+                                    <div style="width:56px; height:56px; background:#fff3cd; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                                        <i class="bi bi-x-circle-fill" style="font-size:28px; color:#856404;"></i>
+                                    </div>
+                                    <h3 style="margin:0 0 12px 0; color:#2d5016; font-size:20px; font-weight:700;">Not a Maize Leaf</h3>
+                                    <p style="margin:0 0 20px 0; color:#666; font-size:15px; line-height:1.5;">${result.error}</p>
+                                    <button onclick="deletePendingScan(${scanId}); this.closest('[style*=fixed]').remove();" style="width:100%; background:#dc3545; color:white; border:none; padding:12px; border-radius:10px; font-weight:600; font-size:15px; cursor:pointer;">
+                                        Remove Scan
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        document.body.appendChild(notMaizeDiv);
+                        return;
+                    }
+                    
                     // Update scan in IndexedDB with result
                     const updateTx = db.transaction('offlineScans', 'readwrite');
                     const updateStore = updateTx.objectStore('offlineScans');
@@ -4100,6 +4122,48 @@
                 `;
                 document.body.appendChild(errorDiv);
                 setTimeout(() => errorDiv.remove(), 3000);
+            }
+        }
+        
+        // Delete pending scan from IndexedDB
+        async function deletePendingScan(scanId) {
+            try {
+                const db = await initOfflineDB();
+                const tx = db.transaction('offlineScans', 'readwrite');
+                const store = tx.objectStore('offlineScans');
+                
+                await new Promise((resolve, reject) => {
+                    const request = store.delete(scanId);
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+                
+                console.log('[Delete] Scan removed from IndexedDB:', scanId);
+                
+                // Update badge and refresh history
+                updatePendingBadge();
+                
+                // Refresh the history sheet if it's open
+                const bottomSheet = document.getElementById('bottomSheet');
+                if (bottomSheet && bottomSheet.classList.contains('show')) {
+                    openBottomSheet('history');
+                }
+                
+                // Show notification
+                const notifDiv = document.createElement('div');
+                notifDiv.innerHTML = `
+                    <div style="position:fixed; top:80px; left:50%; transform:translateX(-50%); background:#28a745; color:white; padding:16px 24px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.3); z-index:10000; min-width:280px; text-align:center;">
+                        <div style="display:flex; align-items:center; gap:12px; justify-content:center;">
+                            <i class="bi bi-trash-fill" style="font-size:24px;"></i>
+                            <div style="font-weight:600; font-size:16px;">Scan removed</div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(notifDiv);
+                setTimeout(() => notifDiv.remove(), 2000);
+                
+            } catch (error) {
+                console.error('[Delete] Failed to delete scan:', error);
             }
         }
         
@@ -4789,50 +4853,43 @@
             }
         }
 
-        // Initialize default alerts (first time only)
-        function initializeAlerts() {
-            const existing = localStorage.getItem('agroguard_alerts');
-            if (!existing) {
-                const defaultAlerts = [
-                    {
-                        id: 'alert_' + Date.now() + '_1',
-                        priority: 'high',
-                        title: 'Disease Outbreak Alert',
-                        message: 'Fall Armyworm detected in nearby farms. Inspect your crops immediately and apply recommended pesticides.',
-                        from: 'Extension Officer - Northern Region',
-                        timestamp: new Date().toISOString(),
-                        read: false
-                    },
-                    {
-                        id: 'alert_' + Date.now() + '_2',
-                        priority: 'medium',
-                        title: 'Fertilizer Application Reminder',
-                        message: 'Apply NPK fertilizer now for optimal growth. Contact your AEO for guidance on proper dosage.',
-                        from: 'Extension Officer',
-                        timestamp: new Date(Date.now() - 7200000).toISOString(),
-                        read: false
-                    }
-                ];
-                localStorage.setItem('agroguard_alerts', JSON.stringify(defaultAlerts));
-            }
-        }
-
-        // Load Alerts (from localStorage - dynamic system)
-        function loadAlerts() {
+        // Load Alerts (from API - connected to AEO alert system)
+        async function loadAlerts() {
             try {
-                // Initialize if first time
-                initializeAlerts();
+                // Get farmer profile for phone number
+                const profile = getFarmerProfile();
                 
-                const stored = localStorage.getItem('agroguard_alerts');
-                const alerts = stored ? JSON.parse(stored) : [];
+                // Fetch alerts from API
+                const res = await fetch('/api/farmer/alerts', {
+                    headers: { 
+                        'device-id': farmerId,
+                        'phone': profile?.phone || ''
+                    }
+                });
+                
+                if (!res.ok) {
+                    throw new Error('Failed to fetch alerts');
+                }
+                
+                const data = await res.json();
+                console.log('[Alerts] Fetched from API:', data);
                 
                 const container = document.getElementById('alert-list');
                 const badge = document.getElementById('alert-badge');
                 
-                // Filter unread alerts
-                const unreadAlerts = alerts.filter(a => !a.read);
+                // Get read alerts from localStorage
+                const readAlerts = JSON.parse(localStorage.getItem('agroguard_read_alerts') || '[]');
                 
-                if (alerts.length > 0) {
+                if (data.alerts && data.alerts.length > 0) {
+                    // Mark alerts as read if in localStorage
+                    const alerts = data.alerts.map(alert => ({
+                        ...alert,
+                        read: readAlerts.includes(alert.id)
+                    }));
+                    
+                    // Filter unread alerts for badge
+                    const unreadAlerts = alerts.filter(a => !a.read);
+                    
                     // Show badge if there are unread alerts
                     badge.style.display = unreadAlerts.length > 0 ? 'block' : 'none';
                     
@@ -4841,8 +4898,8 @@
                         <div class="alert-item priority-${alert.priority || 'medium'} ${alert.read ? 'read' : ''}" onclick="markAlertRead('${alert.id}')">
                             <div class="alert-header">
                                 <div class="alert-title">${alert.title}</div>
-                                <span class="alert-badge ${alert.priority === 'high' ? 'urgent' : alert.priority === 'medium' ? 'important' : 'info'}">
-                                    ${alert.priority === 'high' ? 'URGENT' : alert.priority === 'medium' ? 'IMPORTANT' : 'INFO'}
+                                <span class="alert-badge ${alert.priority === 'high' || alert.priority === 'critical' || alert.priority === 'urgent' ? 'urgent' : alert.priority === 'medium' || alert.priority === 'important' ? 'important' : 'info'}">
+                                    ${alert.priority === 'high' || alert.priority === 'critical' ? 'URGENT' : alert.priority === 'urgent' ? 'URGENT' : alert.priority === 'medium' || alert.priority === 'important' ? 'IMPORTANT' : 'INFO'}
                                 </span>
                             </div>
                             <div class="alert-message">${alert.message}</div>
@@ -4863,6 +4920,14 @@
                 }
             } catch (e) {
                 console.error('Failed to load alerts:', e);
+                // Fallback to empty state
+                const container = document.getElementById('alert-list');
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-shield-check"></i>
+                        <p>No alerts at this time</p>
+                    </div>
+                `;
             }
         }
 
@@ -4957,17 +5022,16 @@
             }
         }
 
-        // Mark alert as read (auto-dismiss badge, keep visible with read styling)
+        // Mark alert as read (store in localStorage since backend doesn't track it yet)
         function markAlertRead(id) {
             try {
-                const stored = localStorage.getItem('agroguard_alerts');
-                const alerts = stored ? JSON.parse(stored) : [];
+                // Get read alerts from localStorage
+                const readAlerts = JSON.parse(localStorage.getItem('agroguard_read_alerts') || '[]');
                 
-                // Find and mark as read
-                const alert = alerts.find(a => a.id === id);
-                if (alert && !alert.read) {
-                    alert.read = true;
-                    localStorage.setItem('agroguard_alerts', JSON.stringify(alerts));
+                // Add this alert ID if not already marked
+                if (!readAlerts.includes(id)) {
+                    readAlerts.push(id);
+                    localStorage.setItem('agroguard_read_alerts', JSON.stringify(readAlerts));
                     
                     // Auto-dismiss: Update styling immediately
                     const element = event.currentTarget;
@@ -5020,40 +5084,6 @@
                 console.log('✅ New notification added:', title);
             } catch (e) {
                 console.error('Failed to add notification:', e);
-            }
-        }
-
-        // Helper: Add new alert dynamically (for future use - when backend is ready)
-        function addAlert(priority, title, message, from) {
-            try {
-                const stored = localStorage.getItem('agroguard_alerts');
-                const alerts = stored ? JSON.parse(stored) : [];
-                
-                const newAlert = {
-                    id: 'alert_' + Date.now(),
-                    priority: priority, // 'high', 'medium', 'low'
-                    title: title,
-                    message: message,
-                    from: from || 'Extension Officer',
-                    timestamp: new Date().toISOString(),
-                    read: false
-                };
-                
-                alerts.unshift(newAlert); // Add to beginning
-                localStorage.setItem('agroguard_alerts', JSON.stringify(alerts));
-                
-                // Refresh alerts if panel is open
-                const panel = document.getElementById('alert-panel');
-                if (panel && panel.classList.contains('show')) {
-                    loadAlerts();
-                }
-                
-                // Update badge
-                document.getElementById('alert-badge').style.display = 'block';
-                
-                console.log('✅ New alert added:', title);
-            } catch (e) {
-                console.error('Failed to add alert:', e);
             }
         }
 
