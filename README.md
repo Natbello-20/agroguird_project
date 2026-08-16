@@ -1,18 +1,18 @@
-# AgroGuard — Project Proposal
+# AgroGuard — AI-Powered Crop Disease Detection Platform
 
 ## Executive Summary
 
-**AgroGuard** is a smart, AI-powered crop disease detection and agricultural monitoring platform designed for Ghanaian farmers and Agricultural Extension Officers (AEOs). The system enables farmers to photograph their crops with any mobile device and receive an instant diagnosis of plant diseases, along with localised treatment advice — no agricultural expertise required. Extension officers gain access to a centralised web dashboard to monitor disease outbreaks, track scan activity, and respond proactively across multiple farming districts.
+**AgroGuard** is an intelligent, AI-powered crop disease detection and agricultural monitoring platform designed for Ghanaian farmers and Agricultural Extension Officers (AEOs). The system enables farmers to photograph their crops with any mobile device and receive instant diagnosis of plant diseases, along with localised treatment advice — no agricultural expertise required. Extension officers gain access to a centralised web dashboard to monitor disease outbreaks, track scan activity, send alerts, and respond proactively across multiple farming districts.
 
-AgroGuard is built to work in low-connectivity, rural environments while remaining scalable for national deployment.
+AgroGuard is built as a **Progressive Web App (PWA)** to work in low-connectivity, rural environments with full offline capabilities, while remaining scalable for national deployment.
 
 ---
 
 ## Problem Statement
 
-Crop diseases cause significant yield losses across Ghana every year, disproportionately affecting smallholder farmers who lack timely access to expert agricultural advice. By the time visible symptoms are noticed and an extension officer can be reached, the disease may have already spread beyond control. Farmers in remote areas face barriers of language, literacy, and limited phone capability that further delay intervention.
+Crop diseases cause significant yield losses across Ghana every year, disproportionately affecting smallholder farmers who lack timely access to expert agricultural advice. By the time visible symptoms are noticed and an extension officer can be reached, the disease may have already spread beyond control. Farmers in remote areas face barriers of language, literacy, limited connectivity, and limited phone capability that further delay intervention.
 
-AgroGuard addresses these challenges by putting a diagnostic tool directly in the farmer's hands, while giving extension officers the system-level visibility they need to act at scale.
+AgroGuard addresses these challenges by putting a diagnostic tool directly in the farmer's hands with offline capabilities, while giving extension officers the system-level visibility they need to act at scale.
 
 ---
 
@@ -20,97 +20,125 @@ AgroGuard addresses these challenges by putting a diagnostic tool directly in th
 
 | User Type | Description |
 |---|---|
-| **Smallholder Farmers** | Rural farmers who photograph their crops to get instant disease diagnostics. Anonymous — no registration required. |
-| **Agricultural Extension Officers (AEOs)** | Government or NGO field officers who monitor regional crop health, review outbreak trends, and deploy advisories. |
+| **Smallholder Farmers** | Rural farmers who photograph their crops to get instant disease diagnostics. Simple registration with name and phone. |
+| **Agricultural Extension Officers (AEOs)** | Government or NGO field officers who monitor regional crop health, review outbreak trends, send alerts, and deploy advisories. |
 | **System Administrators** | Manage officer accounts and platform configuration. |
 
 ---
 
 ## Core Features
 
-### 1. Crop Disease Detection (AI Scan Engine)
-- Farmers upload a photo of a crop leaf through a simple web interface.
-- The AI model analyses the image and identifies the disease (or confirms the plant is healthy).
-- Supports crops common to Ghana: **Tomato, Corn, Potato, Cassava, Rice, and Cocoa**.
-- Detects diseases including: Early Blight, Late Blight, Leaf Mold, Leaf Spot, Rice Leaf Blast, and Cocoa Frosty Pod Rot.
-- Powered by a TensorFlow deep learning model (with a mock fallback for development/testing).
-- Returns a **confidence score** (80–99%) alongside the disease name.
-- Scans are recorded with a device ID — no personal data collected from farmers.
+### 1. 🌾 Crop Disease Detection (AI Scan Engine)
+- Farmers upload a photo of a crop leaf through a simple mobile-friendly web interface
+- AI model analyses the image and identifies the disease (or confirms the plant is healthy)
+- **Maize/Corn disease detection**: Common Rust, Gray Leaf Spot, Healthy, Northern Leaf Blight
+- **Non-maize detection**: Model intelligently rejects non-maize objects (fabric, hands, tables, etc.)
+- Powered by a retrained TensorFlow deep learning model with 95%+ accuracy
+- Returns a **confidence score** alongside the disease name
+- Scans are recorded with device ID and optional farmer profile
+- **Offline scanning**: Scans can be performed without internet and auto-sync when online
 
-### 2. Multi-Language Treatment Advice
-- Instant treatment recommendations are provided in the farmer's local language.
+### 2. 🌍 Multi-Language Treatment Advice
+- Instant treatment recommendations in the farmer's local language
 - Supported Languages:
   - **English (en)** — National language
   - **Twi (tw)** — Most widely spoken local language in Ghana
   - **Fante (ff)** — Coastal and southern Ghana
-- Treatment advice includes specific fungicide names, application intervals, and practical field guidance.
-- Language can be selected per API request, making the system adaptable to future language additions.
+- Treatment advice includes specific fungicide names, application intervals, and practical field guidance
+- Language can be switched on-the-fly for each scan
 
-### 3. Farmer Scan Record Tracking (Anonymous)
-- Each farmer is identified by an anonymous **device ID** — no account or registration required.
-- First-seen and last-seen timestamps are recorded per device.
-- All scan results (crop, disease, confidence, location, timestamp) are stored for aggregation.
-- Supports offline-capable architecture with offline batch sync schema designed for Phase 2.
+### 3. 📱 Progressive Web App (PWA) Features
+- **Installable**: Add to home screen like a native app
+- **Offline-First Architecture**: 
+  - Service Worker caches all assets for offline use
+  - IndexedDB stores offline scans for later analysis
+  - Background sync automatically uploads pending scans when online
+- **Offline Indicator**: Real-time badge shows connection status
+- **Install Prompt**: Automatic PWA installation prompt with dismiss option
+- Works seamlessly on iOS, Android, and desktop browsers
 
-### 4. Extension Officer Authentication
-- Officers register and log in via a secure web portal.
-- Passwords are hashed using **bcrypt** before storage — plain text is never saved.
-- Authentication is managed with **JSON Web Tokens (JWT)** via the HS256 algorithm.
-- Tokens expire after a configurable period (default: 24 hours).
-- Tokens are stored in **HTTP-only cookies** for session security.
-- Both Cookie-based and Bearer header token strategies are supported.
-- Login failures return contextual error messages without revealing system internals.
+### 4. 📊 Offline Scan Queue System
+- **Scan offline, analyze online**: Take photos without internet
+- **IndexedDB Storage**: Secure local storage for pending scans
+- **Auto-Sync**: Pending scans automatically analyzed when connection restored
+- **History View**: See all offline scans with status (Pending/Analyzed)
+- **View Results**: Tap analyzed scans to see full disease report
+- **Manual Analysis**: Click "Analyze" button on pending scans
+- **Smart Cleanup**: Remove invalid scans (non-maize images)
+- **Badge Notification**: Shows count of unsynced scans on History icon
 
-### 5. Officer Signup & Account Management
-- Extension officers can self-register through a dedicated signup page.
-- Password validation enforces a minimum length of 6 characters and confirms password matching before submission.
-- Duplicate usernames are rejected with a clear error message.
-- Upon successful registration, the officer is automatically logged in and redirected to the dashboard.
+### 5. 🔔 Real-Time Alert System
+- **AEO to Farmer Alerts**: Extension officers send alerts directly to farmers
+- **Alert Targeting**:
+  - Broadcast to all farmers
+  - Specific region or district
+  - Farmers growing specific crops
+  - Individual phone numbers
+- **Priority Levels**: Critical/Urgent, Important, Info
+- **Alert Types**: Disease outbreaks, weather warnings, market info, training notices
+- **Auto-Dismiss**: Alerts disappear when clicked
+- **Read Tracking**: Badge shows unread alert count
+- **Dynamic System**: Real-time updates from AEO dashboard
 
-### 6. Officer Dashboard (Analytics & Monitoring)
-The dashboard provides Extension Officers with a live overview of agricultural health across monitored districts. Key metrics displayed include:
+### 6. 🔐 Farmer Profile System
+- **First-Launch Welcome**: Name and phone collection on first use
+- **Privacy-Focused**: Minimal data collection
+- **Profile Storage**: Secure local storage with device ID
+- **Call AEO**: Direct access to Agricultural Extension Officers
+- **Help & Support**: Contact system administrators
 
-| Metric | Description |
-|---|---|
-| **Total Scans** | Cumulative number of disease scans recorded |
-| **Critical Alerts** | Count of scans flagged as High Risk |
-| **Active Farmers** | Distinct device IDs seen (unique farmers using the tool) |
-| **Districts Monitored** | Number of distinct locations with scan activity |
+### 7. 👨‍🌾 Extension Officer Dashboard
+Comprehensive analytics and management portal for AEOs:
 
-The dashboard also includes:
-- **Recent Alerts Panel** — The 5 most recent High Risk disease detections with disease name, location, confidence score, and timestamp.
-- **Recent Scans Table** — Last 10 scan records linked to farmer device IDs.
-- **Disease Distribution Chart** — Top 5 most frequently detected diseases across all scans.
-- **Daily Scans Trend Chart** — Scan volume over the last 7 days, revealing outbreak spikes or monitoring gaps.
+**Quick Stats:**
+- Total Scans (with % change)
+- Critical Alerts count
+- Active Farmers (unique users)
+- Districts Monitored
 
-### 7. Weather Information Panel
-- Provides contextual weather data (temperature, humidity, weather condition).
-- Includes a risk indicator relevant to disease outbreak likelihood.
-- Designed for integration with a live weather API feed.
+**Features:**
+- **Send Alerts**: Broadcast system to target farmers
+- **Export Reports**: Download farmer and scan data (CSV/Excel)
+- **Recent Scans**: Live feed of farmer scans
+- **Disease Trends**: Visual charts and analytics
+- **Weather Integration**: Risk assessment based on weather
+- **Profile Management**: Update officer information
+- **Support System**: Handle farmer inquiries
 
-### 8. Role-Based Access Control (RBAC)
-- The system enforces distinct user roles at the API level.
-- **Officers / AEOs** have access to the dashboard, analytics, and advisory tools.
-- **Farmers** are anonymous — they access only the scan endpoint.
-- Protected dashboard routes redirect unauthenticated users to the login page.
-- Role enforcement is built into the API dependency injection system.
+### 8. 📈 Data Export & Reporting
+- **CSV Export**: Quick data exports for spreadsheet analysis
+- **Excel Export**: Formatted reports with styling and auto-column widths
+- **Farmer Data**: Export all registered farmers with contact info
+- **Scan Data**: Export disease detection history with timestamps
+- **openpyxl Integration**: Professional Excel formatting
+
+### 9. 🎨 Professional UI/UX
+- **Custom Notifications**: No more ugly browser alerts
+- **Smooth Animations**: Slide-in notifications, fade effects
+- **Color-Coded**: Green (success), Red (error), Yellow (warning)
+- **Mobile-First Design**: Optimized for smartphones
+- **Dark Mode Ready**: Modern glassmorphism effects
+- **Responsive**: Works on all screen sizes
+
+### 10. ☁️ Weather Information Panel
+- Real-time weather data (temperature, humidity, conditions)
+- Disease risk indicator based on weather
+- Integration-ready for live weather API
 
 ---
 
-## Planned Features (Roadmap)
+## 🆕 Latest Updates (Build 2026)
 
-### Phase 2 — Field Management & Offline Sync
-- Farmers can register named **fields** with crop type, size, planting date, and GPS coordinates.
-- Fields are linked to specific districts within Ghana's regional hierarchy.
-- **Offline scan batching**: Scans performed without connectivity are queued on-device and synced when a connection is available.
-- Batch sync API endpoint processes multiple offline scans in a single request and returns sync status per scan.
-
-### Phase 3 — Regional Analytics & AEO Broadcast System
-- **Regional Disease Analytics**: Monthly prevalence reports showing disease rates by district and region.
-- **Region Status Dashboard**: Colour-coded map view of Ghana showing Green/Yellow/Red alert levels per region based on disease prevalence.
-- **AEO Broadcast Messaging**: Extension officers can send advisory messages to all farmers in a region (by region ID), with configurable expiry and message type (Alert, Advice, Info).
-- **Treatment Compliance Tracking**: System tracks whether recommended treatments are marked as completed and their outcomes.
-- Farmer registration with email, phone, and farm name for accounts where anonymity is not preferred.
+### January 2026
+- ✅ PWA offline capabilities with IndexedDB
+- ✅ Background sync for pending scans
+- ✅ Real-time AEO alert system
+- ✅ Excel export with openpyxl
+- ✅ Custom notification system (replaced all browser alerts)
+- ✅ Non-maize image detection and rejection
+- ✅ Offline scan queue with manual analysis
+- ✅ Pending scan badge on History icon
+- ✅ Dynamic localStorage-based notification tracking
 
 ---
 
@@ -118,24 +146,32 @@ The dashboard also includes:
 
 | Layer | Technology |
 |---|---|
-| **Backend Framework** | FastAPI (Python) |
-| **AI / ML Model** | TensorFlow / Keras (CNN-based image classification) |
-| **Image Processing** | OpenCV |
-| **Database** | SQLite (local), with schema designed to migrate to PostgreSQL |
+| **Backend Framework** | FastAPI (Python 3.9+) |
+| **AI / ML Model** | TensorFlow 2.x / Keras (Retrained CNN with not_maize class) |
+| **Image Processing** | OpenCV, PIL |
+| **Database** | SQLite (local), PostgreSQL-ready schema |
 | **Authentication** | JWT (PyJWT) + bcrypt password hashing |
-| **Frontend Templates** | Jinja2 HTML templates with static CSS/JS |
+| **Frontend** | Progressive Web App (PWA) with Service Workers |
+| **Offline Storage** | IndexedDB for scan queue |
+| **Caching** | Service Worker Cache API (v3) |
+| **Templates** | Jinja2 HTML with vanilla JavaScript |
+| **Data Export** | openpyxl (Excel), CSV built-in |
 | **Data Validation** | Pydantic (request/response schemas) |
 | **Environment Config** | python-dotenv (.env file) |
 | **Server** | Uvicorn (ASGI) |
+| **Deployment** | Render.com (with auto-deploy from GitHub) |
 
 ---
 
 ## Data & Privacy Approach
 
-- Farmers are identified only by their device ID — no name, phone number, or email is collected unless a farmer opts into a named account (Phase 3).
-- All scan data is stored locally in a SQLite database with no third-party data sharing.
-- Officer passwords are never stored in plain text; only bcrypt hashes are persisted.
-- JWT tokens are HTTP-only cookies, not accessible to JavaScript, reducing XSS exposure.
+- Farmers identified by device ID + optional name and phone
+- Minimal data collection (name, phone) — no email, address, or sensitive info
+- All scan data stored locally in SQLite with no third-party data sharing
+- Officer passwords never stored in plain text; only bcrypt hashes persisted
+- JWT tokens in HTTP-only cookies, not accessible to JavaScript
+- IndexedDB for secure client-side offline storage
+- GDPR-friendly: Users can request data deletion
 
 ---
 
@@ -143,44 +179,181 @@ The dashboard also includes:
 
 | Crop | Detected Conditions |
 |---|---|
-| Tomato | Early Blight, Late Blight, Leaf Mold, Healthy |
-| Corn | Leaf Spot, Healthy |
-| Potato | Early Blight, Healthy |
-| Cassava | Brown Leaf Spot, Healthy |
-| Rice | Leaf Blast, Healthy |
-| Cocoa | Frosty Pod Rot, Healthy |
+| **Maize/Corn** | Common Rust, Gray Leaf Spot, Healthy, Northern Leaf Blight, **Not Maize** (rejection class) |
+
+### Coming Soon:
+- Tomato: Early Blight, Late Blight, Leaf Mold
+- Cassava: Brown Leaf Spot, Healthy
+- Cocoa: Frosty Pod Rot, Healthy
+
+---
+
+## PWA Offline Features
+
+### Service Worker (sw.js v3)
+- Caches all HTML, CSS, JS, and image assets
+- Serves cached content when offline
+- Background sync for pending uploads
+- Automatic updates when new version deployed
+
+### IndexedDB Schema
+```javascript
+Database: AgroGuardOffline
+Store: offlineScans
+Fields:
+  - id (auto-increment)
+  - imageData (base64)
+  - imageName, imageType
+  - timestamp
+  - farmerId, language
+  - synced (boolean)
+  - syncedAt
+  - result (analysis response)
+```
+
+---
+
+## API Endpoints
+
+### Farmer Endpoints
+- `GET /` - Farmer app (PWA)
+- `POST /predict` - Disease analysis
+- `GET /api/farmer/alerts` - Get AEO alerts
+- `GET /api/farmer/get-all-aeos` - List available extension officers
+
+### AEO Endpoints
+- `GET /dashboard` - Officer dashboard
+- `POST /api/alert/send` - Send broadcast alert
+- `GET /api/export/farmers` - Export farmer data (CSV/Excel)
+- `GET /api/export/scans` - Export scan data (CSV/Excel)
+- `GET /api/aeo/stats` - Dashboard statistics
+
+### Authentication
+- `POST /api/aeo/register` - AEO registration
+- `POST /api/aeo/login` - Officer login
+- `POST /api/aeo/logout` - End session
+
+---
+
+## Installation & Setup
+
+### Prerequisites
+- Python 3.9+
+- pip (Python package manager)
+
+### Local Development
+```bash
+# Clone repository
+git clone https://github.com/Natbello-20/agroguird_project.git
+cd agroguird_project
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration
+
+# Run development server
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Access the app
+# Farmer app: http://localhost:8000
+# AEO dashboard: http://localhost:8000/dashboard
+```
+
+### Production Deployment (Render.com)
+1. Push code to GitHub
+2. Connect Render to repository
+3. Auto-deploy on every push to main branch
+4. Environment variables configured in Render dashboard
+
+---
+
+## Project Structure
+
+```
+agroguird_project/
+├── main.py                 # API routes and application entry
+├── auth.py                 # JWT authentication & authorization
+├── database.py             # Database operations
+├── model.py                # AI model loader and predictor
+├── treatment.json          # Multilingual treatment database
+├── requirements.txt        # Python dependencies
+├── .env                    # Environment configuration
+├── templates/
+│   ├── index.html         # Farmer PWA app
+│   ├── dashboard.html     # AEO dashboard
+│   ├── login.html         # Officer login
+│   ├── role_selection.html # User type selection
+│   └── complete_profile.html # AEO onboarding
+├── static/
+│   ├── sw.js              # Service Worker (PWA)
+│   ├── manifest.json      # PWA manifest
+│   └── images/            # Logo and assets
+└── mobile_assets/
+    ├── maize_model.tflite # AI model
+    └── labels.txt         # Class labels
+```
 
 ---
 
 ## Impact & Value Proposition
 
-- **Speed**: Farmers get a diagnosis in seconds rather than waiting days for an officer visit.
-- **Accessibility**: Works on basic smartphones through a browser — no app installation required.
-- **Language**: Treatment advice delivered in Twi and Fante ensures comprehension beyond English-literate users.
-- **Scale**: Extension officers can monitor hundreds of farms simultaneously through the centralised dashboard.
-- **Early Warning**: Outbreak trends identified from aggregated scan data allow officers to intervene before diseases spread regionally.
-- **Low Barrier to Entry**: Anonymous farmer access means no registration friction — scan and get results immediately.
+- **Speed**: Farmers get diagnosis in seconds vs. days waiting for officer visit
+- **Accessibility**: Works on basic smartphones through browser — no app store needed
+- **Offline-First**: Works without internet, syncs automatically when online
+- **Language**: Treatment advice in Twi and Fante ensures comprehension
+- **Scale**: Extension officers monitor hundreds of farms simultaneously
+- **Early Warning**: Outbreak trends from aggregated data enable proactive intervention
+- **Real-Time Alerts**: Officers can instantly notify farmers of disease outbreaks
+- **Data-Driven**: Export and analyze farmer and scan data for insights
+- **Low Barrier**: Simple registration, works immediately
 
 ---
 
-## Project Structure Overview
+## Future Roadmap
 
-```
-agroguird_project/
-├── main.py             # API routes and application entry point
-├── auth.py             # JWT token creation, validation, and role guards
-├── database.py         # SQLite database setup and query functions
-├── model.py            # Disease detection model loader and predictor
-├── schemas.py          # Pydantic request/response data models
-├── treatment.json      # Multilingual treatment advice database
-├── templates/          # HTML pages (index, login, signup, dashboard)
-├── static/             # CSS and JavaScript assets
-├── requirements.txt    # Python dependencies
-└── .env                # Environment configuration (secrets, ports)
-```
+### Phase 2 (Q2 2026)
+- [ ] SMS alert integration (Twilio/Africa's Talking)
+- [ ] WhatsApp alert delivery
+- [ ] Field management (GPS, crop tracking)
+- [ ] History pagination (show 20, load more)
+- [ ] Auto-cleanup old scans (keep 100 max)
+- [ ] Search and filter history
+
+### Phase 3 (Q3 2026)
+- [ ] Regional disease maps
+- [ ] Predictive analytics (ML-based outbreak prediction)
+- [ ] Farmer-to-farmer messaging
+- [ ] Market price information
+- [ ] Weather-based planting recommendations
+- [ ] Multi-crop support (Cassava, Tomato, Cocoa)
 
 ---
 
-*AgroGuard — Protecting Ghanaian crops through intelligent, accessible technology.*
-#   D e p l o y m e n t   F i x  
- 
+## Contributing
+
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+---
+
+## License
+
+Copyright © 2026 AgroGuard Team. All rights reserved.
+
+---
+
+## Contact & Support
+
+- **GitHub**: [Natbello-20/agroguird_project](https://github.com/Natbello-20/agroguird_project)
+- **Deployment**: [agroguard.onrender.com](https://agroguard.onrender.com)
+
+---
+
+*AgroGuard — Protecting Ghanaian crops through intelligent, accessible, offline-first technology.*

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agroguard-v3';
+const CACHE_NAME = 'agroguard-v4';
 const ASSETS = [
     '/farmer',
     '/static/manifest.json',
