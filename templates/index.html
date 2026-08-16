@@ -4083,8 +4083,48 @@
                     }, 2000);
                     
                 } else {
+                    // Server returned error status (400, 422, etc.)
                     console.error('[Analyze] Server error:', res.status);
-                    // Custom error notification
+                    
+                    // Try to get error details from response
+                    let errorData;
+                    try {
+                        errorData = await res.json();
+                    } catch (e) {
+                        errorData = null;
+                    }
+                    
+                    console.log('[Analyze] Error data:', errorData);
+                    
+                    // Check if it's a "not maize" error
+                    if (errorData && errorData.error && (
+                        errorData.error.includes('not a maize') || 
+                        errorData.error.includes('Not a maize') ||
+                        errorData.error.includes('not maize') ||
+                        errorData.error.includes('Not Maize') ||
+                        errorData.disease === 'Not Maize Leaf'
+                    )) {
+                        // Show "Not Maize" notification
+                        const notMaizeDiv = document.createElement('div');
+                        notMaizeDiv.innerHTML = `
+                            <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; display:flex; align-items:center; justify-content:center;">
+                                <div style="background:white; border-radius:16px; padding:24px; max-width:90%; width:340px; box-shadow:0 8px 32px rgba(0,0,0,0.2); text-align:center;">
+                                    <div style="width:56px; height:56px; background:#fff3cd; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                                        <i class="bi bi-x-circle-fill" style="font-size:28px; color:#856404;"></i>
+                                    </div>
+                                    <h3 style="margin:0 0 12px 0; color:#2d5016; font-size:20px; font-weight:700;">Not a Maize Leaf</h3>
+                                    <p style="margin:0 0 20px 0; color:#666; font-size:15px; line-height:1.5;">${errorData.error}</p>
+                                    <button onclick="deletePendingScan(${scanId}); this.closest('[style*=fixed]').remove();" style="width:100%; background:#dc3545; color:white; border:none; padding:12px; border-radius:10px; font-weight:600; font-size:15px; cursor:pointer;">
+                                        Remove Scan
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        document.body.appendChild(notMaizeDiv);
+                        return;
+                    }
+                    
+                    // Generic error notification
                     const errorDiv = document.createElement('div');
                     errorDiv.innerHTML = `
                         <div style="position:fixed; top:80px; left:50%; transform:translateX(-50%); background:#dc3545; color:white; padding:16px 24px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.3); z-index:10000; animation:slideDown 0.3s ease; min-width:280px; text-align:center;">
@@ -4092,7 +4132,7 @@
                                 <i class="bi bi-exclamation-triangle-fill" style="font-size:24px;"></i>
                                 <div>
                                     <div style="font-weight:600; font-size:16px; margin-bottom:4px;">Analysis Failed</div>
-                                    <div style="font-size:14px; opacity:0.9;">Please try again</div>
+                                    <div style="font-size:14px; opacity:0.9;">${errorData?.error || 'Please try again'}</div>
                                 </div>
                             </div>
                         </div>
