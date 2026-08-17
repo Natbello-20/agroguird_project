@@ -163,6 +163,10 @@
             margin-left: var(--sidebar-width);
             padding: 2rem;
             transition: all 0.3s;
+            min-height: 100vh;
+            max-width: calc(100vw - var(--sidebar-width));
+            overflow-x: hidden;
+            box-sizing: border-box;
         }
 
         /* Cards */
@@ -808,9 +812,37 @@
         
         /* Tablet adjustments */
         @media (min-width: 769px) and (max-width: 1024px) {
+            .main-content {
+                margin-left: var(--sidebar-width);
+                padding: 1.5rem;
+                max-width: calc(100vw - var(--sidebar-width));
+                overflow-x: hidden;
+            }
+            
             .notification-menu {
                 width: 340px;
                 max-width: 340px;
+            }
+            
+            /* Make stat cards stack better */
+            .row.g-4 .col-md-3 {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+            
+            /* Reduce padding on cards */
+            .stat-card {
+                padding: 1.25rem;
+            }
+            
+            /* Tables responsive */
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .table-custom {
+                min-width: 600px;
             }
         }
 
