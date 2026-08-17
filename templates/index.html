@@ -590,6 +590,72 @@
             padding-top: 2rem;
         }
 
+        /* Instruction Card Styles */
+        .instruction-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 20px;
+            padding: 2rem 1.5rem;
+            margin: 0 auto 2rem;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 2px solid #e9ecef;
+        }
+
+        .instruction-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .instruction-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-green) 0%, #27ae60 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .instruction-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark-blue);
+            margin: 0;
+        }
+
+        .instruction-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1.5rem 0;
+        }
+
+        .instruction-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.9rem;
+            color: #495057;
+            line-height: 1.5;
+        }
+
+        .instruction-list li:last-child {
+            border-bottom: none;
+        }
+
+        .instruction-list i {
+            color: var(--primary-green);
+            font-size: 1.1rem;
+            margin-top: 0.1rem;
+            flex-shrink: 0;
+        }
+
         .camera-circle {
             width: 200px;
             height: 200px;
@@ -2370,15 +2436,47 @@
                 <img id="preview-img" src="" alt="Preview">
             </div>
 
-            <!-- Initial Camera Button -->
-            <div class="camera-circle" id="camera-btn-container" onclick="document.getElementById('fileInput').click()">
-                <div class="camera-btn-inner">
-                    <i class="bi bi-camera-fill"></i>
+            <!-- Instruction Card -->
+            <div class="instruction-card" id="instruction-card">
+                <div class="instruction-header">
+                    <div class="instruction-icon">
+                        <i class="bi bi-lightbulb-fill"></i>
+                    </div>
+                    <h3 class="instruction-title">Quick Tips</h3>
                 </div>
+                
+                <ul class="instruction-list">
+                    <li>
+                        <i class="bi bi-camera-fill"></i>
+                        <span>Use <strong>Camera</strong> to take new photo or <strong>Gallery</strong> to upload</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-brightness-high-fill"></i>
+                        <span>Ensure good lighting and focus on the maize leaf</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-x-circle-fill" style="color: #e74c3c;"></i>
+                        <span>Avoid shadows, fingers, and background objects</span>
+                    </li>
+                </ul>
             </div>
-            <p class="text-muted" id="tap-instruction">Take a clear photo of your maize leaf</p>
 
-            <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none"
+            <!-- Upload Options -->
+            <div class="upload-options" id="upload-options" style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem;">
+                <button class="btn btn-outline-primary rounded-pill px-4 py-2" onclick="document.getElementById('cameraInput').click()">
+                    <i class="bi bi-camera-fill me-2"></i>Camera
+                </button>
+                <button class="btn btn-outline-success rounded-pill px-4 py-2" onclick="document.getElementById('galleryInput').click()">
+                    <i class="bi bi-images me-2"></i>Gallery
+                </button>
+            </div>
+
+            <!-- Camera Input (forces camera) -->
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none"
+                onchange="handleFileSelect()">
+            
+            <!-- Gallery Input (allows file selection) -->
+            <input type="file" id="galleryInput" accept="image/*" style="display:none"
                 onchange="handleFileSelect()">
 
             <!-- Action Buttons (Hidden initially) -->
@@ -2740,14 +2838,18 @@
 
         // Camera Logic
         function handleFileSelect() {
-            const file = document.getElementById('fileInput').files[0];
+            // Check both camera and gallery inputs
+            const cameraFile = document.getElementById('cameraInput').files[0];
+            const galleryFile = document.getElementById('galleryInput').files[0];
+            const file = cameraFile || galleryFile;
+            
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     document.getElementById('preview-img').src = e.target.result;
                     document.getElementById('preview-area').style.display = 'block';
-                    document.getElementById('camera-btn-container').style.display = 'none';
-                    document.getElementById('tap-instruction').style.display = 'none';
+                    document.getElementById('instruction-card').style.display = 'none';
+                    document.getElementById('upload-options').style.display = 'none';
                     document.getElementById('scan-actions').style.display = 'flex';
                 };
                 reader.readAsDataURL(file);
@@ -2755,10 +2857,11 @@
         }
 
         function resetScan() {
-            document.getElementById('fileInput').value = '';
+            document.getElementById('cameraInput').value = '';
+            document.getElementById('galleryInput').value = '';
             document.getElementById('preview-area').style.display = 'none';
-            document.getElementById('camera-btn-container').style.display = 'flex';
-            document.getElementById('tap-instruction').style.display = 'block';
+            document.getElementById('instruction-card').style.display = 'block';
+            document.getElementById('upload-options').style.display = 'flex';
             document.getElementById('scan-actions').style.display = 'none';
             document.getElementById('result-card').style.display = 'none';
         }
@@ -2778,8 +2881,10 @@
             previewArea.appendChild(overlay);
 
             const formData = new FormData();
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
+            // Get file from either camera or gallery input
+            const cameraInput = document.getElementById('cameraInput');
+            const galleryInput = document.getElementById('galleryInput');
+            const file = cameraInput.files[0] || galleryInput.files[0];
             formData.append('file', file);
 
             // ===== CHECK IF OFFLINE =====
