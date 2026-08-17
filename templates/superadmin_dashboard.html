@@ -455,6 +455,7 @@
             try {
                 const response = await fetch('/superadmin/aeo/create', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -492,7 +493,9 @@
             `;
 
             try {
-                const response = await fetch('/api/superadmin/aeo/list');
+                const response = await fetch('/api/superadmin/aeo/list', {
+                    credentials: 'include'
+                });
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -576,7 +579,9 @@
             `;
 
             try {
-                const response = await fetch('/api/superadmin/support-requests');
+                const response = await fetch('/api/superadmin/support-requests', {
+                    credentials: 'include'
+                });
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -639,7 +644,9 @@
 
         // View Support Request Details
         function viewSupportRequest(requestId) {
-            fetch(`/api/superadmin/support-requests`)
+            fetch(`/api/superadmin/support-requests`, {
+                credentials: 'include'
+            })
                 .then(res => res.json())
                 .then(data => {
                     const request = data.requests.find(r => r.id === requestId);
@@ -681,6 +688,7 @@
             try {
                 const response = await fetch(`/api/superadmin/aeo/${aeoId}/toggle`, {
                     method: 'PUT',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json'
                     }
@@ -714,7 +722,8 @@
 
             try {
                 const response = await fetch(`/api/superadmin/aeo/${aeoId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    credentials: 'include'
                 });
 
                 const data = await response.json();
@@ -733,7 +742,9 @@
         // Load Audit Log
         async function loadAuditLog() {
             try {
-                const response = await fetch('/api/superadmin/audit-log?limit=20');
+                const response = await fetch('/api/superadmin/audit-log?limit=20', {
+                    credentials: 'include'
+                });
                 const data = await response.json();
 
                 if (!response.ok) {

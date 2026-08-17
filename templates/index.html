@@ -40,6 +40,7 @@
         body {
             background-color: var(--light-bg);
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding-top: 70px;
             padding-bottom: calc(var(--nav-height) + 20px);
             user-select: none;
             /* App-like feel */
@@ -60,8 +61,10 @@
         .app-header {
             background: var(--white);
             padding: 1rem;
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
             z-index: 100;
             display: flex;
             justify-content: space-between;

@@ -252,6 +252,7 @@
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
             width: 360px;
+            max-width: 90vw;
             max-height: 480px;
             overflow-y: auto;
             display: none;
@@ -801,6 +802,15 @@
             .notification-menu {
                 width: calc(100vw - 2rem);
                 right: -1rem;
+                max-width: 320px;
+            }
+        }
+        
+        /* Tablet adjustments */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .notification-menu {
+                width: 340px;
+                max-width: 340px;
             }
         }
 
