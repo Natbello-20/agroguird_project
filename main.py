@@ -1001,7 +1001,7 @@ async def create_aeo_account(
             action="create_aeo",
             entity="aeo",
             entity_id=aeo_id,
-            performed_by=current_user["user_id"],
+            performed_by=int(current_user["user_id"]),
             details=f"Created AEO account for {aeo_data.name} (Staff ID: {aeo_data.staff_id})"
         )
         
