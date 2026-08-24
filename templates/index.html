@@ -4232,21 +4232,28 @@
                         return;
                     }
                     
-                    // Generic error notification
+                    // Generic error notification with remove option
                     const errorDiv = document.createElement('div');
                     errorDiv.innerHTML = `
-                        <div style="position:fixed; top:80px; left:50%; transform:translateX(-50%); background:#dc3545; color:white; padding:16px 24px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.3); z-index:10000; animation:slideDown 0.3s ease; min-width:280px; text-align:center;">
-                            <div style="display:flex; align-items:center; gap:12px; justify-content:center;">
-                                <i class="bi bi-exclamation-triangle-fill" style="font-size:24px;"></i>
-                                <div>
-                                    <div style="font-weight:600; font-size:16px; margin-bottom:4px;">Analysis Failed</div>
-                                    <div style="font-size:14px; opacity:0.9;">${errorData?.error || 'Please try again'}</div>
+                        <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; display:flex; align-items:center; justify-content:center;">
+                            <div style="background:white; border-radius:16px; padding:24px; max-width:90%; width:340px; box-shadow:0 8px 32px rgba(0,0,0,0.2); text-align:center;">
+                                <div style="width:56px; height:56px; background:#ffe5e5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                                    <i class="bi bi-exclamation-triangle-fill" style="font-size:28px; color:#dc3545;"></i>
+                                </div>
+                                <h3 style="margin:0 0 12px 0; color:#dc3545; font-size:20px; font-weight:700;">Analysis Failed</h3>
+                                <p style="margin:0 0 20px 0; color:#666; font-size:15px; line-height:1.5;">${errorData?.error || 'Image quality is too poor or unclear. Please try again with better lighting.'}</p>
+                                <div style="display:flex; gap:8px;">
+                                    <button onclick="this.closest('[style*=fixed]').remove();" style="flex:1; background:#6c757d; color:white; border:none; padding:12px; border-radius:10px; font-weight:600; font-size:15px; cursor:pointer;">
+                                        Keep Scan
+                                    </button>
+                                    <button onclick="deletePendingScan(${scanId}); this.closest('[style*=fixed]').remove(); updatePendingBadge();" style="flex:1; background:#dc3545; color:white; border:none; padding:12px; border-radius:10px; font-weight:600; font-size:15px; cursor:pointer;">
+                                        Remove Scan
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     `;
                     document.body.appendChild(errorDiv);
-                    setTimeout(() => errorDiv.remove(), 3000);
                 }
                 
             } catch (error) {
