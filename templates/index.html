@@ -2320,7 +2320,7 @@
             <div id="welcome-error" class="welcome-error"></div>
 
             <button class="welcome-btn" id="welcome-submit-btn" onclick="submitFarmerProfile()">
-                <i class="bi bi-check-circle-fill"></i> Continue
+                <i class="bi bi-check-circle-fill"></i> <span id="btn-continue"></span>Continue</span>
             </button>
 
             <p class="welcome-footer-note">
@@ -2373,19 +2373,19 @@
                     <div class="weather-detail-item">
                         <i class="bi bi-cloud-fill"></i>
                         <div class="weather-detail-value" id="home-cloud">--%</div>
-                        <div class="weather-detail-label">Cloud</div>
+                        <div class="weather-detail-label" id="label-cloud">Cloud</div>
                     </div>
                     <div class="weather-detail-item">
                         <i class="bi bi-droplet-fill"></i>
                         <div class="weather-detail-value" id="home-humidity">--%</div>
-                        <div class="weather-detail-label">Humidity</div>
+                        <div class="weather-detail-label" id="label-humidity">Humidity</div>
                     </div>
                     <div class="weather-detail-item">
                         <i class="bi bi-shield-fill-exclamation"></i>
                         <div class="weather-detail-value">
                             <span id="home-risk" class="risk-badge">--</span>
                         </div>
-                        <div class="weather-detail-label">Risk</div>
+                        <div class="weather-detail-label" id="label-risk">Risk</div>
                     </div>
                 </div>
             </div>
@@ -2400,7 +2400,7 @@
         <!-- Recent Activity -->
         <div class="section-title">
             <span id="recent-scans-title">Recent Scans</span>
-            <small onclick="switchView('profile')" style="color: var(--primary-green); cursor: pointer;">View
+            <small onclick="switchView('profile')" style="color: var(--primary-green); cursor: pointer;" id="label-view-all">View
                 All</small>
         </div>
 
@@ -2445,7 +2445,7 @@
                     <div class="instruction-icon">
                         <i class="bi bi-lightbulb-fill"></i>
                     </div>
-                    <h3 class="instruction-title">Quick Tips</h3>
+                    <h3 class="instruction-title" id="label-quick-tips">Quick Tips</h3>
                 </div>
                 
                 <ul class="instruction-list">
@@ -2467,10 +2467,10 @@
             <!-- Upload Options -->
             <div class="upload-options" id="upload-options" style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem;">
                 <button class="btn btn-outline-primary rounded-pill px-4 py-2" onclick="document.getElementById('cameraInput').click()">
-                    <i class="bi bi-camera-fill me-2"></i>Camera
+                    <i class="bi bi-camera-fill me-2"></i><span id="btn-camera"></span>Camera</span>
                 </button>
                 <button class="btn btn-outline-success rounded-pill px-4 py-2" onclick="document.getElementById('galleryInput').click()">
-                    <i class="bi bi-images me-2"></i>Gallery
+                    <i class="bi bi-images me-2"></i><span id="btn-gallery">Gallery</span>
                 </button>
             </div>
 
@@ -2570,11 +2570,11 @@
                 <div class="row mt-4">
                     <div class="col-6 border-end">
                         <h5 class="fw-bold mb-0" id="weather-humidity">--%</h5>
-                        <small class="text-muted">Humidity</small>
+                        <small class="text-muted" id="label-humidity-full">Humidity</small>
                     </div>
                     <div class="col-6">
                         <h5 class="fw-bold mb-0" id="weather-risk">--</h5>
-                        <small class="text-muted">Disease Risk</small>
+                        <small class="text-muted" id="label-disease-risk">Disease Risk</small>
                     </div>
                 </div>
             </div>
@@ -2582,8 +2582,7 @@
 
         <!-- Risk Explanation Card -->
         <div class="card border-0 shadow-sm p-3 rounded-4" id="weather-risk-card">
-            <h6 class="fw-bold mb-2"><i class="bi bi-info-circle-fill text-primary me-2"></i>What does Disease Risk
-                mean?</h6>
+            <h6 class="fw-bold mb-2"><i class="bi bi-info-circle-fill text-primary me-2"></i><span id="label-disease-risk-title"></span>What does Disease Risk mean?</span></h6>
             <p class="small text-muted mb-0" id="weather-risk-explanation">When it's very wet and humid, your maize is more likely to get sick. Check your farm more often when the risk is high.</p>
         </div>
     </div>
@@ -2776,23 +2775,38 @@
                 "tap-instruction": "Tap to take a photo", "nav-home": "Home", "nav-weather": "Weather",
                 "nav-history": "History", "nav-profile": "Profile", "weather-title": "Weather",
                 "profile-title": "Resources", "menu-history": "Scan History", "menu-tips": "Farming Tips",
-                "menu-settings": "Settings", "sheet-history": "Scan History", "sheet-tips": "Farming Tips"
+                "menu-settings": "Settings", "sheet-history": "Scan History", "sheet-tips": "Farming Tips",
+                "label-cloud": "Cloud", "label-humidity": "Humidity", "label-risk": "Risk",
+                "label-view-all": "View All", "label-humidity-full": "Humidity", "label-disease-risk": "Disease Risk",
+                "label-disease-risk-title": "What does Disease Risk mean?",
+                "weather-risk-explanation": "When it's very wet and humid, your maize is more likely to get sick. Check your farm more often when the risk is high.",
+                "label-quick-tips": "Quick Tips", "btn-camera": "Camera", "btn-gallery": "Gallery", "btn-continue": "Continue"
             },
             tw: {
-                greeting: "Maakye, Odwan", "main-title": "Me Fuo", "location-text": "Wo Fuo So",
+                greeting: "Maakye, Okuani", "main-title": "Me Fuo", "location-text": "Wo Fuo So",
                 "recent-scans-title": "Nneɛma a W'ahwɛ", "diagnose-title": "Hwim Yare",
                 "tap-instruction": "Mia ha na fa 'photo'", "nav-home": "Fie", "nav-weather": "Ewiem",
                 "nav-history": "Akra", "nav-profile": "Me Ho", "weather-title": "Ewiem Tebea",
                 "profile-title": "Nneɛma", "menu-history": "Akra", "menu-tips": "Afotu",
-                "menu-settings": "Nsesa", "sheet-history": "Akra a W'ahwɛ", "sheet-tips": "Kuayɛ Afotu"
+                "menu-settings": "Nsesa", "sheet-history": "Akra a W'ahwɛ", "sheet-tips": "Kuayɛ Afotu",
+                "label-cloud": "Omununkum", "label-humidity": "Nsu", "label-risk": "Asiane",
+                "label-view-all": "Hwɛ Nyinaa", "label-humidity-full": "Nsu Dodow", "label-disease-risk": "Yare Asiane",
+                "label-disease-risk-title": "Yare Asiane kyerɛ sɛn?",
+                "weather-risk-explanation": "Sɛ nsu ne mframa no yɛ bebree a, wo aburo betumi anya yare. Hwɛ wo fuo pii sɛ asiane no yɛ kɛse a.",
+                "label-quick-tips": "Afotu Ntem", "btn-camera": "Kamera", "btn-gallery": "Mfonini", "btn-continue": "Kɔ So"
             },
             ff: { // Fante (Using Twi as placeholder mostly)
-                greeting: "Maakye, Odwan", "main-title": "Me Fuo", "location-text": "Wo Fuo So",
+                greeting: "Maakye, Okuani", "main-title": "Me Fuo", "location-text": "Wo Fuo So",
                 "recent-scans-title": "Nneɛma a W'ahwɛ", "diagnose-title": "Hwim Yare",
                 "tap-instruction": "Mia ha na fa 'photo'", "nav-home": "Fie", "nav-weather": "Ewiem",
                 "nav-history": "Akra", "nav-profile": "Me Ho", "weather-title": "Ewiem Tebea",
                 "profile-title": "Nneɛma", "menu-history": "Akra", "menu-tips": "Afotu",
-                "menu-settings": "Nsesa", "sheet-history": "Akra a W'ahwɛ", "sheet-tips": "Kuayɛ Afotu"
+                "menu-settings": "Nsesa", "sheet-history": "Akra a W'ahwɛ", "sheet-tips": "Kuayɛ Afotu",
+                "label-cloud": "Omununkum", "label-humidity": "Nsu", "label-risk": "Asiane",
+                "label-view-all": "Hwɛ Nyinaa", "label-humidity-full": "Nsu Dodow", "label-disease-risk": "Yare Asiane",
+                "label-disease-risk-title": "Yare Asiane kyerɛ sɛn?",
+                "weather-risk-explanation": "Sɛ nsu ne mframa no yɛ bebree a, wo aburo betumi anya yare. Hwɛ wo fuo pii sɛ asiane no yɛ kɛse a.",
+                "label-quick-tips": "Afotu Ntem", "btn-camera": "Kamera", "btn-gallery": "Mfonini", "btn-continue": "Kɔ So"
             }
         };
 
