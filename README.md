@@ -237,21 +237,33 @@ Fields:
 
 ## Installation & Setup
 
+### Quick Setup
+For detailed step-by-step instructions, see **[SETUP_GUIDE.md](SETUP_GUIDE.md)**
+
 ### Prerequisites
 - Python 3.9+
 - pip (Python package manager)
+- Git
 
-### Local Development
+### Local Development (Quick Start)
 ```bash
 # Clone repository
 git clone https://github.com/Natbello-20/agroguird_project.git
 cd agroguird_project
 
+# Create virtual environment (recommended)
+python -m venv venv
+
+# Activate virtual environment
+# Windows: venv\Scripts\activate
+# macOS/Linux: source venv/bin/activate
+
 # Install dependencies
 pip install -r requirements.txt
 
 # Set up environment variables
-cp .env.example .env
+# Windows: copy .env.example .env
+# macOS/Linux: cp .env.example .env
 # Edit .env with your configuration
 
 # Run development server
@@ -267,6 +279,8 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 2. Connect Render to repository
 3. Auto-deploy on every push to main branch
 4. Environment variables configured in Render dashboard
+
+**📖 For complete setup instructions including troubleshooting, mobile access, and testing, see [SETUP_GUIDE.md](SETUP_GUIDE.md)**
 
 ---
 
